@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "axe-core scan on source save",
+      "trigger": "PostFileSave",
+      "description": "When a .tsx/.ts/.css file under dashboard/src/ is saved, map it to the affected dev-server route(s), run axe-core via Playwright against those routes, and print a violation report (WCAG criterion, element, suggested fix). Never modifies code; waits for explicit human approval before any change.",
+      "matcher": "dashboard/src/.*\\.(tsx?|css)$",
+      "action": {
+        "type": "command",
+        "command": "node /Users/sukhada/Desktop/Kiro.hackathon/.kiro/scripts/axe-on-save.mjs",
+        "timeout": 90
+      }
+    }
+  ]
+}

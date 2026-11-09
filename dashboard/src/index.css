@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS custom properties (consumed by Tailwind tokens + raw CSS) ──────── */
+:root {
+  --color-base:          #0d0714;
+  --color-panel:         #1a0f2e;
+  --color-surface:       #231540;
+  --color-line:          #3b2060;
+
+  --color-violet-500:    #8b46ff;
+  --color-violet-600:    #7c3aed;
+  --color-violet-neon:   #a855f7;
+
+  --color-ghost-ready:   #c9b6ff;
+  --color-ghost-blocked: #ef4444;
+  --color-ghost-verified:#22c55e;
+
+  --color-parchment:     #f5e6c8;
+  --color-parchment-ink: #3b2a0e;
+
+  --color-ink:           #f0e8ff;
+  --color-ink-muted:     #9d89b8;
+
+  --font-display: "Uncial Antiqua", Papyrus, fantasy;
+  --font-ui:      "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  --shadow-glow:        0 0 12px 2px rgba(168, 85, 247, 0.45);
+  --shadow-glow-red:    0 0 10px 2px rgba(239, 68, 68, 0.40);
+  --shadow-glow-green:  0 0 10px 2px rgba(34, 197, 94, 0.35);
+}
+
+/* ── Base resets ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── prefers-reduced-motion ─────────────────────────────────────────────
+   Covers: ghost floating, glow pulses, spinner, animate-pulse dot.
+   animation: none stops @keyframes from Tailwind and plain CSS alike.
+   box-shadow: none removes glow pulses (which are shadow-based).
+   transition: none stops hover colour flickers.
+   ─────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  /* Remove pulsing glow box-shadows */
+  .panel-glow,
+  .shadow-glow,
+  .glow,
+  .glow-red,
+  .glow-green {
+    box-shadow: none !important;
+  }
+}
+
+/* ── Typography helpers ────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ── Panel / card base ─────────────────────────────────────────────────── */
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+}
+
+.panel-glow {
+  background: var(--color-panel);
+  border: 1px solid var(--color-violet-600);
+  border-radius: 12px;
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Focus visible ring (WCAG 2.1 §2.4.7) ──────────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--color-violet-neon);
+  outline-offset: 3px;
+}
+
+/* ── Scrollbar (dark themed) ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-base); }
+::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-violet-600); }
+
+/* ── Glow utilities (supplement Tailwind) ────────────────────────────────── */
+.glow       { box-shadow: var(--shadow-glow); }
+.glow-red   { box-shadow: var(--shadow-glow-red); }
+.glow-green { box-shadow: var(--shadow-glow-green); }
+
+/* ── Responsive / zoom safety ───────────────────────────────────────────── */
+/* Prevents horizontal scroll at 200% zoom and on 375px viewports (WCAG 1.4.10) */
+html, body {
+  overflow-x: hidden;
+}
+
+/* ── Code block ─────────────────────────────────────────────────────────── */
+.code-block {
+  font-family: var(--font-mono);
+  /* 0.875rem = 14px at default zoom; scales to 28px at 200% — satisfies
+     WCAG 1.4.4 Resize Text. Code samples are exempt from the 16px body-copy
+     minimum; we keep them rem-based so they honour user zoom preferences. */
+  font-size: 0.875rem;
+  line-height: 1.6;
+  background: #0d0714;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+
+.code-block .token-add    { color: #22c55e; }
+.code-block .token-remove { color: #ef4444; }
+.code-block .token-tag    { color: #a855f7; }
+.code-block .token-attr   { color: #60a5fa; }
+.code-block .token-string { color: #f59e0b; }

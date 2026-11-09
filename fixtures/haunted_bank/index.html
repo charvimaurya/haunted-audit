@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Haunted Bank - test site</title>
+  <style>
+    :root {
+      --bg: #140b22;
+      --panel: #241338;
+      --ink: #f6f0e6;
+      --muted: #cbbbe0;
+      --line: #4a3270;
+      --gold: #f0c36a;
+      --green: #3ddc97;
+      --ghost: #c9b6ff;
+    }
+    * { box-sizing: border-box; }
+    html { font-size: 16px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 420px at 10% -10%, #3a2260 0%, transparent 55%),
+        var(--bg);
+      font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    }
+    a { color: var(--gold); }
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+    }
+    .skip {
+      position: absolute;
+      left: 12px;
+      top: -40px;
+      background: var(--gold);
+      color: #1a1028;
+      padding: 8px 12px;
+      z-index: 5;
+    }
+    .skip:focus { top: 12px; }
+    header, main, footer { width: min(880px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 28px 0 8px; display: flex; justify-content: space-between; gap: 16px; align-items: end; }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .mascot { font-size: 42px; line-height: 1; }
+    h1, h2, p { margin: 0; }
+    .eyebrow { color: var(--ghost); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.8rem; }
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.85rem;
+    }
+    nav ul { display: flex; gap: 16px; padding: 0; list-style: none; }
+    nav a { text-decoration: none; font-family: ui-sans-serif, system-ui, sans-serif; }
+    .layout { display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 16px; padding: 12px 0 32px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+    }
+    form { display: grid; gap: 14px; margin-top: 16px; }
+    label { display: grid; gap: 6px; font-family: ui-sans-serif, system-ui, sans-serif; }
+    input {
+      font: inherit;
+      font-size: 1rem;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #120918;
+      color: var(--ink);
+    }
+    .actions { display: flex; gap: 16px; align-items: center; }
+    .btn-primary, .pay-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: linear-gradient(180deg, #ff7a59, #d84a32);
+      color: white;
+      font: 700 1rem/1 ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+    }
+    .offer { color: var(--muted); display: grid; gap: 8px; }
+    footer { padding-bottom: 28px; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; }
+    #form-error, #payment-confirmation { font-family: ui-sans-serif, system-ui, sans-serif; }
+    #form-error { color: #ffb4a8; }
+    #payment-confirmation {
+      background: #123226;
+      color: var(--green);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#payment-form">Skip to payment</a>
+  <header>
+    <div class="brand">
+      <div class="mascot" aria-hidden="true">👻</div>
+      <div>
+        <p class="eyebrow">Haunted Bank</p>
+        <h1>Haunted Bank - test site</h1>
+      </div>
+    </div>
+    <p class="badge" id="variant-badge">Variant: …</p>
+  </header>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a id="nav-dashboard" href="#dashboard">Dashboard</a></li>
+      <li><a id="nav-accounts" href="#accounts">Accounts</a></li>
+      <li><a id="nav-transactions" href="#transactions">Transactions</a></li>
+      <li><a id="nav-offer" href="#offer">See offer</a></li>
+    </ul>
+  </nav>
+  <div class="layout">
+    <main class="panel" id="dashboard">
+      <p class="eyebrow">Payments</p>
+      <h2>Send Payment</h2>
+      <p id="accounts">Move euros to another customer. This page is the journey under test.</p>
+      <form id="payment-form" novalidate>
+        <label>
+          Recipient
+          <input id="recipient" name="recipient" type="text" autocomplete="name" />
+        </label>
+        <label>
+          Amount (EUR)
+          <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" />
+        </label>
+        <div class="actions">
+          <div id="pay-slot"></div>
+          <a id="cancel" href="#cancelled">Cancel</a>
+        </div>
+        <p id="form-error" role="alert" hidden></p>
+        <div id="payment-confirmation" data-testid="payment-confirmation" role="status" hidden></div>
+      </form>
+      <p id="cancelled" hidden>Payment cancelled. Nothing was sent.</p>
+    </main>
+    <aside class="panel offer" id="offer">
+      <p class="eyebrow">Distraction</p>
+      <h2>Pumpkin fee waived</h2>
+      <p id="transactions">A seasonal banner. It is not part of sending the payment.</p>
+      <a id="offer-terms" href="#offer">Offer terms</a>
+    </aside>
+  </div>
+  <footer>
+    <a id="privacy" href="#privacy-note">Privacy</a>
+    <p id="privacy-note">Haunted Bank test site. No real money moves.</p>
+  </footer>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const variant = params.get("variant") === "fixed" ? "fixed" : "broken";
+    document.getElementById("variant-badge").textContent = "Variant: " + variant;
+
+    const slot = document.getElementById("pay-slot");
+    if (variant === "fixed") {
+      slot.innerHTML = '<button type="submit" class="btn-primary" id="send-payment">Send Payment</button>';
+    } else {
+      slot.innerHTML = '<div class="pay-btn" id="send-payment" onclick="window.submitPayment()">Send Payment</div>';
+    }
+
+    window.submitPayment = function submitPayment() {
+      const recipient = document.getElementById("recipient").value.trim();
+      const amount = document.getElementById("amount").value.trim();
+      const error = document.getElementById("form-error");
+      const confirmation = document.getElementById("payment-confirmation");
+      if (!recipient || !amount) {
+        error.hidden = false;
+        error.textContent = "Enter a recipient and an amount.";
+        confirmation.hidden = true;
+        confirmation.textContent = "";
+        return;
+      }
+      error.hidden = true;
+      confirmation.hidden = false;
+      confirmation.textContent = "Sent EUR " + amount + " to " + recipient + ".";
+    };
+
+    document.getElementById("payment-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      window.submitPayment();
+    });
+  </script>
+</body>
+</html>
