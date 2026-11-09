@@ -71,6 +71,54 @@ body {
   }
 }
 
+/* Calm mode is the same promise, chosen from the page as well as the OS. */
+html[data-calm='true'] *,
+html[data-calm='true'] *::before,
+html[data-calm='true'] *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+}
+
+/* Decorative motion sits under the controls and cannot take clicks or focus. */
+.ambient-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: inline-size;
+}
+.ambient-layer,
+.ambient-layer * {
+  pointer-events: none !important;
+}
+
+/* Left edge to right edge, then the loop starts again. Horizontal only. */
+@keyframes ambient-roam {
+  from { transform: translate3d(-5rem, 0, 0); }
+  to { transform: translate3d(calc(100cqi + 1rem), 0, 0); }
+}
+.ambient-roam {
+  top: 42%;
+  left: 0;
+  font-size: 4.5rem;
+  line-height: 1;
+  animation-name: ambient-roam;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translateY(16vh); opacity: 0.25; }
+  50% { transform: translateY(68vh); opacity: 0.45; }
+}
+.ambient-particle {
+  animation-name: ambient-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
 /* ── Typography helpers ────────────────────────────────────────────────── */
 .font-display { font-family: var(--font-display); }
 .font-mono    { font-family: var(--font-mono); }

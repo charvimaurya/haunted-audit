@@ -62,6 +62,7 @@ export function GhostMascot({
       aria-hidden="true"
       role="presentation"
       data-ghost-state={state}
+      data-semantic-ghost="true"
       data-testid="ghost-mascot"
       className={[
         'inline-flex items-center justify-center select-none leading-none',

@@ -13,6 +13,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Ghost, Menu, X } from 'lucide-react';
+import { SenseControls } from '../immersion/SenseControls';
 
 interface NavLink {
   label: string;
@@ -118,6 +119,7 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
         </ul>
 
         <div className="flex items-center gap-2">
+          <SenseControls />
           {/* Kiro CTA — always visible */}
           <a
             href="#kiro"

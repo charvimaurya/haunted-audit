@@ -2,7 +2,10 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
+const pages = process.env.GITHUB_PAGES === 'true';
+
 export default defineConfig({
+  base: pages ? '/haunted-audit/' : '/',
   plugins: [react()],
   server: {
     port: 5173,

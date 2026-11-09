@@ -126,7 +126,7 @@ export default function App() {
         id="main-content"
         tabIndex={-1}
         aria-label="Haunted Audit dashboard"
-        className="pt-14 max-w-7xl mx-auto px-4 sm:px-6 pb-16
+        className="relative z-[1] pt-14 max-w-7xl mx-auto px-4 sm:px-6 pb-16
                    focus-visible:outline-none"
       >
         {/* Hero */}

@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from 'react';
 import { Search, Wrench, CheckCircle, ShieldCheck } from 'lucide-react';
-import { GhostMascot } from './GhostMascot';
+import { AmbientLayer } from '../immersion/AmbientLayer';
 
 interface HeroSectionProps {
   onPossess?: () => void;
@@ -58,17 +58,16 @@ export function HeroSection({ onPossess }: HeroSectionProps) {
           'radial-gradient(ellipse 900px 420px at 50% 0%, #3a1a6e 0%, transparent 70%), #0d0714',
       }}
     >
-      {/* Decorative bats and pumpkins — fully hidden from AT */}
-      <span aria-hidden="true" className="absolute top-8 left-12 text-3xl opacity-40 select-none pointer-events-none">🦇</span>
-      <span aria-hidden="true" className="absolute top-12 right-16 text-2xl opacity-30 select-none pointer-events-none">🦇</span>
-      <span aria-hidden="true" className="absolute bottom-20 left-8 text-4xl opacity-20 select-none pointer-events-none">🎃</span>
-      <span aria-hidden="true" className="absolute bottom-16 right-10 text-3xl opacity-20 select-none pointer-events-none">🎃</span>
+      {/* Roaming ghost crosses the hero. It is not the semantic mascot. */}
+      <AmbientLayer />
 
-      {/* Ghost mascot — Ready state; aria-hidden, state conveyed by text below */}
-      <div className="mb-4" aria-hidden="true">
-        <GhostMascot state="ready" size={64} animate />
-      </div>
+      {/* Decorative marks sit under the controls and cannot take a click. */}
+      <span aria-hidden="true" className="absolute top-8 left-12 z-0 text-3xl opacity-40 select-none pointer-events-none">🦇</span>
+      <span aria-hidden="true" className="absolute top-12 right-16 z-0 text-2xl opacity-30 select-none pointer-events-none">🦇</span>
+      <span aria-hidden="true" className="absolute bottom-20 left-8 z-0 text-4xl opacity-20 select-none pointer-events-none">🎃</span>
+      <span aria-hidden="true" className="absolute bottom-16 right-10 z-0 text-3xl opacity-20 select-none pointer-events-none">🎃</span>
 
+      <div className="relative z-[1] flex flex-col items-center">
       {/* Wordmark — display (spooky) font; sole <h1> on the page */}
       <h1
         id="hero-heading"
@@ -125,6 +124,7 @@ export function HeroSection({ onPossess }: HeroSectionProps) {
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }

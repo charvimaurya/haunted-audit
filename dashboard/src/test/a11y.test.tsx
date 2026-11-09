@@ -15,6 +15,7 @@ import { render } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { expect, describe, it } from 'vitest';
 
+import { ImmersionProvider } from '../immersion/ImmersionContext';
 import { GhostMascot }            from '../components/GhostMascot';
 import { HeroSection }             from '../components/HeroSection';
 import { TopNav }                  from '../components/TopNav';
@@ -49,12 +50,20 @@ describe('Accessibility — zero axe violations', () => {
   });
 
   it('TopNav (default + mobile open)', async () => {
-    const { container } = render(<TopNav activeSection="Home" />);
+    const { container } = render(
+      <ImmersionProvider>
+        <TopNav activeSection="Home" />
+      </ImmersionProvider>,
+    );
     expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
   });
 
   it('HeroSection', async () => {
-    const { container } = render(<HeroSection />);
+    const { container } = render(
+      <ImmersionProvider>
+        <HeroSection />
+      </ImmersionProvider>,
+    );
     expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
   });
 

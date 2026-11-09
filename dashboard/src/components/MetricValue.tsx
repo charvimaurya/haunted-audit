@@ -6,7 +6,10 @@
  * Never invents values.
  */
 
+import { useEffect, useState } from 'react';
 import type { AgentMode, MetricValue as TMetricValue } from '../types';
+import { useMotionAllowed } from '../immersion/ImmersionContext';
+import { shouldAnimateCounter } from '../immersion/motion';
 
 interface MetricValueProps {
   /** null = not yet measured */
@@ -33,6 +36,7 @@ export function MetricValueDisplay({
   className = '',
 }: MetricValueProps) {
   const isUnmeasured = value === null || value === undefined;
+  const shown = useMeasuredCount(isUnmeasured ? null : value);
 
   return (
     <div className={`flex flex-col items-center gap-1 ${className}`}>
@@ -45,7 +49,7 @@ export function MetricValueDisplay({
         }`}
         aria-label={isUnmeasured ? 'not yet measured' : format(value as number)}
       >
-        {isUnmeasured ? '--' : format(value as number)}
+        {isUnmeasured || shown === null ? '--' : format(shown)}
       </span>
 
       {/* Label */}
@@ -95,4 +99,28 @@ export function MetricChip({
       </span>
     </span>
   );
+}
+
+/** Ease toward a measured number. Unmeasured values stay null and never start a count. */
+function useMeasuredCount(value: number | null): number | null {
+  const motionAllowed = useMotionAllowed();
+  const [shown, setShown] = useState<number | null>(value);
+
+  useEffect(() => {
+    if (!shouldAnimateCounter(value, motionAllowed) || value === null) {
+      setShown(value);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 600);
+      setShown(t >= 1 ? value : value * t);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, motionAllowed]);
+
+  return shown;
 }

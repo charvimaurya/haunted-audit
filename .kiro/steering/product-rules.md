@@ -97,6 +97,10 @@ The React/Tailwind dashboard at `dashboard/` implements the v7 frozen design. Ru
 - "The Outcome" card uses parchment colours (`#f5e6c8` / `#e8d0a0`) with ink text (`#3b2a0e`).
 - All interactive elements have visible focus indicators (3px `#a855f7` outline, WCAG 2.4.7).
 - Reduced-motion preference respected via `@media (prefers-reduced-motion: reduce)`.
+- Ambient effects are decorative: `aria-hidden`, `pointer-events: none`, never focusable, and painted under the controls. The roaming ghost is not `GhostMascot`. Semantic ghosts stay beside the control they describe and are not driven by the ambient animation.
+- Calm mode is on when the system prefers reduced motion, and a visible keyboard toggle can turn it on as well. The choice is saved. Calm mode stops roaming, particles, and 3D. Sound is off until the visitor uses the sound toggle. Nothing autoplays.
+- No animation cycle is shorter than 334ms. If frames stay under 40fps for 2 seconds, the page drops 3D and particles, then the roam. Mobile and low-power devices never load 3D.
+- Counters animate only toward a measured number. An unmeasured metric stays `--`.
 
 ## Attribution
 
