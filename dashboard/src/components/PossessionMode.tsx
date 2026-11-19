@@ -5,7 +5,7 @@
  *
  * Accessibility:
  * - Sidebar nav items are <nav> + <ul>/<li> with anchor elements (no bare divs).
- * - Payment form fields use real <input readOnly> bound to <label htmlFor>.
+ * - Payment form fields are real <input> elements bound to <label htmlFor>.
  * - The demo "Send Payment" element: blocked variant uses <div role="button">
  *   with tabIndex={0} and Enter/Space handlers to prove the barrier visually
  *   while remaining keyboard-operable within the dashboard itself. The fixed
@@ -178,7 +178,7 @@ export function PossessionMode({
         <div className="flex-1 p-5 min-w-0" aria-label="Send Payment form demonstration">
           <h3 className="text-base font-semibold font-ui text-ink mb-4">Send Payment</h3>
 
-          {/* Read-only form fields — real inputs for correct AT announcements */}
+          {/* Empty fields you fill in yourself. They are not sent to the agent run. */}
           <div className="flex flex-col gap-3 mb-4">
             <div>
               <label
@@ -190,10 +190,9 @@ export function PossessionMode({
               <input
                 id="pm-recipient"
                 type="text"
-                readOnly
-                value="Alex Carter"
+                autoComplete="off"
                 className="w-full px-3 py-2 rounded-lg bg-base border border-base-line
-                           text-sm font-ui text-ink cursor-default
+                           text-sm font-ui text-ink
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
               />
             </div>
@@ -207,10 +206,10 @@ export function PossessionMode({
               <input
                 id="pm-amount"
                 type="text"
-                readOnly
-                value="€50.00"
+                inputMode="decimal"
+                autoComplete="off"
                 className="w-full px-3 py-2 rounded-lg bg-base border border-base-line
-                           text-sm font-ui text-ink cursor-default
+                           text-sm font-ui text-ink
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
               />
             </div>

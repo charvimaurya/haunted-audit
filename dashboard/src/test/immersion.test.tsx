@@ -15,6 +15,7 @@ import {
   MIN_FLASH_CYCLE_MS,
   PARTICLE_MS,
   ROAM_MS,
+  ROAM_REVERSE_MS,
   deviceQuality,
   nextQuality,
   shouldAnimateCounter,
@@ -38,7 +39,10 @@ describe('motion rules', () => {
   });
 
   it('keeps ambient cycles slower than three flashes a second', () => {
+    expect(ROAM_MS).toBe(15_000);
+    expect(ROAM_REVERSE_MS).toBe(16_000);
     expect(ROAM_MS).toBeGreaterThan(MIN_FLASH_CYCLE_MS);
+    expect(ROAM_REVERSE_MS).toBeGreaterThan(MIN_FLASH_CYCLE_MS);
     expect(PARTICLE_MS).toBeGreaterThan(MIN_FLASH_CYCLE_MS);
   });
 
@@ -46,7 +50,7 @@ describe('motion rules', () => {
     expect(nextQuality('full', 55, 3000)).toBe('full');
     expect(nextQuality('full', 30, 1999)).toBe('full');
     expect(nextQuality('full', 30, 2000)).toBe('reduced');
-    expect(nextQuality('reduced', 20, 2000)).toBe('static');
+    expect(nextQuality('reduced', 20, 2000)).toBe('reduced');
   });
 
   it('skips 3D and particles on mobile, low-power, and reduced motion', () => {
@@ -86,10 +90,22 @@ describe('motion rules', () => {
     expect(layer.contains(semantic)).toBe(false);
 
     if (layer.getAttribute('data-quality') !== 'static') {
-      const roam = await screen.findByTestId('ambient-ghost');
-      expect(layer.contains(roam)).toBe(true);
-      expect(roam).not.toHaveAttribute('data-semantic-ghost');
-      expect(Number.parseFloat(roam.style.animationDuration)).toBeGreaterThan(MIN_FLASH_CYCLE_MS);
+      const roams = await screen.findAllByTestId('ambient-ghost');
+      expect(roams).toHaveLength(2);
+      const ltr = roams.find((node) => node.getAttribute('data-roam') === 'ltr');
+      const rtl = roams.find((node) => node.getAttribute('data-roam') === 'rtl');
+      expect(ltr).toBeTruthy();
+      expect(rtl).toBeTruthy();
+      for (const roam of roams) {
+        expect(layer.contains(roam)).toBe(true);
+        expect(roam).toHaveAttribute('aria-hidden', 'true');
+        expect(roam).not.toHaveAttribute('data-semantic-ghost');
+        expect(Number.parseFloat(roam.style.animationDuration)).toBeGreaterThan(MIN_FLASH_CYCLE_MS);
+      }
+      expect(Number.parseFloat(ltr!.style.animationDuration)).toBe(ROAM_MS);
+      expect(Number.parseFloat(rtl!.style.animationDuration)).toBe(ROAM_REVERSE_MS);
+      expect(ltr).toHaveTextContent('👻');
+      expect(rtl?.querySelector('.ambient-ghost-alt')).not.toBeNull();
     }
   });
 
@@ -104,7 +120,7 @@ describe('motion rules', () => {
     await waitFor(() =>
       expect(screen.getByTestId('ambient-layer')).toHaveAttribute('data-ambient', 'off'),
     );
-    expect(screen.queryByTestId('ambient-ghost')).not.toBeInTheDocument();
+    expect(screen.queryAllByTestId('ambient-ghost')).toHaveLength(0);
     expect(screen.getByTestId('ghost-mascot')).toBeInTheDocument();
   });
 

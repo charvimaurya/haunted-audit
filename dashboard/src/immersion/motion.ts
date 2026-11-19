@@ -16,8 +16,14 @@ export const SOUND_STORAGE_KEY = 'haunted-audit.sound';
 /** WCAG 2.3.1: a cycle shorter than this can flash more than 3 times a second. */
 export const MIN_FLASH_CYCLE_MS = 334;
 
-/** One left-to-right pass. Slow enough to read as slo-mo, far slower than a flash. */
-export const ROAM_MS = 24_000;
+/**
+ * One pass across the hero. 15s and 16s are a slightly quicker drift than the
+ * old 24s loop, still linear and far slower than a flash.
+ * LTR uses ROAM_MS. The second ghost uses ROAM_REVERSE_MS so the two passes
+ * do not stay locked together.
+ */
+export const ROAM_MS = 15_000;
+export const ROAM_REVERSE_MS = 16_000;
 export const PARTICLE_MS = 8_000;
 
 export type Quality = 'full' | 'reduced' | 'static';
@@ -79,14 +85,13 @@ export function deviceQuality(options: {
 }
 
 /**
- * Drop a step after fps stays under 40 for 2 seconds.
- * full loses 3D and particles. reduced loses the remaining roam.
+ * Drop 3D and particles after fps stays under 40 for 2 seconds.
+ * The two roaming ghosts stay. Only Calm mode and reduced-motion turn those off.
  */
 export function nextQuality(current: Quality, fps: number, lowForMs: number): Quality {
   if (fps >= 40 || lowForMs < 2000) return current;
   if (current === 'full') return 'reduced';
-  if (current === 'reduced') return 'static';
-  return 'static';
+  return current;
 }
 
 export function resolveCalm(stored: StoredSwitch, systemReduce: boolean): boolean {

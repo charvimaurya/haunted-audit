@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { PARTICLE_MS, ROAM_MS, type Quality } from './motion';
+import { PARTICLE_MS, ROAM_MS, ROAM_REVERSE_MS, type Quality } from './motion';
 
 const PARTICLES = [8, 22, 41, 63, 78, 90];
 
@@ -32,10 +32,22 @@ export default function AmbientScene({ quality }: { quality: Quality }) {
       <span
         data-testid="ambient-ghost"
         data-ambient-ghost="true"
-        className="ambient-roam absolute text-4xl text-ghost-ready select-none"
+        data-roam="ltr"
+        aria-hidden="true"
+        className="ambient-roam ambient-roam-ltr absolute select-none"
         style={{ animationDuration: `${ROAM_MS}ms` }}
       >
         👻
+      </span>
+      <span
+        data-testid="ambient-ghost"
+        data-ambient-ghost="true"
+        data-roam="rtl"
+        aria-hidden="true"
+        className="ambient-roam ambient-roam-rtl absolute select-none"
+        style={{ animationDuration: `${ROAM_REVERSE_MS}ms` }}
+      >
+        <span className="ambient-ghost-alt">👻</span>
       </span>
       {allowParticles &&
         PARTICLES.map((left) => (

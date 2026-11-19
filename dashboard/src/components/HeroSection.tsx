@@ -58,7 +58,7 @@ export function HeroSection({ onPossess }: HeroSectionProps) {
           'radial-gradient(ellipse 900px 420px at 50% 0%, #3a1a6e 0%, transparent 70%), #0d0714',
       }}
     >
-      {/* Roaming ghost crosses the hero. It is not the semantic mascot. */}
+      {/* Roaming ghosts cross the hero. They are not the semantic mascot. */}
       <AmbientLayer />
 
       {/* Decorative marks sit under the controls and cannot take a click. */}

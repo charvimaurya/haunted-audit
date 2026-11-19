@@ -94,19 +94,39 @@ html[data-calm='true'] *::after {
   pointer-events: none !important;
 }
 
-/* Left edge to right edge, then the loop starts again. Horizontal only. */
+/* Horizontal only. Each pass starts fully outside the hero and loops. */
 @keyframes ambient-roam {
   from { transform: translate3d(-5rem, 0, 0); }
   to { transform: translate3d(calc(100cqi + 1rem), 0, 0); }
 }
+@keyframes ambient-roam-back {
+  from { transform: translate3d(calc(100cqi + 1rem), 0, 0); }
+  to { transform: translate3d(-5rem, 0, 0); }
+}
 .ambient-roam {
-  top: 42%;
   left: 0;
-  font-size: 4.5rem;
   line-height: 1;
-  animation-name: ambient-roam;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+}
+/* Mid open band beside the tagline, left → right. Starts mid-crossing so it is visible immediately. */
+.ambient-roam-ltr {
+  top: 42%;
+  font-size: 4.75rem;
+  animation-name: ambient-roam;
+  animation-delay: -7s;
+}
+/* Upper band, right → left. A different, tinted ghost, already on screen. */
+.ambient-roam-rtl {
+  top: 12%;
+  font-size: 4rem;
+  animation-name: ambient-roam-back;
+  animation-delay: -4s;
+}
+.ambient-ghost-alt {
+  display: inline-block;
+  transform: scaleX(-1);
+  filter: sepia(1) saturate(5) hue-rotate(230deg) brightness(1.15);
 }
 
 @keyframes ambient-drift {

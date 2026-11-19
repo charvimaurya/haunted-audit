@@ -20,6 +20,8 @@ import { GhostHuntSection }     from './components/GhostHuntSection';
 import { PipelineSection }      from './components/PipelineSection';
 import { KiroIntegrationSection } from './components/KiroIntegrationSection';
 import { ResultsSection }       from './components/ResultsSection';
+import { RunNotice }            from './components/RunNotice';
+import type { RunNoticeProps }  from './components/RunNotice';
 import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from './types';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://127.0.0.1:8000';
@@ -37,6 +39,7 @@ export default function App() {
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
   const [result, setResult]       = useState<JourneyResult | null>(null);
   const [liveEvents, setLiveEvents] = useState<StepEvent[]>([]);
+  const [notice, setNotice] = useState<RunNoticeProps | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
   // Clean up SSE on unmount
@@ -46,6 +49,7 @@ export default function App() {
     // Reset state
     setResult(null);
     setLiveEvents([]);
+    setNotice(null);
     setRunStatus('running');
     sseRef.current?.close();
 
@@ -57,6 +61,17 @@ export default function App() {
         body: JSON.stringify({ variant, mode }),
       });
       if (!res.ok) {
+        // 429 = rate limit or busy, 403 = LLM mode paused. The API sends the plain-English text.
+        const detail = await res
+          .json()
+          .then((b: { detail?: unknown }) => (typeof b.detail === 'string' ? b.detail : null))
+          .catch(() => null);
+        if (res.status === 429 || res.status === 403) {
+          setNotice({
+            kind: res.status === 403 ? 'paused' : 'limit',
+            message: detail ?? 'The demo is busy. Try again in a moment.',
+          });
+        }
         setRunStatus('error');
         return;
       }
@@ -97,6 +112,10 @@ export default function App() {
         setRunStatus('error');
       });
     } catch {
+      setNotice({
+        kind: 'offline',
+        message: 'The audit service did not answer. No result is shown. Try again later.',
+      });
       setRunStatus('error');
     }
   }, [variant, mode]);
@@ -143,6 +162,7 @@ export default function App() {
             onModeChange={setMode}
             onRun={handleRun}
           />
+          {notice && <RunNotice {...notice} />}
 
           <div className="flex flex-col gap-8 mt-6">
             {/* Possession Mode */}
