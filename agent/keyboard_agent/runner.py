@@ -28,6 +28,30 @@ FIXED_TARGET = "button.btn-primary"
 SUCCESS_SELECTOR = "[data-testid='payment-confirmation']"
 
 
+def _launch_args() -> list[str]:
+    """Chromium flags for a container. Locally the default sandbox stays on."""
+    if os.getenv("HAUNTED_AUDIT_CONTAINER") == "1":
+        # Fargate gives a small /dev/shm and no user namespaces for the sandbox.
+        return ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
+    return []
+
+
+def _is_bundled_url(url: str) -> bool:
+    return (
+        url == "about:blank"
+        or url.startswith("data:")
+        or url.startswith(FIXTURE_PATH.parent.as_uri() + "/")
+    )
+
+
+def _only_bundled_fixture(route) -> None:
+    """Agents only ever run on the bundled Haunted Bank. Abort everything else."""
+    if _is_bundled_url(route.request.url):
+        route.continue_()
+    else:
+        route.abort()
+
+
 def build_journey_config(
     variant: str,
     mode: str,
@@ -75,8 +99,10 @@ def run_journey(
     browser = None
     try:
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
-            page = browser.new_page(viewport={"width": 1280, "height": 800})
+            browser = playwright.chromium.launch(headless=True, args=_launch_args())
+            context = browser.new_context(viewport={"width": 1280, "height": 800})
+            context.route("**/*", _only_bundled_fixture)
+            page = context.new_page()
             page.goto(config.start_url, wait_until="domcontentloaded")
             session = KeyboardSession(
                 page,

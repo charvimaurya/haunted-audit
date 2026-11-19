@@ -1,7 +1,7 @@
 fastapi>=0.115
 uvicorn>=0.32
 pydantic>=2.6
-playwright>=1.49
+playwright==1.64.1
 strands-agents>=1.0
 pytest>=8.0
 hypothesis>=6.100
