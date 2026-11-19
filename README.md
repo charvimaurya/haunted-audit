@@ -17,6 +17,23 @@ flowchart LR
   Checker --> Result["JourneyResult"]
 ```
 
+## Judge quick start
+
+**Live demo:** [live link] (open it in a private window; no sign-in).
+
+1. On the landing page, look at the purple ghost. Purple means Ready: nothing has run yet.
+2. In the run controls, leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**. (**Possess This App** at the top of the page starts the same run.)
+3. Watch **Live steps** fill in. The keyboard agent can only tab, type and read focus. It cannot click.
+4. When the run ends, you should see:
+   - the ghost turn red, next to the Send Payment control and not on top of it;
+   - **Journey Blocked** and **Barrier Detected!** in the Possession Mode panel;
+   - **Critical Ghost Detected** under The Ghost Hunt, with the blocked element `div.pay-btn`;
+   - the checker's `BLOCKED` / `TARGET_NOT_FOCUSABLE` result, with `agent_mode` shown beside it.
+5. Change **Variant** to `fixed` and press **Run Journey** again. You should see the ghost turn green and the journey pass, because the fixed page uses a real `<button>` the keyboard can reach.
+6. Numbers you have not measured stay `--`. The checker, not the agent, decides pass or fail.
+
+If the status badge shows **Error** and nothing runs, the live page cannot reach the API. The hosted page does not set `VITE_API_URL`, so it calls `http://127.0.0.1:8000`. Run the API and dashboard locally instead: see [Dashboard](#dashboard).
+
 ## Setup
 
 Use the project virtualenv. System Python on this machine is 3.9 and will not run this package.
