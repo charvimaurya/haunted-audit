@@ -1,13 +1,178 @@
 # Haunted Audit
 
-Kiroween 2026, Costume Contest. Haunted Audit is an accessibility engineer for AI-built applications. A keyboard-only agent tries to send EUR 50 to Alex Carter on Haunted Bank. It can tab, type, and read focus. It cannot click. A deterministic checker, not the agent, decides whether the journey passed.
+Kiroween 2026, Costume Contest. An accessibility engineer for AI-built applications.
 
-The fixture is `fixtures/haunted_bank/index.html`.
+## Project Overview
 
-- `?variant=broken` renders `div.pay-btn`. It has an `onclick` and no `tabindex` or `role`, so it is not in the tab order and `read_page` does not list it.
-- `?variant=fixed` renders `button.btn-primary` with `type="submit"`. Enter on that button shows `[data-testid="payment-confirmation"]`.
+Haunted Audit watches a keyboard-only agent try to send EUR 50 to Alex Carter on a small test bank called Haunted Bank. The agent can tab, type, and read what is focused. It cannot click. A fixed checker, not the AI, decides whether the payment journey passed.
 
-`target_selector` is checker-only. It is never copied into the agent prompt.
+Two pages live in `fixtures/haunted_bank/index.html`:
+
+- `?variant=broken` uses a `div.pay-btn`. It looks like a button but is not in the tab order, so the journey is blocked.
+- `?variant=fixed` uses a real submit button. Enter on that button shows the payment confirmation.
+
+The live screen is a React dashboard. It starts a run, shows each keystroke, and paints a ghost beside the control the checker measured. Numbers stay `--` until a run actually measures them.
+
+You do not need an API key to see this. **Scripted** mode is the local demo. **LLM** mode is optional and calls Claude on Amazon Bedrock.
+
+## Prerequisites
+
+Install these before you start:
+
+| Tool | Version | Why |
+| --- | --- | --- |
+| Git | any current version | clone the repository |
+| Python | 3.11 or newer | the agent, the checker, and the API |
+| Node.js | 22 (20 or newer also works) | the dashboard |
+| npm | comes with Node.js | installs the dashboard |
+
+Check them:
+
+```bash
+git --version
+python3.11 --version
+node --version
+npm --version
+```
+
+On macOS, if `python3.11` is missing, install it from [python.org](https://www.python.org/downloads/) or with `brew install python@3.11`.
+
+API keys are optional.
+
+1. Copy the example file. It contains only placeholders, never real secrets:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Leave the AWS lines as they are if you only want the scripted demo.
+3. Fill them in only for LLM mode. The names the code reads are in `.env.example`:
+
+   - `AWS_REGION` and `AWS_DEFAULT_REGION`
+   - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` if your account uses a temporary token
+   - `BEDROCK_MODEL_ID` (default `us.anthropic.claude-sonnet-4-6`)
+   - `BEDROCK_TEMPERATURE` and `BEDROCK_MAX_TOKENS`
+   - `BEDROCK_INPUT_USD_PER_MTOK` and `BEDROCK_OUTPUT_USD_PER_MTOK` (used only to price real token counts)
+   - `HAUNTED_AUDIT_DB` (SQLite file, default `data/runs.db`)
+   - `LLM_ENABLED` (leave `false` unless you want the API to accept LLM runs)
+
+The dashboard has its own optional file, `dashboard/.env.example`. Leave `VITE_API_URL` blank on your machine. The dev server then talks to `http://127.0.0.1:8000` for you.
+
+`.env` is listed in `.gitignore`. Do not commit it.
+
+## Option A: Quick Start with AI IDEs (Kiro / Cursor)
+
+1. Clone the repository and open that folder in Kiro or Cursor:
+
+   ```bash
+   git clone https://github.com/charvimaurya/haunted-audit.git
+   cd haunted-audit
+   ```
+
+2. Open the chat in that IDE and paste this prompt as one message:
+
+```text
+Set up and launch Haunted Audit from this folder. Do not invent credentials and do not commit anything.
+
+1. Confirm Python is 3.11 or newer and Node.js is installed. If Python 3.11 is missing, stop and tell me how to install it.
+2. Create a virtual environment at .venv with that Python. Install packages from requirements.txt into .venv. Then install Chromium for Playwright with: .venv/bin/python -m playwright install chromium
+3. If .env does not exist, copy .env.example to .env. Leave the AWS placeholder values as they are. Do not open, print, or edit any real secrets. Scripted mode must work with those placeholders.
+4. If dashboard/.env does not exist, copy dashboard/.env.example to dashboard/.env and leave VITE_API_URL blank.
+5. In one terminal, from the repo root, start the API and leave it running:
+   .venv/bin/python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000
+   The app object is create_app() in agent/api/main.py. It loads .env itself.
+6. In a second terminal, start the dashboard and leave it running:
+   cd dashboard && npm install && npm run dev -- --host 127.0.0.1 --port 5173
+   Vite is configured in dashboard/vite.config.ts. It proxies /runs and /health to http://127.0.0.1:8000.
+7. When both are up, tell me to open http://127.0.0.1:5173 and that the API health check is http://127.0.0.1:8000/health.
+8. On the page, leave Variant on broken and Agent mode on scripted, then press Run Journey.
+```
+
+3. Wait until the assistant says both servers are running.
+4. Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**.
+
+The API stays at [http://127.0.0.1:8000](http://127.0.0.1:8000). [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) should answer when the API is up.
+
+## Option B: Manual Terminal Setup
+
+Run these commands from a terminal. On Windows, use `py -3.11` instead of `python3.11`, and activate with `.venv\Scripts\activate` instead of `source .venv/bin/activate`.
+
+```bash
+git clone https://github.com/charvimaurya/haunted-audit.git
+cd haunted-audit
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m playwright install chromium
+cp .env.example .env
+cp dashboard/.env.example dashboard/.env
+```
+
+`pip install` reads `requirements.txt` (FastAPI, Uvicorn, Playwright, Strands Agents, and the test tools). The copy steps create local env files from the examples. You can leave the placeholders blank for the scripted demo.
+
+Start the API and leave that terminal open. This is the entry point `agent/api/main.py`:
+
+```bash
+python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000
+```
+
+Open a second terminal, from the same repository folder:
+
+```bash
+source .venv/bin/activate
+cd dashboard
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+Then open:
+
+- Dashboard: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- API health: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+
+On the dashboard, leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**. The broken page should end blocked, because Send Payment is not a real keyboard button. Switch **Variant** to `fixed` and run again to see the journey pass.
+
+Stop either server with Ctrl+C in its terminal.
+
+### Optional commands
+
+One journey without the dashboard, from the repo root with the virtual environment active:
+
+```bash
+python -m agent.keyboard_agent.runner --variant broken --mode scripted
+python -m agent.keyboard_agent.runner --variant fixed --mode scripted
+```
+
+LLM mode, only after real AWS values are in `.env`:
+
+```bash
+python -m agent.keyboard_agent.runner --variant fixed --mode llm
+```
+
+Tests and the five-run scripted check:
+
+```bash
+python -m pytest
+python -m agent.eval.run_eval --modes scripted --runs 5
+```
+
+Dashboard tests, from the `dashboard` folder:
+
+```bash
+npm test
+```
+
+## What you should see
+
+1. The landing ghost means Ready before anything has run.
+2. **Live steps** fill in while the agent tabs and types. It never clicks.
+3. On `broken`, the ghost turns red beside Send Payment, and the checker reports `BLOCKED` / `TARGET_NOT_FOCUSABLE` on `div.pay-btn`.
+4. On `fixed`, the ghost turns green and the checker reports `PASSED`.
+5. Unmeasured numbers stay `--`.
+
+If the page says it cannot reach the API, the first terminal is not running, or it is not on port 8000.
+
+## How the pieces fit
 
 ```mermaid
 flowchart LR
@@ -17,116 +182,40 @@ flowchart LR
   Checker --> Result["JourneyResult"]
 ```
 
-## Judge quick start
+The only keyboard tools are `press_tab`, `press_shift_tab`, `press_enter`, `press_space`, `press_arrow`, `type_text`, `read_focus`, `read_page`, and `declare_done`. A run stops at 25 steps or 90 seconds. `target_selector` is used by the checker only. It is never copied into the agent prompt.
 
-**Live demo:** [live link] (open it in a private window; no sign-in).
+The checker returns `PASSED` only when the success selector is visible. Otherwise it returns `BLOCKED` with `TARGET_NOT_FOCUSABLE`, `FOCUS_TRAP`, `NO_ACTIVATION`, `STEP_LIMIT`, or `TIMEOUT`.
 
-1. On the landing page, look at the purple ghost. Purple means Ready: nothing has run yet.
-2. In the run controls, leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**. (**Possess This App** at the top of the page starts the same run.)
-3. Watch **Live steps** fill in. The keyboard agent can only tab, type and read focus. It cannot click.
-4. When the run ends, you should see:
-   - the ghost turn red, next to the Send Payment control and not on top of it;
-   - **Journey Blocked** and **Barrier Detected!** in the Possession Mode panel;
-   - **Critical Ghost Detected** under The Ghost Hunt, with the blocked element `div.pay-btn`;
-   - the checker's `BLOCKED` / `TARGET_NOT_FOCUSABLE` result, with `agent_mode` shown beside it.
-5. Change **Variant** to `fixed` and press **Run Journey** again. You should see the ghost turn green and the journey pass, because the fixed page uses a real `<button>` the keyboard can reach.
-6. Numbers you have not measured stay `--`. The checker, not the agent, decides pass or fail.
+API routes, once the first terminal is running:
 
-If the status badge shows **Error** and nothing runs, the live page cannot reach the API. The hosted page does not set `VITE_API_URL`, so it calls `http://127.0.0.1:8000`. Run the API and dashboard locally instead: see [Dashboard](#dashboard).
-
-## Setup
-
-Use the project virtualenv. System Python on this machine is 3.9 and will not run this package.
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-uv venv --python 3.11 .venv
-uv pip install -p .venv/bin/python -r requirements.txt
-.venv/bin/playwright install chromium
-cp .env.example .env   # fill in Bedrock credentials only for LLM mode
-```
-
-`.env` is gitignored. Do not commit keys.
-
-## Run one journey
-
-```bash
-.venv/bin/python -m agent.keyboard_agent.runner --variant broken --mode scripted
-.venv/bin/python -m agent.keyboard_agent.runner --variant fixed --mode scripted
-.venv/bin/python -m agent.keyboard_agent.runner --variant fixed --mode llm
-```
-
-Scripted mode records 0 tokens and a cost of 0. LLM mode uses Strands Agents on Amazon Bedrock Claude. The model id and region come from `.env` (`BEDROCK_MODEL_ID`, `AWS_REGION`). Temperature stays low. If AWS credentials are missing, the run stops with an error and does not invent token counts or a reliability score.
-
-## Tests
-
-```bash
-.venv/bin/python -m pytest
-```
+- `POST /runs` with `{"variant": "broken" or "fixed", "mode": "llm" or "scripted"}`
+- `GET /runs/{id}`
+- `GET /runs/{id}/events` as Server-Sent Events
+- `GET /health` and `GET /ping`
 
 ## Eval
 
-Five runs of each requested mode and variant. A mode is reliable only when at least 4 of 5 runs are correct: broken is `BLOCKED` / `TARGET_NOT_FOCUSABLE` with a measured box on `div.pay-btn`, and fixed is `PASSED`. The report is written from the runs just executed.
+Five runs of each requested mode and variant. A mode is reliable only when at least 4 of 5 runs are correct. The report is written from the runs just executed.
 
 ```bash
-.venv/bin/python -m agent.eval.run_eval --modes scripted --runs 5
-.venv/bin/python -m agent.eval.run_eval
+python -m agent.eval.run_eval --modes scripted --runs 5
+python -m agent.eval.run_eval
 ```
 
-The default command includes `llm` and `scripted`. The decision is **GO** only when the LLM meets 4 of 5 on both variants. Otherwise it is **NO-GO** and the report includes this sentence for the video and the deck:
+The default command includes `llm` and `scripted`. The decision is **GO** only when the LLM meets 4 of 5 on both variants. Otherwise it is **NO-GO**. Outputs land in `artifacts/eval/results.json` and `artifacts/eval/results.md`. Those folders are gitignored.
 
-> NO-GO for the LLM keyboard agent: it did not reach the correct verdict in 4 of 5 runs on both variants (broken {broken_ok} of {broken_n}, fixed {fixed_ok} of {fixed_n}). Switch the demo to the scripted walker. It uses the same keyboard-only tools, and the deterministic checker — not the model — decides whether the journey passed.
-
-Outputs land in `artifacts/eval/results.json` and `artifacts/eval/results.md`.
-
-## API
-
-```bash
-.venv/bin/python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000
-```
-
-- `POST /runs` with `{"variant": "broken"|"fixed", "mode": "llm"|"scripted"}`
-- `GET /runs/{id}`
-- `GET /runs/{id}/events` as Server-Sent Events
-
-Runs are stored in SQLite (`HAUNTED_AUDIT_DB`, default `data/runs.db`). CORS is open for the dashboard.
-
-## Tools
-
-The only tools are `press_tab`, `press_shift_tab`, `press_enter`, `press_space`, `press_arrow`, `type_text`, `read_focus`, `read_page`, and `declare_done`. Every call emits a `StepEvent` and updates the focus trail. The runner stops at 25 steps or 90 seconds. `agent_mode` (`llm` or `scripted`) is stored on `JourneyResult`.
-
-The checker returns `PASSED` only when the success selector is visible. Otherwise it returns `BLOCKED` with `TARGET_NOT_FOCUSABLE`, `FOCUS_TRAP`, `NO_ACTIVATION`, `STEP_LIMIT`, or `TIMEOUT`. `agent_claim_mismatch` is true when the agent claimed success and the checker disagrees, or claimed blocked when the checker passed.
-
-## Dashboard
-
-The live Costume Contest UI is a Vite + React app. It starts a run, streams each keystroke over Server-Sent Events, and renders the checker verdict. Numbers stay `--` until a run measures them. `agent_mode` is shown with every result.
-
-```bash
-# Terminal 1
-.venv/bin/python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000
-
-# Terminal 2
-cd dashboard
-npm install
-npm run dev
-```
-
-Open `http://127.0.0.1:5173`. The dev server proxies `/runs` to the API. `cd dashboard && npm test` runs the axe accessibility checks.
-
-## Kiro
-
-Specs, steering rules, and the axe-on-save hook live in `.kiro/`. The product rule is unchanged: rules where the answer must be the same every time, the model only where judgement helps, and a human approves anything that changes code.
-
-## Measured on this machine
-
-Scripted walker, 5 runs each, from `artifacts/eval/results.md` (artifacts are gitignored; re-run the eval to reproduce):
+Scripted walker, 5 runs each, measured on one machine:
 
 | mode | variant | correct | avg steps | avg latency | reliable |
 | --- | --- | --- | --- | --- | --- |
 | scripted | broken | 5 of 5 | 18.0 | 898 ms | yes |
 | scripted | fixed | 5 of 5 | 14.0 | 756 ms | yes |
 
-Broken lands on `BLOCKED` / `TARGET_NOT_FOCUSABLE` with a measured box on `div.pay-btn`. Fixed lands on `PASSED`. LLM mode was not scored: Amazon Bedrock credentials were not configured, so those rows are not a model accuracy. The demo walker is scripted. The checker still decides pass or fail.
+LLM mode was not scored: Amazon Bedrock credentials were not configured. Those missing runs are not a model accuracy. Re-run the eval on your machine to reproduce the scripted numbers.
+
+## Kiro
+
+Specs, steering rules, and the axe-on-save hook live in `.kiro/`. Rules decide anything that must be the same every time. The model is used only where judgement helps. A human approves anything that changes code.
 
 ## Layout
 
@@ -134,10 +223,11 @@ Broken lands on `BLOCKED` / `TARGET_NOT_FOCUSABLE` with a measured box on `div.p
 | --- | --- |
 | `agent/keyboard_agent/` | Agent, scripted walker, tools, checker, runner |
 | `agent/eval/run_eval.py` | Repeated runs and the GO / NO-GO report |
-| `agent/api/main.py` | FastAPI run store |
+| `agent/api/main.py` | FastAPI app. This is the API entry point |
 | `agent/tests/` | pytest and Hypothesis |
 | `fixtures/haunted_bank/` | Static test site, broken and fixed |
-| `dashboard/` | Live UI for the journey, the ghost, and the verdict |
+| `dashboard/` | Vite + React UI. Entry is `dashboard/src/main.tsx` |
+| `requirements.txt` | Python packages |
+| `.env.example` | Placeholder environment variables |
 | `.kiro/` | Specs, steering, and the axe-on-save hook |
-| `design/` | Frozen UI mock |
 | `docs/` | Team plans, schedule, judge deck, and evidence |
