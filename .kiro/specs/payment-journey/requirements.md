@@ -5,7 +5,20 @@
 **Steering followed:** `product-rules.md`, `product-ux.md`, `ui-fidelity.md` (UI changes keep the v7 look), `data-contract.md`, `accessibility.md`, `tech.md`, `structure.md`, `product.md`. Where they conflict, the stricter one wins and the conflict is listed in "Decisions needed".
 **Touches:** `fixtures/haunted_bank/index.html`, `bank/PLANTED.md`, `agent/api/` (sessions, bank route), `dashboard/` (Possession and Reports screens, run controls), `.kiro/steering/data-contract.md`, `README.md` (judge steps), tests.
 **Does not touch:** the checker's verdict logic, the keyboard tools, the scripted walker's rules.
-**Status:** DRAFT. Nothing is built.
+**Status (scope reduced 2026-11-20):** the diagnosis is done, and the working payment and the six barriers are built on branch `feature/bank-payment-barriers` (not merged). Everything else is **deferred until the Fix, Verify, Prevent spec lands**, and the session state machine is cut to its four transitions. See "Scope" below.
+
+## Scope (reduced 2026-11-20)
+
+| Group | Status |
+|---|---|
+| REQ-DIAG | DONE (`docs/bug-payment.md`, PR #1) |
+| REQ-PAY, REQ-BAR | BUILT on `feature/bank-payment-barriers` (7 commits, tests pass in Chromium 156 and Chrome 157; not merged) |
+| REQ-REG-01 to 03, REQ-TEST-01 to 03, 06, 08, 09 | BUILT for the bank page (same branch). The pieces about sessions, the dashboard and the debug panel are deferred |
+| REQ-SES | DEFERRED, and **cut**: only SES-01 to SES-05 remain (the four transitions). SES-06 to SES-09 are cut (see "Cut from the machine") |
+| REQ-BANK, REQ-HID, REQ-FE, REQ-PRV (the new `provenance` object and the Reports block), REQ-TEST-04, 05, 07 | DEFERRED until the Fix, Verify, Prevent spec lands |
+| `agent_mode` stays | applies now: nothing that exists today is removed (REQ-PRV-01, first sentence) |
+
+"Deferred until the Fix, Verify, Prevent spec lands" is because the Approve decision, the Verifier's patched copy and the regression demo are what move a session from one state to the next. Without them the machine has nothing to listen to.
 
 ## Conventions
 
@@ -20,7 +33,7 @@ Terms:
 
 ---
 
-## REQ-DIAG - The bug is recorded
+## REQ-DIAG - The bug is recorded `[DONE]`
 
 ### REQ-DIAG-01 Diagnosis exists
 `docs/bug-payment.md` SHALL record the reproduction (browsers, states, mouse and keyboard), the root cause, and what was not tested.
@@ -32,7 +45,7 @@ THE SYSTEM SHALL show, in the dashboard, the same bank page the checker tests, n
 
 ---
 
-## REQ-PAY - A working fake payment
+## REQ-PAY - A working fake payment `[BUILT]`
 
 ### REQ-PAY-01 Haunted: the mouse completes
 WHILE the bank is in the haunted state and the form is valid THE SYSTEM SHALL complete the payment when a mouse click lands on Send Payment, and SHALL show a confirmation element with `data-testid="payment-confirmation"` and `role="status"`, containing the text `Sent EUR <amount> to <recipient>.`.
@@ -75,7 +88,7 @@ THE SYSTEM SHALL keep `#recipient`, `#amount`, `#send-payment`, the confirmation
 
 ---
 
-## REQ-BAR - Six planted barriers and the answer key
+## REQ-BAR - Six planted barriers and the answer key `[BUILT]`
 
 ### REQ-BAR-01 The six
 WHILE the bank is in the haunted state THE SYSTEM SHALL contain exactly these six barriers and no other deliberate one:
@@ -129,7 +142,7 @@ THE SYSTEM SHALL NOT mark the barriers on the page (no comments, class names or 
 
 ---
 
-## REQ-SES - Session state machine owned by the backend
+## REQ-SES - Session state machine owned by the backend `[DEFERRED, CUT TO FOUR TRANSITIONS]`
 
 ### REQ-SES-01 Start a session
 THE SYSTEM SHALL provide `POST /sessions` (no body) returning `201` with `{"session_id": str, "state": "haunted"}` and the first state record (REQ-SES-03).
@@ -150,36 +163,32 @@ Any other event in any state SHALL be refused with `409 {"detail": ...}` and the
 **Check:** a test over every (state, event) pair (4 states x 3 events = 12 pairs): 4 allowed, 8 refused.
 
 ### REQ-SES-03 Read the state
-THE SYSTEM SHALL provide `GET /sessions/{id}/state` returning `{"session_id", "state", "bank": "haunted"|"fixed", "bank_url": str, "version": int, "updated_at": str, "provenance": {...}}`. `bank_url` SHALL be a path (starting with `/`) that includes `?v=<version>`, and `version` SHALL increase by 1 on every accepted transition. An unknown or expired session SHALL return `404`.
+THE SYSTEM SHALL provide `GET /sessions/{id}/state` returning `{"session_id", "state", "bank": "haunted"|"fixed", "bank_url": str, "version": int}`. `bank_url` SHALL be a path (starting with `/`) that includes `?v=<version>`, and `version` SHALL increase by 1 on every accepted transition. An unknown session SHALL return `404`.
 **Check:** API tests including version increments and 404.
 
 ### REQ-SES-04 Approve is the only way to FIXED
 THE SYSTEM SHALL move a session to `fixed` only as the effect of a recorded human Approve decision on a fix for that session's run (the Approve endpoint defined in `.kiro/specs/exorcist/`). No endpoint, header or query string alone SHALL cause that transition on a normal server.
-**Check:** a test that every route in the app that changes a session's state is either internal (called from the approve and regression handlers) or gated by REQ-SES-08.
+**Check:** a test that no route changes a session's state except the internal function that the approve and regression handlers call. There is no public or debug route that moves a state.
 
 ### REQ-SES-05 Regression demo
 WHEN the regression demo starts THE SYSTEM SHALL apply `start_regression`, and WHEN it ends with the fix restored SHALL apply `restore_fix`. Both are called by the regression handler (`.kiro/specs/fix-verify-prevent/`), not by the browser.
 **Check:** a test with a stub handler that calls both and reads the states.
 
-### REQ-SES-06 History
-THE SYSTEM SHALL record every accepted and every refused event in an append-only table (session id, from, event, to or "refused", time) and SHALL NOT delete it while the session exists.
-**Check:** API test reads back the history.
+### Cut from the machine (not required, deferred with the rest)
 
-### REQ-SES-07 Lifetime and limits
-THE SYSTEM SHALL expire a session 24 hours after its last use, delete its rows then, allow at most 500 live sessions (the 501st `POST /sessions` returns `429` with `Retry-After`), and rate-limit `POST /sessions` per client address with the existing limiter.
-**Check:** tests with a fake clock.
+The machine is the four transitions above, held in memory, and nothing else. These were in the first draft and are cut:
 
-### REQ-SES-08 Debug transitions
-WHERE the server is started with `HAUNTED_AUDIT_DEBUG=1` THE SYSTEM SHALL also provide `POST /sessions/{id}/debug/event` with body `{"event": ...}` for tests and demos. WHERE it is not set, that route SHALL return `404`. The staging deployment SHALL NOT set it.
-**Check:** with the flag off the route is `404`; with it on it applies the same machine (a refused event is still `409`).
-
-### REQ-SES-09 Persistence
-THE SYSTEM SHALL keep sessions in SQLite next to runs (`sessions`, `session_events`). A restart of the server SHALL keep live sessions when the database file survives; where it does not (the ephemeral container disk), the browser SHALL be told with `404` and SHALL start a new session (REQ-FE-03).
-**Check:** restart test with a file database; `404` then new session test.
+| Was | Cut because | What remains true without it |
+|---|---|---|
+| REQ-SES-06 append-only history of accepted and refused events | The loop needs only the current state and its version | A refused event still returns `409` and leaves the state alone |
+| REQ-SES-07 24-hour expiry, 500-session cap, per-address limiter on `POST /sessions` | Not needed to make the loop work | **Open risk:** until a bound exists, a public `POST /sessions` can grow memory without limit. Add a cap before the demo is public |
+| REQ-SES-08 `POST /sessions/{id}/debug/event` and its flag | The tests can call the store's function directly, in the same process as the server | No route can move a session's state (REQ-SES-04) |
+| REQ-SES-09 SQLite persistence | In-memory sessions are enough for a demo on an ephemeral container | A server restart loses sessions. The browser gets `404` and starts a new one (REQ-FE-03, deferred) |
+| `updated_at` and `provenance` in the state record | Only used by expiry and the Reports block | The state record is `session_id`, `state`, `bank`, `bank_url`, `version` |
 
 ---
 
-## REQ-BANK - Serving the bank for a session
+## REQ-BANK - Serving the bank for a session `[DEFERRED]`
 
 ### REQ-BANK-01 One URL per session
 THE SYSTEM SHALL serve the bank page for a session at `GET /bank/{session_id}/index.html`, returning the haunted page or the fixed page according to the session's bank, with `Cache-Control: no-store`. An unknown session SHALL return `404`.
@@ -203,14 +212,14 @@ THE SYSTEM SHALL keep agent runs on the bundled file (`fixtures/haunted_bank/ind
 
 ---
 
-## REQ-HID - Hidden controls
+## REQ-HID - Hidden controls `[DEFERRED]`
 
 ### REQ-HID-01 No selectors on user screens
 THE SYSTEM SHALL NOT render a variant selector or an agent-mode selector, or any text naming them, on any screen reachable without `?debug=1`.
 **Check:** a Playwright scan of every route: no `select` for variant or mode, and no label matching /variant|agent mode/i, in the accessible tree.
 
 ### REQ-HID-02 Debug panel only with the flag
-THE SYSTEM SHALL render a developer panel only when the address has `?debug=1` exactly. The panel is not linked from anywhere, not in the navigation, not in the sitemap, and not mentioned on user screens. It offers: variant, agent mode, and the session transition buttons.
+THE SYSTEM SHALL render a developer panel only when the address has `?debug=1` exactly. The panel is not linked from anywhere, not in the navigation, not in the sitemap, and not mentioned on user screens. It offers: variant and agent mode (no transition buttons: the state is not changed from the browser).
 **Check:** without the flag the panel and its controls are absent from the DOM; with the flag they are present; the flag is not saved anywhere (a reload without it hides the panel).
 
 ### REQ-HID-03 Debug is also gated on the server
@@ -231,10 +240,12 @@ THE SYSTEM SHALL update the README "Judge quick start" so it no longer tells the
 
 ---
 
-## REQ-PRV - Provenance stays
+## REQ-PRV - Provenance stays `[PARTLY APPLIES NOW, REST DEFERRED]`
 
 ### REQ-PRV-01 Kept everywhere
-THE SYSTEM SHALL keep `agent_mode` in every JourneyResult, the run record, the evidence log and `docs/eval.md` (when it exists). It SHALL add `provenance` to the run record: `{"agent_mode", "model_id" (null unless llm), "bank_state" ("haunted"|"fixed"), "bank_source" ("committed_variant" | "reference_fixed" | "verifier_patched_copy"), "session_id" (null for runs without one), "origin" ("session" | "debug" | "eval")}`.
+**Applies now:** THE SYSTEM SHALL keep `agent_mode` in every JourneyResult, the run record, the evidence log and `docs/eval.md` (when it exists). Nothing that exists today is removed.
+
+**Deferred:** THE SYSTEM SHALL add `provenance` to the run record: `{"agent_mode", "model_id" (null unless llm), "bank_state" ("haunted"|"fixed"), "bank_source" ("committed_variant" | "reference_fixed" | "verifier_patched_copy"), "session_id" (null for runs without one), "origin" ("session" | "debug" | "eval")}`.
 **Check:** API tests; the old fields are all still present.
 
 ### REQ-PRV-02 No fake provenance
@@ -251,7 +262,7 @@ THE SYSTEM SHALL update `.kiro/steering/data-contract.md` in the same pull reque
 
 ---
 
-## REQ-FE - Dashboard wiring
+## REQ-FE - Dashboard wiring `[DEFERRED]`
 
 ### REQ-FE-01 Session on first visit
 WHEN the dashboard needs a bank THE SYSTEM SHALL create a session with `POST /sessions` and keep its id in `sessionStorage` for the tab. The id is not shown.
@@ -287,7 +298,7 @@ Every control added SHALL be a real element, keyboard operable, with a visible f
 
 ---
 
-## REQ-REG - Nothing else regresses
+## REQ-REG - Nothing else regresses `[BUILT FOR THE BANK PAGE]`
 
 ### REQ-REG-01 Agent results
 THE SYSTEM SHALL keep the scripted walker correct on the new pages: `broken` gives `BLOCKED` / `TARGET_NOT_FOCUSABLE` with a measured box on `div.pay-btn`, and `fixed` gives `PASSED`, 5 of 5 each, measured by `python -m agent.eval.run_eval --modes scripted --runs 5`.
@@ -307,7 +318,7 @@ THE SYSTEM SHALL NOT expose the variant or any barrier note to the agent through
 
 ---
 
-## REQ-TEST - Playwright and other tests
+## REQ-TEST - Playwright and other tests `[01 to 03, 06, 08, 09 BUILT; 04, 05, 07 DEFERRED]`
 
 ### REQ-TEST-01 Haunted
 Playwright SHALL check on the haunted page: a mouse click with valid input completes the payment and shows the confirmation; the keyboard Tab order, forward and back, never focuses `#send-payment`.
@@ -319,7 +330,7 @@ Playwright SHALL check on the fixed page: mouse, Enter on the button, Space on t
 Playwright SHALL assert every criterion in REQ-BAR-05 to REQ-BAR-09 on the haunted page and its repaired form on the fixed page, and REQ-BAR-02 on a page with only barrier 1 repaired.
 
 ### REQ-TEST-04 State machine round trip
-Tests SHALL walk `haunted -> fixed -> regressed -> restored -> regressed` through the session API and assert the state, bank and version after each step, and that the framed page shows the haunted page, then the fixed page, then the haunted page, then the fixed page.
+Tests SHALL walk `haunted -> fixed -> regressed -> restored -> regressed` by calling the store's transition function in the same process as the server, and assert after each step the state, bank and version read from `GET /sessions/{id}/state`, and that `GET /bank/{id}/index.html` returns the haunted page, then the fixed page, then the haunted page, then the fixed page. There is no debug route.
 
 ### REQ-TEST-05 Debug panel
 Playwright SHALL check that the debug panel is absent without `?debug=1`, present with it, and absent again after navigating away from the flag.
@@ -341,15 +352,16 @@ THE SYSTEM SHALL report every test result as measured. A browser or a path that 
 
 ---
 
-## Decisions needed (owner)
+## Decisions (owner)
 
-| # | Question | Default in this spec |
+| # | Question | Answer |
 |---|---|---|
-| D1 | You said the "fixed state" is the patched copy the Verifier produces. The Verifier and Approve do not exist yet (`exorcist`, `fix-verify-prevent` are draft). | Build the machine and the bank route now. Until the Verifier exists the fixed bank is the committed reference page (`bank_source = reference_fixed`). Nothing in the UI can reach FIXED without Approve, so the end-to-end path needs those two specs; the tests use the debug transition. |
-| D2 | A Verifier copy repairs only barrier 1 (smallest diff, at most 10 lines). The reference fixed page repairs all six. After a real Approve the fixed bank would still show barriers 2 to 6. | Accept it: it is true to the demo (one finding fixed, five still open). PLANTED.md says so. Say if you want the fixed state to repair all six. |
-| D3 | Your axe instruction says the haunted page fails "the one planted rule". With barriers 2, 3 and 5 axe finds three rules. | REQ-TEST-06 asserts the exact set of three. Say if you meant to exclude only one rule (it would then fail on the other two). |
-| D4 | The dashboard is on another origin from the API in staging, so it cannot read the bank iframe's focus directly. | The bank posts focus ids with `postMessage` (REQ-BANK-04), checked by origin. |
-| D5 | The state names: you wrote haunted and fixed; the machine needs two more (`regressed`, `restored`) to tell the first haunted from the regression haunted. | Four states as in REQ-SES-02. |
-| D6 | The fake balance resets on reload. | Yes. Storing it would mean storing something that looks like account data. |
-| D7 | The dashboard routing and v7 Possession screen work is still uncommitted on another branch. | The frontend tasks apply to the Possession and Reports screens as they exist when that work lands; they are written against its structure. |
-| D8 | `variant` and `mode` stay in the API for tests and evals but are refused on a server without `HAUNTED_AUDIT_DEBUG=1`. | Yes (REQ-HID-03). |
+| D1 | "Fixed" is meant to be the Verifier's patched copy, which does not exist yet. | **Accepted 2026-11-20.** The committed reference page is an **interim stand-in** and is labelled so in `bank/PLANTED.md` (done), in a comment in the page's source and in the README (step 4) |
+| D2 | A Verifier copy repairs only barrier 1; the reference fixed page repairs all six. | **Accepted.** After a real Approve the fixed bank will still show barriers 2 to 6 until the page is changed. PLANTED.md says so |
+| D3 | The haunted page fails three axe rules, not one. | **Accepted as written (2026-11-20):** the tests assert the exact set `label`, `color-contrast`, `button-name` (BUILT) |
+| D4 | The dashboard is on another origin from the API, so it cannot read the bank iframe's focus. | Deferred. The bank would post focus ids with `postMessage` (REQ-BANK-04) |
+| D5 | The machine needs four states (`haunted`, `fixed`, `regressed`, `restored`). | Kept: four states, four transitions |
+| D6 | The fake balance resets on reload. | Yes (BUILT) |
+| D7 | The dashboard routing and v7 Possession work is uncommitted on another branch. | Open. Step 5 lists exactly which uncommitted changes the frontend tasks depend on |
+| D8 | `variant` and `mode` stay in the API for tests and evals but are refused without `HAUNTED_AUDIT_DEBUG=1`. | Deferred with the hidden controls |
+| D9 | Cut the session machine to the four transitions the loop needs. | **Done in this revision** (see "Cut from the machine"). Open risk: no session bound until a cap is added |
