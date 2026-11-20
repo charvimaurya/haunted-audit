@@ -1,0 +1,202 @@
+{
+ "bundled-chromium": {
+  "version": "156.0.8078.4",
+  "broken/mouse/filled": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/mouse/empty": {
+   "confirmation": null,
+   "error": "Enter a recipient and an amount.",
+   "testid": "payment-confirmation"
+  },
+  "broken/keyboard/tab-order": [
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts",
+   "#nav-transactions",
+   "#nav-offer",
+   "#recipient",
+   "#amount",
+   "#cancel",
+   "#offer-terms",
+   "#privacy",
+   "body",
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts"
+  ],
+  "broken/keyboard/after-enter-on-control": {
+   "confirmation": null,
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/keyboard/enter-in-amount-field": {
+   "confirmation": null,
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/element": {
+   "tag": "DIV",
+   "cls": "pay-btn",
+   "tabindex": null,
+   "role": null,
+   "type": null,
+   "onclick": "window.submitPayment()",
+   "clickable_at_center": true,
+   "cs_pointer": "auto",
+   "w": 148,
+   "h": 40
+  },
+  "broken/console": [],
+  "fixed/mouse/filled": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/mouse/empty": {
+   "confirmation": null,
+   "error": "Enter a recipient and an amount.",
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/tab-order": [
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts",
+   "#nav-transactions",
+   "#nav-offer",
+   "#recipient",
+   "#amount",
+   "#send-payment"
+  ],
+  "fixed/keyboard/after-enter-on-control": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/enter-in-amount-field": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/space-on-button": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/element": {
+   "tag": "BUTTON",
+   "cls": "btn-primary",
+   "tabindex": null,
+   "role": null,
+   "type": "submit",
+   "onclick": null,
+   "clickable_at_center": true,
+   "cs_pointer": "auto",
+   "w": 148,
+   "h": 40
+  },
+  "fixed/console": []
+ },
+ "google-chrome": {
+  "version": "157.0.8103.79",
+  "broken/mouse/filled": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/mouse/empty": {
+   "confirmation": null,
+   "error": "Enter a recipient and an amount.",
+   "testid": "payment-confirmation"
+  },
+  "broken/keyboard/tab-order": [
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts",
+   "#nav-transactions",
+   "#nav-offer",
+   "#recipient",
+   "#amount",
+   "#cancel",
+   "#offer-terms",
+   "#privacy",
+   "body",
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts"
+  ],
+  "broken/keyboard/after-enter-on-control": {
+   "confirmation": null,
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/keyboard/enter-in-amount-field": {
+   "confirmation": null,
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "broken/element": {
+   "tag": "DIV",
+   "cls": "pay-btn",
+   "tabindex": null,
+   "role": null,
+   "type": null,
+   "onclick": "window.submitPayment()",
+   "clickable_at_center": true,
+   "cs_pointer": "auto",
+   "w": 148,
+   "h": 40
+  },
+  "broken/console": [],
+  "fixed/mouse/filled": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/mouse/empty": {
+   "confirmation": null,
+   "error": "Enter a recipient and an amount.",
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/tab-order": [
+   "a.skip",
+   "#nav-dashboard",
+   "#nav-accounts",
+   "#nav-transactions",
+   "#nav-offer",
+   "#recipient",
+   "#amount",
+   "#send-payment"
+  ],
+  "fixed/keyboard/after-enter-on-control": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/enter-in-amount-field": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/keyboard/space-on-button": {
+   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "error": null,
+   "testid": "payment-confirmation"
+  },
+  "fixed/element": {
+   "tag": "BUTTON",
+   "cls": "btn-primary",
+   "tabindex": null,
+   "role": null,
+   "type": "submit",
+   "onclick": null,
+   "clickable_at_center": true,
+   "cs_pointer": "auto",
+   "w": 148,
+   "h": 40
+  },
+  "fixed/console": []
+ }
+}
