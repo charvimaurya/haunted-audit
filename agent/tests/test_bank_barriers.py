@@ -89,3 +89,30 @@ def test_barrier_2_repaired_in_fixed(browser, base_url) -> None:
     context.close()
 
 
+# ---- barrier 3: helper text under Recipient has low contrast (WCAG 1.4.3; axe rule: color-contrast) ----
+
+
+def hint_ratio(page) -> float:
+    colours = page.evaluate(
+        """() => [getComputedStyle(document.getElementById('recipient-hint')).color,
+                  getComputedStyle(document.getElementById('dashboard')).backgroundColor]"""
+    )
+    return contrast_ratio(colours[0], colours[1])
+
+
+def test_barrier_3_present_in_haunted(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "broken")
+    ratio = hint_ratio(page)
+    print(f"\nbarrier 3 haunted contrast: {ratio:.2f}:1")
+    assert 2.5 <= ratio < 4.5, ratio   # visible but weak
+    context.close()
+
+
+def test_barrier_3_repaired_in_fixed(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "fixed")
+    ratio = hint_ratio(page)
+    print(f"\nbarrier 3 fixed contrast: {ratio:.2f}:1")
+    assert ratio >= 4.5, ratio
+    context.close()
+
+
