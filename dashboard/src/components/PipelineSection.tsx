@@ -4,9 +4,8 @@
  * Find → Fix → Verify → Regression pipeline (annotation D in v7).
  *
  * Accessibility:
- * - tablist/tab/tabpanel pattern: each tab has id, aria-controls, tabIndex.
- *   The active tab is tabIndex={0}; inactive tabs are tabIndex={-1} so only
- *   one tab stop exists in the group (roving tabindex pattern).
+ * - tablist/tab/tabpanel pattern: each tab has id and aria-controls. Every tab
+ *   is a tab stop (Tab, then Enter or Space) because choosing a step changes the page.
  * - tabpanel has id + aria-labelledby pointing to the active tab.
  * - Verification list: status conveyed by icon + sr-only text, not colour alone.
  * - Regression alert uses role="alert" for the FAILED message.
@@ -22,6 +21,8 @@ type PipelineStep = 1 | 2 | 3 | 4;
 interface PipelineSectionProps {
   result: JourneyResult | null;
   activeStep?: PipelineStep;
+  /** Called when a step tab is chosen (click, Enter, Space, arrow keys). */
+  onSelectStep?: (step: PipelineStep) => void;
 }
 
 const STEP_LABELS: Record<PipelineStep, string> = {
@@ -45,10 +46,12 @@ function StepTab({
   step,
   active,
   completed,
+  onSelect,
 }: {
   step: PipelineStep;
   active: boolean;
   completed: boolean;
+  onSelect?: (step: PipelineStep) => void;
 }) {
   return (
     <button
@@ -57,8 +60,9 @@ function StepTab({
       id={`pipeline-tab-${step}`}
       aria-selected={active}
       aria-controls="pipeline-tabpanel"
-      // Roving tabindex: only the active tab is in the tab order
-      tabIndex={active ? 0 : -1}
+      // Every step is a tab stop, because choosing a step changes the page
+      tabIndex={0}
+      onClick={() => onSelect?.(step)}
       className={[
         'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-ui font-medium',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
@@ -89,7 +93,7 @@ function StepTab({
   );
 }
 
-export function PipelineSection({ result, activeStep = 1 }: PipelineSectionProps) {
+export function PipelineSection({ result, activeStep = 1, onSelectStep }: PipelineSectionProps) {
   const isPassed = result?.verdict === 'PASSED';
 
   return (
@@ -118,6 +122,7 @@ export function PipelineSection({ result, activeStep = 1 }: PipelineSectionProps
             step={s}
             active={s === activeStep}
             completed={s < activeStep}
+            onSelect={onSelectStep}
           />
         ))}
       </div>

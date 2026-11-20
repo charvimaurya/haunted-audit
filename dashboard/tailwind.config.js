@@ -43,6 +43,24 @@ export default {
           muted:   '#9d89b8',   // secondary / labels
           faint:   '#6b5a8a',   // placeholder / disabled
         },
+        // ── Possession panel (sampled from design/Haunted_Audit_Final_UI_v7.png, panel 2) ──
+        // value  (x, y in the PNG, flat 7x7 median unless noted)
+        bank: {
+          bar:         '#090c1a', // breadcrumb bar            (1055, 58)
+          rail:        '#0a0c1a', // right checklist card      (1275, 112)
+          card:        '#111626', // payment form card         (1055, 100)
+          line:        '#1e2437', // card outline, 1px line    (955, 86)
+          sidebar:     '#050d17', // bank sidebar card         (755, 270)
+          input:       '#151a2b', // text input fill           (985, 165)
+          nav:         '#10223c', // active nav item fill      (799, 178)
+          'nav-line':  '#144775', // active nav item outline   (702, 178) 1px line
+          'dash':      '#c83f4b', // dashed outline of Send Payment (848, 262) 1px line
+          'dash-fill': '#30243d', // Send Payment fill         (870, 256)
+          tip:         '#0f0f1f', // Journey Blocked card fill (1140, 300)
+          'tip-line':  '#561931', // Journey Blocked outline   (997, 290) 1px line
+          barrier:     '#2f0e21', // Barrier Detected fill     (1178, 268)
+          'barrier-line': '#8f223a', // Barrier Detected outline (1173, 268) 1px line
+        },
         // ── Status aliases ────────────────────────────────────────────────────
         blocked:  '#ef4444',
         verified: '#22c55e',

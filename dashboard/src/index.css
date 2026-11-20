@@ -139,6 +139,9 @@ html[data-calm='true'] *::after {
   animation-iteration-count: infinite;
 }
 
+/* Glow on the active breadcrumb (v7 panel 2). Static, so Calm mode needs no change. */
+.text-glow-violet { text-shadow: 0 0 10px var(--color-violet-neon); }
+
 /* ── Typography helpers ────────────────────────────────────────────────── */
 .font-display { font-family: var(--font-display); }
 .font-mono    { font-family: var(--font-mono); }
@@ -200,3 +203,54 @@ html, body {
 .code-block .token-tag    { color: #a855f7; }
 .code-block .token-attr   { color: #60a5fa; }
 .code-block .token-string { color: #f59e0b; }
+
+/* ── Hero castle (decorative) ───────────────────────────────────────────
+   Sampled from design/Haunted_Audit_Final_UI_v7.png (1866x779):
+   castle #101635 near (585,150); hill #192048; window #f3985f at (585,136), 3x3 spread 16. */
+:root {
+  --hero-castle: #101635;
+  --hero-hill: #192048;
+  --hero-window: #f3985f;
+}
+.hero-castle {
+  position: absolute;
+  bottom: 0;
+  width: min(24%, 340px);
+  right: 2%;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(calc(var(--px, 0) * -10px), calc(var(--py, 0) * -4px), 0);
+}
+.hero-castle * { pointer-events: none !important; }
+.hero-castle .castle-window {
+  opacity: calc(0.55 + var(--near, 0) * 0.45);
+  animation: castle-flicker 2.4s ease-in-out infinite;
+}
+.hero-castle .castle-window:nth-of-type(2n) { animation-duration: 3.1s; animation-delay: -1s; }
+.hero-castle .castle-glow { opacity: calc(0.15 + var(--near, 0) * 0.6); }
+.hero-castle .castle-flag { transform-box: fill-box; transform-origin: left center; animation: castle-sway 3.6s ease-in-out infinite; }
+@keyframes castle-flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+@keyframes castle-sway { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.82); } }
+
+/* ── Hero scene tokens ─────────────────────────────────────────────────
+   Measured from the judge-deck art (docs/Haunted Audit Judge Deck v7.pptx, mascot + pumpkins)
+   and v7 hero crop (design/Haunted_Audit_Final_UI_v7.png, x0-660,y0-320). */
+:root {
+  --scene-ghost: #f1e9ff;
+  --scene-eye: #0e0a1a;
+  --scene-hat: #2b1b4d;
+  --scene-band: #3a2668;
+  --scene-gold: #ffc56b;
+  --scene-lens: #1a0f33;
+  --scene-glyph: #c4a8ff;
+  --scene-moon: #cec3ed;
+  --scene-pumpkin: #e07a1f;
+  --scene-face: #2a1302;
+  --scene-grave: #120b24;
+  --scene-blush: #f4a6d7;
+  --scene-bat: #0a0614;
+}
+.wordmark-glow { text-shadow: 0 0 18px var(--color-violet-neon), 0 0 2px var(--scene-ghost); }
+@keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.scene-ghost-bob { animation: scene-bob 4s ease-in-out infinite; }
+.hero-scene, .hero-scene * { pointer-events: none !important; }

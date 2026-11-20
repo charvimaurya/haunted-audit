@@ -1,16 +1,22 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import './index.css';
-import App from './App';
+import { AppRoutes } from './AppRoutes';
 import { ImmersionProvider } from './immersion/ImmersionContext';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Root element not found');
 
+// Vite's base is "/" locally and "/haunted-audit/" on GitHub Pages
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined;
+
 createRoot(root).render(
   <StrictMode>
     <ImmersionProvider>
-      <App />
+      <BrowserRouter basename={basename}>
+        <AppRoutes />
+      </BrowserRouter>
     </ImmersionProvider>
   </StrictMode>,
 );

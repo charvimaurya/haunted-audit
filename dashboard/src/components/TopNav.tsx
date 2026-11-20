@@ -12,28 +12,13 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Ghost, Menu, X } from 'lucide-react';
 import { SenseControls } from '../immersion/SenseControls';
+import { NAV } from '../routes';
 
-interface NavLink {
-  label: string;
-  href: string;
-}
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'Home',      href: '#home' },
-  { label: 'Scans',     href: '#scans' },
-  { label: 'Journeys',  href: '#journeys' },
-  { label: 'Fixes',     href: '#fixes' },
-  { label: 'Kiro',      href: '#kiro' },
-  { label: 'Reports',   href: '#reports' },
-];
-
-interface TopNavProps {
-  activeSection?: string;
-}
-
-export function TopNav({ activeSection = 'Home' }: TopNavProps) {
+export function TopNav() {
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
@@ -66,12 +51,11 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
     return () => document.removeEventListener('focusout', onFocusOut);
   }, [menuOpen]);
 
-  const linkClass = (label: string) => {
-    const isActive = label === activeSection;
+  const linkClass = (isActive: boolean) => {
     return [
       'font-ui text-sm transition-colors duration-150 rounded px-2 py-1',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-      isActive ? 'text-ink font-semibold' : 'text-ink-muted hover:text-ink',
+      isActive ? 'text-ink font-bold underline underline-offset-4' : 'text-ink-muted hover:text-ink',
     ].join(' ');
   };
 
@@ -83,8 +67,8 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
       {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-4 sm:px-6 h-14 max-w-7xl mx-auto">
         {/* Wordmark */}
-        <a
-          href="#home"
+        <Link
+          to="/"
           className="flex items-center gap-2 shrink-0
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
           aria-label="Haunted Audit — home"
@@ -98,22 +82,22 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
           >
             Haunted Audit
           </span>
-        </a>
+        </Link>
 
         {/* Desktop nav links — hidden on mobile */}
         <ul
           className="hidden md:flex items-center gap-6 list-none m-0 p-0"
           role="list"
         >
-          {NAV_LINKS.map((link) => (
+          {NAV.map((link) => (
             <li key={link.label}>
-              <a
-                href={link.href}
-                className={linkClass(link.label)}
-                aria-current={link.label === activeSection ? 'page' : undefined}
+              <Link
+                to={link.to}
+                className={linkClass(link.isCurrent(pathname))}
+                aria-current={link.isCurrent(pathname) ? 'page' : undefined}
               >
                 {link.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -121,8 +105,8 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
         <div className="flex items-center gap-2">
           <SenseControls />
           {/* Kiro CTA — always visible */}
-          <a
-            href="#kiro"
+          <Link
+            to="/kiro"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold
                        bg-violet-600 text-white border border-violet-neon/50
                        hover:bg-violet-500 transition-colors duration-150 shrink-0
@@ -130,7 +114,7 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
           >
             <Ghost size={14} aria-hidden="true" />
             <span>Kiro</span>
-          </a>
+          </Link>
 
           {/* Burger — mobile only */}
           <button
@@ -163,19 +147,19 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
           aria-label="Navigation menu"
         >
           <ul className="flex flex-col p-3 gap-1 list-none m-0" role="list">
-            {NAV_LINKS.map((link) => (
+            {NAV.map((link) => (
               <li key={link.label}>
-                <a
-                  href={link.href}
+                <Link
+                  to={link.to}
                   className={[
-                    linkClass(link.label),
+                    linkClass(link.isCurrent(pathname)),
                     'block w-full px-3 py-2',
                   ].join(' ')}
-                  aria-current={link.label === activeSection ? 'page' : undefined}
+                  aria-current={link.isCurrent(pathname) ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
