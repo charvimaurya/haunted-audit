@@ -145,3 +145,30 @@ def test_barrier_4_repaired_in_fixed(browser, base_url) -> None:
     context.close()
 
 
+# ---- barrier 5: Cancel is an icon-only button with no accessible name (WCAG 4.1.2; axe rule: button-name) ----
+
+
+def test_barrier_5_present_in_haunted(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "broken")
+    facts = page.evaluate(
+        """() => { const e = document.getElementById('cancel');
+          return { tag: e.tagName, type: e.getAttribute('type'), text: e.textContent.trim(),
+                   ariaLabel: e.getAttribute('aria-label'), labelledby: e.getAttribute('aria-labelledby'),
+                   title: e.getAttribute('title'), cls: e.className,
+                   iconHidden: e.querySelector('svg').getAttribute('aria-hidden') }; }"""
+    )
+    assert facts == {
+        "tag": "BUTTON", "type": "button", "text": "", "ariaLabel": None, "labelledby": None,
+        "title": None, "cls": "icon-btn", "iconHidden": "true",
+    }
+    assert snapshot(page, "#cancel") == "- button"            # no accessible name
+    context.close()
+
+
+def test_barrier_5_repaired_in_fixed(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "fixed")
+    assert snapshot(page, "#cancel") == '- button "Cancel"'
+    assert page.locator("#cancel").get_attribute("class") == "icon-btn"   # never matches button.btn-primary
+    context.close()
+
+
