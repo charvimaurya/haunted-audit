@@ -8,7 +8,7 @@
       "matcher": "dashboard/src/.*\\.(tsx?|css)$",
       "action": {
         "type": "command",
-        "command": "node /Users/sukhada/Desktop/Kiro.hackathon/.kiro/scripts/axe-on-save.mjs",
+        "command": "node .kiro/scripts/axe-on-save.mjs",
         "timeout": 90
       }
     }

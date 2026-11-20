@@ -1,0 +1,93 @@
+# Eval cases: one per known planted barrier and one per failure already seen.
+# Rules:
+#   - Labels come from a file in the repo (see label_source). Never invent or change a label to improve a score.
+#   - Numbers are copied from a measured run (see evidence). Not measured means "not measured".
+#   - Add a case for every new failure. Keep ids stable.
+# Fields: id, kind (planted_barrier | failure), target, expected, observed, evidence, label_source, status, recorded.
+
+cases:
+  - id: bank-001
+    kind: planted_barrier
+    target: fixtures/haunted_bank/index.html?variant=broken
+    barrier: >-
+      Send Payment is a div (class pay-btn) with an onclick handler and no tabindex or role,
+      so it is not in the tab order. The fixed variant uses a real button.
+    element: div.pay-btn
+    wcag: ["2.1.1", "4.1.2"]
+    expected:
+      verdict: BLOCKED
+      reason_code: TARGET_NOT_FOCUSABLE
+      blocked_element: div.pay-btn
+    observed: >-
+      Scripted walker: 5 of 5 broken runs BLOCKED with TARGET_NOT_FOCUSABLE on div.pay-btn.
+      LLM agent: not run.
+    evidence:
+      - docs/evidence.md
+      - artifacts/eval/results.json (git-ignored; generated_at 2026-11-06T11:16:34Z)
+    label_source: >-
+      README.md (fixture description) and fixtures/haunted_bank/index.html;
+      WCAG tags from the Critical Ghost Detected card in design/Haunted_Audit_Final_UI_v7.png.
+      bank/PLANTED.md does not exist yet, so no other planted barrier is labelled.
+    status: open
+    recorded: 2026-11-20
+
+  - id: fail-001
+    kind: failure
+    target: fixtures/haunted_bank/index.html?variant=broken
+    agent_mode: llm
+    expected: BLOCKED with TARGET_NOT_FOCUSABLE in at least 4 of 5 runs
+    observed: >-
+      0 of 5 runs executed. Every run stopped with stop_reason "error": AWS credentials are not configured.
+      No tokens were recorded. No accuracy was measured.
+    evidence:
+      - artifacts/eval/results.json (git-ignored)
+      - docs/evidence.md
+      - docs/decision-log.md
+    label_source: product-rules.md reliability gate (correct broken run = BLOCKED, TARGET_NOT_FOCUSABLE, measured box on div.pay-btn)
+    status: open
+    next: Configure AWS credentials, then run `python -m agent.eval.run_eval --modes llm --runs 5`.
+    recorded: 2026-11-20
+
+  - id: fail-002
+    kind: failure
+    target: fixtures/haunted_bank/index.html?variant=fixed
+    agent_mode: llm
+    expected: PASSED with no reason code in at least 4 of 5 runs
+    observed: >-
+      0 of 5 runs executed. Every run stopped with stop_reason "error": AWS credentials are not configured.
+      No tokens were recorded. No accuracy was measured.
+    evidence:
+      - artifacts/eval/results.json (git-ignored)
+      - docs/evidence.md
+      - docs/decision-log.md
+    label_source: product-rules.md reliability gate (correct fixed run = PASSED, no reason code)
+    status: open
+    next: Same as fail-001.
+    recorded: 2026-11-20
+
+  - id: fail-003
+    kind: failure
+    target: GitHub Actions workflow .github/workflows/tests.yml
+    expected: the workflow runs and its pytest job passes
+    observed: >-
+      The run failed on commits 1a75e46 (Repo skeleton, 2026-11-08) and 9d41ed2 (2026-11-09).
+      It passed from ac5e73a onward. The cause of the earlier failures was not read.
+    evidence:
+      - GitHub Actions run list for charvimaurya/haunted-audit
+    label_source: GitHub Actions run conclusions
+    status: resolved
+    recorded: 2026-11-20
+
+  - id: fail-004
+    kind: failure
+    target: GitHub Actions workflow pages (.github/workflows/pages.yml)
+    expected: the dashboard build is published
+    observed: >-
+      The build job passed and the deploy job failed at the "actions/deploy-pages@v4" step on every run
+      (bc7d9b7, 59a51b6, 7042eb1). The cause was not read. The published site returned 404.
+    evidence:
+      - GitHub Actions run list for charvimaurya/haunted-audit
+    label_source: GitHub Actions job conclusions
+    status: resolved
+    note: The workflow file is deleted in the same branch; Vercel is the planned host.
+    recorded: 2026-11-20
