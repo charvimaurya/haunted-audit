@@ -116,3 +116,32 @@ def test_barrier_3_repaired_in_fixed(browser, base_url) -> None:
     context.close()
 
 
+# ---- barrier 4: Recipient has its focus outline removed (WCAG 2.4.7; axe cannot see this) ----
+
+
+def focus_style(page) -> dict:
+    return page.evaluate(
+        """() => { const c = getComputedStyle(document.getElementById('recipient'));
+          return { outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth,
+                   boxShadow: c.boxShadow, borderColor: c.borderColor }; }"""
+    )
+
+
+def test_barrier_4_present_in_haunted(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "broken")
+    before = focus_style(page)
+    focus_by_keyboard(page, "recipient")
+    after = focus_style(page)
+    assert after["outlineStyle"] == "none" and after["boxShadow"] == "none"
+    assert after["borderColor"] == before["borderColor"]    # nothing changes when focus arrives
+    context.close()
+
+
+def test_barrier_4_repaired_in_fixed(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "fixed")
+    focus_by_keyboard(page, "recipient")
+    after = focus_style(page)
+    assert after["outlineStyle"] == "solid" and after["outlineWidth"] == "3px"
+    context.close()
+
+
