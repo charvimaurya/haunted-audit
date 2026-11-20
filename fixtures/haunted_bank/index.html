@@ -198,7 +198,9 @@
     }
 
     // The messages. In the fixed page they are announced and tied to their field.
-    $("form-error").setAttribute("role", "alert");
+    if (variant === "fixed") {
+      $("form-error").setAttribute("role", "alert");
+    }
 
     // Fake money: whole cents, memory only. Nothing typed here is stored or sent anywhere.
     let balance = 100000;
@@ -230,10 +232,12 @@
           p.className = "msg";
           p.textContent = errors[pair[0]];
           box.appendChild(p);
-          input.setAttribute("aria-invalid", "true");
-          input.setAttribute("aria-describedby", pair[1]);
-          first = first || input;
-        } else {
+          if (variant === "fixed") {
+            input.setAttribute("aria-invalid", "true");
+            input.setAttribute("aria-describedby", pair[1]);
+            first = first || input;
+          }
+        } else if (variant === "fixed") {
           input.removeAttribute("aria-invalid");
           input.removeAttribute("aria-describedby");
         }
