@@ -71,7 +71,7 @@ export function KiroIntegrationSection() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-base-line">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-0 divide-y xl:divide-y-0 xl:divide-x divide-base-line">
 
         {/* ── Left: IDE illustration ───────────────────────────────── */}
         <div className="p-4 flex flex-col gap-3">
@@ -127,7 +127,7 @@ export function KiroIntegrationSection() {
                 <figcaption className="sr-only">
                   accessibility-hook.ts — Kiro hook that triggers Haunted Audit on save
                 </figcaption>
-                <pre className="m-0 overflow-x-auto">
+                <pre className="m-0 whitespace-pre-wrap break-words">
                   <code>
                     {HOOK_CODE_LINES.map(({ n, text, muted, highlight }) => (
                       <span

@@ -77,9 +77,9 @@ export function HeroSection({ to = '/journeys/send-payment/possession' }: HeroSe
         data-page-title
         tabIndex={-1}
         className="mb-3 leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
-        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.75rem, 6vw, 4.5rem)', letterSpacing: '0.02em' }}
       >
-        Haunted Audit
+        <span className="wordmark-haunted">Haunted</span>{' '}<span className="wordmark-audit">Audit</span>
       </h1>
 
       {/* Tagline */}

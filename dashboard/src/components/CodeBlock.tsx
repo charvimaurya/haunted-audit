@@ -34,7 +34,7 @@ export function CodeBlock({ lines, language = 'html', ariaLabel }: CodeBlockProp
       {language && (
         <figcaption className="sr-only">{language} code snippet</figcaption>
       )}
-      <pre className="m-0 overflow-x-auto">
+      <pre className="m-0 whitespace-pre-wrap break-words">
         <code>
           {lines.map((line, i) => (
             <span

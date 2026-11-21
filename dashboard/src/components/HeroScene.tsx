@@ -29,6 +29,18 @@ function Grave({ x, y, w = 36, h = 56 }: { x: number; y: number; w?: number; h?:
 export function HeroScene() {
   return (
     <div className="hero-scene absolute inset-0 z-0 overflow-hidden select-none" aria-hidden="true">
+      {/* Night backdrop: stars, dead trees, a path to the castle */}
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1440 420" preserveAspectRatio="xMidYMax slice" focusable="false" role="presentation">
+        {[[120,60],[260,30],[420,90],[560,40],[700,20],[860,70],[980,36],[1120,80],[1260,40],[1360,110],[330,150],[1040,150],[640,110]].map(([x, y]) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" fill="var(--scene-star)" fillOpacity="0.7" />
+        ))}
+        <path d="M600 420 C650 380 690 360 700 330 C712 360 760 390 860 420 Z" fill="var(--scene-path)" fillOpacity="0.55" />
+        <g stroke="var(--scene-tree)" strokeWidth="6" strokeLinecap="round" fill="none">
+          <path d="M330 420 V300 M330 340 L300 300 M330 320 L362 280 M330 300 L318 270" />
+          <path d="M1070 420 V320 M1070 350 L1042 318 M1070 336 L1100 300" />
+        </g>
+        <rect x="0" y="380" width="1440" height="40" fill="var(--scene-tree)" fillOpacity="0.6" />
+      </svg>
       {/* Left: graveyard, witch ghost, pumpkin */}
       <svg className="absolute bottom-0 left-0 hidden h-full max-h-[420px] w-[34%] min-w-[260px] lg:block" viewBox="0 0 300 400" preserveAspectRatio="xMinYMax meet" focusable="false" role="presentation">
         <Grave x={36} y={400} w={44} h={90} />
