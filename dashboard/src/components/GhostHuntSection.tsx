@@ -5,9 +5,10 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Mic, Ghost } from 'lucide-react';
+import { Keyboard, Ghost } from 'lucide-react';
 import { AgentCard } from './AgentCard';
 import { GhostMascot } from './GhostMascot';
+import { VoiceAgentPanel } from './VoiceAgentPanel';
 import type { JourneyResult, StepEvent } from '../types';
 
 interface GhostHuntSectionProps {
@@ -56,6 +57,11 @@ export function GhostHuntSection({
           The Ghost Hunt —{' '}
           <span className="text-ink-muted font-normal">Agent Investigation</span>
         </h2>
+        {result === null && !isRunning && (
+          <p className="m-0 mt-1 text-base font-ui text-ink-muted">
+            Example outcomes from the design. Not yet measured. Run a journey to replace them.
+          </p>
+        )}
       </div>
 
       <div className="p-4 grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_auto] gap-4">
@@ -76,14 +82,7 @@ export function GhostHuntSection({
             },
           ]}
         />
-        <AgentCard
-          name="Voice Agent"
-          icon={<Mic size={14} />}
-          outcomes={[
-            { label: 'Found by name "Send Payment"', passed: true },
-            { label: 'Could not activate button', passed: false },
-          ]}
-        />
+        <VoiceAgentPanel result={result} />
         <AgentCard
           name="Ghost Hunter"
           icon={<Ghost size={14} />}
