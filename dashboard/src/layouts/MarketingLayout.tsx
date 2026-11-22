@@ -1,11 +1,12 @@
 /**
  * MarketingLayout: header + main + footer for public marketing routes.
  */
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { TopNav } from '../components/TopNav';
 import { MARKETING_FOOTER_NAV } from '../routes';
 
 export function MarketingLayout() {
+  const { pathname } = useLocation();
   return (
     <>
       <TopNav />
@@ -26,6 +27,7 @@ export function MarketingLayout() {
                 <li key={item.to}>
                   <Link
                     to={item.to}
+                    aria-current={item.isCurrent(pathname) ? 'page' : undefined}
                     className="rounded px-1 text-ink-muted underline-offset-4 hover:text-ink hover:underline
                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
                   >
