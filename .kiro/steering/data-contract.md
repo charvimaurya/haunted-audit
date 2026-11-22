@@ -83,6 +83,24 @@ Refusals: `429` (rate limit, or too many runs at once; has `Retry-After`), `403`
 - Every 15 seconds without an event the server sends the comment `: keep-alive`.
 - The stream ends with `event: done` and `data: {"run_id": str, "status": "complete" | "error"}`, or `event: error` and `data: {"error": "run not found"}`.
 
+## File finding: `backend/scan_file.py` (not an API endpoint)
+
+Printed by `python3 backend/scan_file.py <path>` and by the scan-on-save hook as `{"file": str, "findings": [File finding]}`. The hook prints nothing when there is no finding. Spec: `.kiro/specs/scan-on-save/`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `finding_id` | str | `label-` + first 12 hex digits of SHA-256 of `file|line|rule|element`. Stable while the line does not move |
+| `source` | `"scan_file"` | |
+| `rule` | `"label"` | the only rule today: a form field with no accessible name |
+| `wcag` | list of str | `["1.3.1", "3.3.2", "4.1.2"]` |
+| `severity` | `"serious"` | |
+| `file` | str | repo-relative POSIX path |
+| `line` | int | 1-based line of the element |
+| `element` | str | `tag#id`, `tag[name=x]` or `tag` |
+| `message` | str | one plain sentence with the fix |
+
+A file finding is a static check. It never sets `verdict` or `reason_code`; only the checker does.
+
 ## Fix: PLANNED, not returned by the API today
 
 No fix endpoint exists. The draft is in `.kiro/specs/fix-verify-prevent/requirements.md` (REQ-LOG-01) and is not approved. Do not build a screen on these fields until an endpoint returns them and this section is updated.

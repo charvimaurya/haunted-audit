@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Form label check on save",
+      "trigger": "PostFileSave",
+      "description": "When an .html or .tsx file under bank/, fixtures/haunted_bank/ or dashboard/src/ is saved, scan that one file for form fields with no label (backend/scan_file.py). Shell command only: it never calls a model. Prints nothing when the file is clean or out of scope, so unrelated saves add nothing to the context. Never changes code. Windows: replace python3 with py -3.",
+      "matcher": "(^|[\\\\/])(bank|fixtures[\\\\/]haunted_bank|dashboard[\\\\/]src)[\\\\/](?!(.*[\\\\/])?test[\\\\/]).*\\.(html|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "python3 backend/scan_file.py --hook",
+        "timeout": 10
+      }
+    }
+  ]
+}

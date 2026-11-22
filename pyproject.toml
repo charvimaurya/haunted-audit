@@ -25,6 +25,6 @@ dev = ["pytest>=8.0", "hypothesis>=6.100"]
 include = ["agent*"]
 
 [tool.pytest.ini_options]
-testpaths = ["agent/tests"]
+testpaths = ["agent/tests", "tests/unit"]
 pythonpath = ["."]
 addopts = "-q"
