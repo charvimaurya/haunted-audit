@@ -1,5 +1,70 @@
 # Plan status: Sukhda's Build Plan
 
+Audit date: **Sun 22 Nov 2026** (gate day). Feature freeze: Tue 24 Nov evening. Handover: Wed 25 Nov.
+`main` is at the merge of PR #9 once it lands (see the PR list). Previous audit (20 Nov) is kept below the line for history.
+
+**Done** means every Definition-of-done box is met with evidence: built in Kiro, merged through a PR with the template filled in, tests pass, reviewer has no serious issue open, no secrets, keyboard check on touched screens, failures in `evals/cases.yaml`, one devlog line.
+
+One box is weaker than the plan asks for everywhere. The `qa` and `reviewer` agents did not run from the **Kiro CLI**, because `kiro-cli` is not installed on this machine. QA was done by hand in Kiro IDE following `qa.md`. Reviews ran as a Kiro sub-agent following `reviewer.md`, and I cannot prove it used a different model from the developer. Every PR says this. Items below marked **Done** carry that caveat. They become fully Done when you re-run the two agents from the CLI on one PR.
+
+## Items in this round
+
+| Item | Status | Evidence | What is left |
+|---|---|---|---|
+| **0 Merge the branches through PRs** | **Done** (caveat above) | `docs/branch-audit.md`; PRs #1 to #6 merged with merge commits, never squash; reviewer fixes listed in each PR; `docs/devlog.md` 22 Nov lines | `feature/voice-agent-spec` left unmerged on purpose (it holds an empty spec folder) |
+| **0 Origin note** | **Done** | `docs/devlog.md`: six commits co-authored by Cursor are listed by hash; prototyped outside Kiro, then reviewed and integrated in Kiro. PR #6 leaves "Built in Kiro" unticked | Optional: remove `.cursor/rules/haunted-audit-dashboard.mdc` |
+| **13 Hook form check** | **Partial** | `backend/scan_file.py`, `.kiro/hooks/scan-on-save.json` (shell command, relative path, quiet when clean); PR #7 merged; 44 unit tests; hook command 26 ms median over 5 runs | **You:** save-to-finding time in Kiro IDE (target under 10 s) and the screen clip. The hook loads at session start, so it did not fire in the session that wrote it |
+| **18 MCP server and Power** | **Partial** | `backend/mcp_server.py` `scan_page`; `.kiro/settings/mcp.json`; called from Kiro chat on the bank page (`docs/evidence/mcp-scan-page-2026-11-22.md`); stdio connection test; `power/` with install README; PR #9 | **You:** screenshot of the call; install the power on a second laptop from the README. `exorcise_page` blocked by the Exorcist (`docs/waiting-on.md`) |
+| **29 Skills** | **Partial (2 of 4)** | `wcag-ghost-mapper` applied to "explain this finding"; `accessible-ui-review` picked by a fresh sub-agent for "review this UI" (`docs/evidence/skills-activation-2026-11-22.md`), and its four serious findings in `RunControls.tsx` were fixed and checked in Chrome. Reviewer agent points at it | `exorcise-fix`, `journey-test-writer` written and marked unverified, not claimed, until the Exorcist and journey-test writer exist |
+| **30 Kiro Web** | **Partial (prepared)** | Issue [#8](https://github.com/charvimaurya/haunted-audit/issues/8) `tester-reported`, with acceptance criteria; `docs/kiro-web-runbook.md` | **You:** run it in Kiro Web, then record merged or rejected in `docs/devlog.md` |
+
+## Measured today (all from runs made on 22 Nov)
+
+| What | Result | Source |
+|---|---|---|
+| Python tests | 319 passed | `.venv/bin/python -m pytest` on `feature/mcp-power` |
+| Dashboard tests | 64 passed | `cd dashboard && npm test` |
+| Keyboard-only walk, every page, Chrome | 0 of 19 pages failing; Enter on the main button works | `scripts/keyboard_walk.py` |
+| Scripted walker, 5 runs each | broken 5 of 5 `BLOCKED`/`TARGET_NOT_FOCUSABLE`, fixed 5 of 5 `PASSED` (`agent_mode` scripted) | `python -m agent.eval.run_eval --modes scripted --runs 5` |
+| LLM agent | **not run**: no AWS credentials. NO-GO for the LLM demo, as decided on 20 Nov | `docs/decision-log.md` |
+| `scan_page` on the bank page | 1 finding, `input#amount` (planted barrier 2) | `docs/evidence/mcp-scan-page-2026-11-22.md` |
+| Scan-on-save hook command | 26 ms median, 39 ms max (5 runs on each of 4 files) | `docs/devlog.md` |
+| Secrets scan | 0 findings on every PR (changed files only, not full history) | `detect-secrets` |
+
+## Blocked, and by what
+
+| What | Blocked by |
+|---|---|
+| LLM agent pass rate (needs 4 of 5) | AWS credentials and Bedrock access (Charvi) |
+| `exorcise_page` tool, `exorcise-fix` skill, Approve/Reject in the UI, gate checks 2 and 3 | The Exorcist: requirements only, no design or code; your OK on `.kiro/specs/exorcist/requirements.md`, then Shilpa's approval |
+| `journey-test-writer` skill, `tests/journeys/` | A journey-test writer and a fix to regress against |
+| Phase B "in the Kiro CLI" | `kiro-cli` not installed |
+| Staging (gate check 4) | Nothing deployed; no Docker on this machine |
+| Voice agent (1.2) | The spec was never written |
+
+## Only you can do these
+
+1. **Screen clip:** the scan-on-save hook. Open `bank/` or `fixtures/haunted_bank/index.html`, delete a `<label for=...>`, save, and time how long until the finding appears in Kiro. Write the number in `docs/devlog.md`.
+2. **Screenshot:** in a new Kiro chat ask "scan fixtures/haunted_bank/index.html for missing labels" and capture the `scan_page` call and its output.
+3. **Screenshot:** in a new Kiro chat ask "explain this finding" with the finding pasted, and "review this UI: dashboard/src/components/PipelineSection.tsx". Capture which skill Kiro applies.
+4. **Kiro Web:** follow `docs/kiro-web-runbook.md` for issue #8, then record the outcome in `docs/devlog.md`.
+5. **Kiro CLI:** install `kiro-cli`, run `qa` and `reviewer` on one merged PR, and paste the output into it. That completes Phase B as written.
+6. **Power on another laptop:** follow `power/README.md` from scratch and note anything that did not work.
+7. **Approvals:** Shilpa on the Exorcist requirements; Charvi for AWS IAM and Bedrock access.
+
+## Open minor issues (not blocking)
+
+- `.cursor/rules/haunted-audit-dashboard.mdc` is still tracked and contradicts the Kiro steering.
+- `/journeys/send-payment/fixes/:step` redirects to Find and drops the step.
+- Voice Agent panel does not show `agent_mode`; the `RunRecord` type lacks `seeded` and `recorded_at`.
+- `data-contract.md` says unmeasured is `null`, but `models.py` defaults `latency_ms` and `cost_usd` to `0.0`.
+- Home is hero-only (one purpose per page), so the full v7 single-page layout is spread over the app pages.
+
+---
+
+# Previous audit (20 Nov 2026), kept for history
+
+
 Audit date: **Fri 20 Nov 2026, 21:42 IST**. Previous audit: Fri 20 Nov 2026, 21:30 IST (same day; this pass re-checks after pushes).
 Gate: Sun 22 Nov. Feature freeze: Tue 24 Nov evening. Handover: Wed 25 Nov.
 Plan source: `docs/Sukhdha plan.docx` (read in full, including its "if late" defaults).
