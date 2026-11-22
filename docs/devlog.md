@@ -10,3 +10,4 @@ Built from git history and the README only. Dates are commit dates.
 - 2026-11-09: GitHub Actions workflow added to run the keyboard-agent and dashboard tests on every push.
 - 2026-11-09: Immersive layer added to the dashboard (decorative ghost and particles loaded lazily, ambient ghost sent slowly from left to right, Calm mode and sound switches, with tests), plus a GitHub Pages workflow to publish the dashboard and four new lines in the steering rules.
 - 2026-11-09: Vite dev server configured to accept the live preview host.
+- 2026-11-22: Origin note. `feature/exorcist` tracks `.cursor/rules/haunted-audit-dashboard.mdc` and a commit message mentions a Cursor rule, so part of the dashboard work (Stage 1 shell, Voice Agent panel wiring, README AI-IDE prompts) may have been prototyped outside Kiro. It is not yet reviewed. The reviewer agent must check it and the result will be recorded here before PR #6 merges. Branch audit: `docs/branch-audit.md`.
