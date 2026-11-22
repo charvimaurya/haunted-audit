@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Page } from '../../components/Page';
-import { APP_NAV } from '../../routes';
+import { APP_NAV, to } from '../../routes';
 
 export default function AppHome() {
-  const tools = APP_NAV.filter((item) => item.to !== '/app');
+  const tools = APP_NAV.filter((item) => item.to !== to('app-home'));
   return (
     <Page id="app-home">
       <section aria-labelledby="app-tools-heading" className="panel p-6">

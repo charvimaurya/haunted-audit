@@ -1,12 +1,13 @@
 /**
- * TopNav — marketing header (wordmark, primary links, calm/sound, App CTA).
+ * TopNav: the v7 top menu, drawn once by RootLayout on every page in both shells.
+ * Wordmark, Home · Scans · Journeys · Fixes · Kiro · Reports, Calm mode and Sound, and the Kiro pill.
+ * Every link comes from the route table (src/routes.ts).
  */
-
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Ghost, Menu, X } from 'lucide-react';
 import { SenseControls } from '../immersion/SenseControls';
-import { MARKETING_NAV } from '../routes';
+import { NAV, to } from '../routes';
 
 export function TopNav() {
   const { pathname } = useLocation();
@@ -46,13 +47,10 @@ export function TopNav() {
 
   const linkClass = (isActive: boolean) =>
     [
-      'font-ui text-base transition-colors duration-150 rounded px-2 py-1',
+      'inline-flex min-h-11 items-center font-ui text-base transition-colors duration-150 rounded px-2',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
       isActive ? 'text-ink font-bold underline underline-offset-4' : 'text-ink-muted hover:text-ink',
     ].join(' ');
-
-  // Header shows marketing destinations only (not the App shortcut as "current" competition).
-  const headerLinks = MARKETING_NAV.filter((l) => l.label !== 'App');
 
   return (
     <nav
@@ -61,7 +59,7 @@ export function TopNav() {
     >
       <div className="flex items-center justify-between px-4 sm:px-6 h-14 max-w-7xl mx-auto">
         <Link
-          to="/"
+          to={to('home')}
           className="flex items-center gap-2 shrink-0
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
           aria-label="Haunted Audit — home"
@@ -77,8 +75,8 @@ export function TopNav() {
           </span>
         </Link>
 
-        <ul className="hidden md:flex items-center gap-4 list-none m-0 p-0" role="list">
-          {headerLinks.map((link) => (
+        <ul className="hidden lg:flex items-center gap-3 list-none m-0 p-0" role="list">
+          {NAV.map((link) => (
             <li key={link.label}>
               <Link
                 to={link.to}
@@ -94,20 +92,20 @@ export function TopNav() {
         <div className="flex items-center gap-2">
           <SenseControls />
           <Link
-            to="/app"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-base font-semibold
+            to={to('kiro')}
+            className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
                        bg-violet-600 text-white border border-violet-neon/50
                        hover:bg-violet-500 transition-colors duration-150 shrink-0
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+            aria-label="Built with Kiro"
           >
-            <Ghost size={14} aria-hidden="true" />
-            <span>App</span>
+            <Ghost size={16} aria-hidden="true" />
+            <span>Kiro</span>
           </Link>
-
           <button
             ref={burgerRef}
             type="button"
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg
+            className="lg:hidden flex items-center justify-center w-11 h-11 rounded-lg
                        text-ink-muted hover:text-ink hover:bg-base-surface/60
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon
                        transition-colors"
@@ -125,16 +123,16 @@ export function TopNav() {
         <div
           id="mobile-nav-menu"
           ref={menuRef}
-          className="md:hidden border-t border-base-line bg-base-panel"
+          className="lg:hidden border-t border-base-line bg-base-panel"
           role="region"
           aria-label="Navigation menu"
         >
           <ul className="flex flex-col p-3 gap-1 list-none m-0" role="list">
-            {headerLinks.map((link) => (
+            {NAV.map((link) => (
               <li key={link.label}>
                 <Link
                   to={link.to}
-                  className={[linkClass(link.isCurrent(pathname)), 'block w-full px-3 py-2'].join(' ')}
+                  className={[linkClass(link.isCurrent(pathname)), 'w-full px-3'].join(' ')}
                   aria-current={link.isCurrent(pathname) ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
                 >
@@ -142,15 +140,6 @@ export function TopNav() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                to="/app"
-                className={[linkClass(pathname.startsWith('/app')), 'block w-full px-3 py-2'].join(' ')}
-                onClick={() => setMenuOpen(false)}
-              >
-                App
-              </Link>
-            </li>
           </ul>
         </div>
       )}

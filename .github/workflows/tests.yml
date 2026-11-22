@@ -36,3 +36,7 @@ jobs:
         run: |
           npm ci
           npm test
+      - name: Browser tests (ghost overlap)
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e

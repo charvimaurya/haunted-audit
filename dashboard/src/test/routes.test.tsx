@@ -69,11 +69,11 @@ describe('navigation', () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1, name: 'Haunted Audit' });
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
-    await userEvent.click(within(nav).getByRole('link', { name: 'Results' }));
-    const h1 = await screen.findByRole('heading', { level: 1, name: 'Results' });
+    await userEvent.click(within(nav).getByRole('link', { name: 'Reports' }));
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'Reports' });
     await waitFor(() => expect(document.activeElement).toBe(h1));
     await waitFor(() =>
-      expect(document.getElementById('live-region')?.textContent).toBe('Navigated to Results'),
+      expect(document.getElementById('live-region')?.textContent).toBe('Navigated to Reports'),
     );
   });
 
