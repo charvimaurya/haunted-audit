@@ -1,0 +1,14 @@
+---
+description: Work only on main; no feature branches; commit identity
+alwaysApply: true
+---
+
+# Git: main only
+
+- Work only on `main`. Do not create feature, chore, or other topic branches.
+- Commit and push directly to `main`. Never force-push `main`.
+- Author and committer for every commit:
+  - Name: `sukhada dhingra`
+  - Email: `173662774+Sukhxdx@users.noreply.github.com`
+- Do not add Cursor, Copilot, or any AI co-author trailer (`Co-authored-by`).
+- Prefer: `git checkout main`, pull, commit on `main`, `git push origin main`.
