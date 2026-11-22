@@ -12,7 +12,8 @@ import os
 BASE = os.environ.get('DASHBOARD_URL', 'http://localhost:5173')
 PAGES = ['/', '/how-it-works', '/try', '/results', '/trust', '/kiro', '/roadmap', '/about',
          '/accessibility', '/app', '/app/scans', '/app/journeys', '/app/agents', '/app/fixes/find',
-         '/app/fixes/fix', '/app/fixes/verify', '/app/regression', '/app/reports', '/app/settings']
+         '/app/fixes/fix', '/app/fixes/verify', '/app/fixes/regression', '/app/reports', '/app/settings',
+         '/app/journeys/send-payment/possession']
 JS = """() => { const e = document.activeElement; if (!e || e === document.body) return null;
   const s = getComputedStyle(e); const r = e.getBoundingClientRect();
   const ring = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 || (s.boxShadow && s.boxShadow !== 'none');
@@ -21,16 +22,17 @@ fails = 0
 with sync_playwright() as p:
     b = p.chromium.launch(channel='chrome')
     pg = b.new_page(viewport={'width': 1280, 'height': 800})
+    def load(path):
+        pg.goto(BASE + path); pg.wait_for_selector('h1'); pg.wait_for_load_state('networkidle'); pg.wait_for_timeout(300)
+
     for path in PAGES:
-        pg.goto(BASE + path); pg.wait_for_timeout(500)
+        load(path)
+        # On first load focus stays at the top of the document, so the first Tab is the first stop.
         h1_focused = pg.evaluate("() => document.activeElement && document.activeElement.tagName") == 'H1'
-        for _ in range(40):  # walk back to the start of the document
-            pg.keyboard.press('Shift+Tab')
-            if pg.evaluate(JS) is None: break
         seen, first, no_ring, stops = [], None, [], 0
-        for i in range(60):
+        for i in range(80):
             pg.keyboard.press('Tab'); f = pg.evaluate(JS)
-            if f is None: break
+            if f is None: break  # left the page at the end: no trap
             stops += 1
             key = (f['tag'], f['name'])
             if i == 0: first = f['name']
@@ -38,17 +40,15 @@ with sync_playwright() as p:
             if seen and key == seen[0] and i > 2: break  # wrapped round: no trap
             seen.append(key)
         # Shift+Tab mid-page must return to the element before
-        for _ in range(40):
-            pg.keyboard.press('Shift+Tab')
-            if pg.evaluate(JS) is None: break
+        load(path)
         pg.keyboard.press('Tab'); pg.keyboard.press('Tab'); a = pg.evaluate(JS)
         pg.keyboard.press('Tab'); pg.keyboard.press('Shift+Tab'); b2 = pg.evaluate(JS)
         back = b2 if (a and b2 and a['name'] == b2['name']) else None
-        ok = first == 'Skip to main content' and not no_ring and back is not None
+        ok = first == 'Skip to main content' and not no_ring and back is not None and not h1_focused
         fails += 0 if ok else 1
         print(('PASS' if ok else 'FAIL'), path, f'stops={stops}', f'first={first!r}', f'no_visible_focus={no_ring[:4]}', f'h1_focused_on_load={h1_focused}')
     # Enter activates: focus the hero link by keyboard and press Enter
-    pg.goto(BASE + '/'); pg.wait_for_timeout(500)
+    pg.goto(BASE + '/'); pg.wait_for_selector('h1'); pg.wait_for_load_state('networkidle')
     for _ in range(30):
         pg.keyboard.press('Tab')
         if 'Possess This App' in (pg.evaluate(JS) or {}).get('name', ''): break

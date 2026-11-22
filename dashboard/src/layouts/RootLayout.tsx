@@ -1,9 +1,11 @@
 /**
- * RootLayout: skip link, polite live region, run state, and nested shells via <Outlet />.
- * Marketing and App chrome live in their own layouts.
+ * RootLayout: skip link, the v7 top menu, the shell (via <Outlet />), the footer,
+ * the polite live region and run state. Every page in both shells gets the same chrome.
  */
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { SiteFooter } from '../components/SiteFooter';
+import { TopNav } from '../components/TopNav';
 import { useRouteAnnouncer } from '../lib/useRouteAnnouncer';
 import { RunProvider } from '../runs/RunProvider';
 
@@ -27,15 +29,17 @@ export function RootLayout() {
         >
           Skip to main content
         </a>
+        <TopNav />
         <Suspense
           fallback={
-            <p role="status" className="px-4 py-10 text-base font-ui text-ink-muted">
+            <p role="status" className="px-4 pt-20 pb-10 text-base font-ui text-ink-muted">
               Loading page…
             </p>
           }
         >
           <Outlet />
         </Suspense>
+        <SiteFooter />
         <div id="live-region" role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       </div>
     </RunProvider>

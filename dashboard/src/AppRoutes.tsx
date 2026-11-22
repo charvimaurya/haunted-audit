@@ -1,71 +1,68 @@
 /**
- * AppRoutes: one route per page, read from the manifest in routes.ts.
- * Marketing pages use MarketingLayout. Everything under /app uses AppLayout.
+ * AppRoutes: mounts every page in the route table (src/routes.ts) and every redirect.
+ * Public pages use MarketingLayout; /app pages use AppLayout. Both sit inside RootLayout,
+ * which draws the v7 top menu once for every page.
  * Pages load only when first visited. Wrap in a router (BrowserRouter in main.tsx, MemoryRouter in tests).
  */
-import { lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppLayout } from './layouts/AppLayout';
 import { MarketingLayout } from './layouts/MarketingLayout';
 import { RootLayout } from './layouts/RootLayout';
-import { APP, JOURNEY } from './routes';
+import { FIX_STEPS, PAGES, REDIRECTS, to, type PageId } from './routes';
 
-const Home = lazy(() => import('./pages/Home'));
+type Page = LazyExoticComponent<ComponentType>;
+
 const NotFound = lazy(() => import('./pages/NotFound'));
-const LegacyAgents = lazy(() => import('./pages/Agents'));
+const Fixes = lazy(() => import('./pages/app/Fixes'));
 
-const HowItWorks = lazy(() => import('./pages/marketing/HowItWorks'));
-const Try = lazy(() => import('./pages/marketing/Try'));
-const Results = lazy(() => import('./pages/marketing/Results'));
-const Trust = lazy(() => import('./pages/marketing/Trust'));
-const MarketingKiro = lazy(() => import('./pages/marketing/Kiro'));
-const Roadmap = lazy(() => import('./pages/marketing/Roadmap'));
-const About = lazy(() => import('./pages/marketing/About'));
-const Accessibility = lazy(() => import('./pages/marketing/Accessibility'));
+const COMPONENTS: Partial<Record<PageId, Page>> = {
+  home: lazy(() => import('./pages/Home')),
+  'how-it-works': lazy(() => import('./pages/marketing/HowItWorks')),
+  try: lazy(() => import('./pages/marketing/Try')),
+  results: lazy(() => import('./pages/marketing/Results')),
+  trust: lazy(() => import('./pages/marketing/Trust')),
+  kiro: lazy(() => import('./pages/marketing/Kiro')),
+  roadmap: lazy(() => import('./pages/marketing/Roadmap')),
+  about: lazy(() => import('./pages/marketing/About')),
+  accessibility: lazy(() => import('./pages/marketing/Accessibility')),
+  'app-home': lazy(() => import('./pages/app/AppHome')),
+  'app-scans': lazy(() => import('./pages/app/Scans')),
+  'app-journeys': lazy(() => import('./pages/app/Journeys')),
+  possession: lazy(() => import('./pages/app/Possession')),
+  'app-agents': lazy(() => import('./pages/app/Agents')),
+  'app-reports': lazy(() => import('./pages/app/Reports')),
+  'app-settings': lazy(() => import('./pages/app/Settings')),
+};
 
-const AppHome = lazy(() => import('./pages/app/AppHome'));
-const AppScans = lazy(() => import('./pages/app/Scans'));
-const AppJourneys = lazy(() => import('./pages/app/Journeys'));
-const AppAgents = lazy(() => import('./pages/app/Agents'));
-const AppFixes = lazy(() => import('./pages/app/Fixes'));
-const AppRegression = lazy(() => import('./pages/app/Regression'));
-const AppReports = lazy(() => import('./pages/app/Reports'));
-const AppSettings = lazy(() => import('./pages/app/Settings'));
+/** Redirect that keeps `:step` from the old URL. */
+function KeepStep({ to }: { to: string }) {
+  const { step } = useParams();
+  return <Navigate to={to.replace(':step', step ?? FIX_STEPS[0])} replace />;
+}
+
+function routesFor(shell: 'marketing' | 'app') {
+  return PAGES.filter((p) => p.shell === shell && COMPONENTS[p.id]).map((p) => {
+    const C = COMPONENTS[p.id]!;
+    return <Route key={p.id} path={p.path} element={<C />} />;
+  });
+}
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route element={<RootLayout />}>
         <Route element={<MarketingLayout />}>
-          <Route index element={<Home />} />
-          <Route path="how-it-works" element={<HowItWorks />} />
-          <Route path="try" element={<Try />} />
-          <Route path="results" element={<Results />} />
-          <Route path="trust" element={<Trust />} />
-          <Route path="kiro" element={<MarketingKiro />} />
-          <Route path="roadmap" element={<Roadmap />} />
-          <Route path="about" element={<About />} />
-          <Route path="accessibility" element={<Accessibility />} />
-          {/* Legacy journey URLs. Agents stays mounted; the rest redirect into the app. */}
-          <Route path={`${JOURNEY.slice(1)}/agents`} element={<LegacyAgents />} />
-          <Route path={JOURNEY.slice(1)} element={<Navigate to={`${APP}/journeys`} replace />} />
-          <Route path={`${JOURNEY.slice(1)}/possession`} element={<Navigate to={`${APP}/journeys`} replace />} />
-          <Route path={`${JOURNEY.slice(1)}/fixes`} element={<Navigate to={`${APP}/fixes/find`} replace />} />
-          <Route path={`${JOURNEY.slice(1)}/fixes/:step`} element={<Navigate to={`${APP}/fixes/find`} replace />} />
-          <Route path="scans" element={<Navigate to={`${APP}/scans`} replace />} />
-          <Route path="reports" element={<Navigate to={`${APP}/reports`} replace />} />
+          {routesFor('marketing')}
+          {REDIRECTS.map((r) => (
+            <Route key={r.from} path={r.from} element={<KeepStep to={r.to} />} />
+          ))}
           <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path={APP.slice(1)} element={<AppLayout />}>
-          <Route index element={<AppHome />} />
-          <Route path="scans" element={<AppScans />} />
-          <Route path="journeys" element={<AppJourneys />} />
-          <Route path="agents" element={<AppAgents />} />
-          <Route path="fixes" element={<Navigate to={`${APP}/fixes/find`} replace />} />
-          <Route path="fixes/:step" element={<AppFixes />} />
-          <Route path="regression" element={<AppRegression />} />
-          <Route path="reports" element={<AppReports />} />
-          <Route path="settings" element={<AppSettings />} />
+        <Route element={<AppLayout />}>
+          {routesFor('app')}
+          <Route path={to('app-fixes-find').replace(/find$/, ':step')} element={<Fixes />} />
+          <Route path={`${to('app-home')}/*`} element={<NotFound />} />
         </Route>
       </Route>
     </Routes>

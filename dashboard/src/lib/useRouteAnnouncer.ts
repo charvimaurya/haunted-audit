@@ -9,14 +9,14 @@ import { titleFor } from '../routes';
  */
 export function useRouteAnnouncer(): void {
   const { pathname } = useLocation();
-  const first = useRef(true);
+  // The path focus was last settled for. Comparing paths (not a "first run" flag) keeps focus where it
+  // is on first load even when React runs the effect twice (StrictMode in development).
+  const settled = useRef(pathname);
 
   useEffect(() => {
     document.title = titleFor(pathname);
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    if (settled.current === pathname) return;
+    settled.current = pathname;
     window.scrollTo(0, 0);
     let frames = 0;
     let raf = 0;

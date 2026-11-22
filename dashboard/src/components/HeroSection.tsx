@@ -18,6 +18,7 @@ import { Search, Code2, CheckCircle2, ShieldCheck, Ghost } from 'lucide-react';
 import { AmbientLayer } from '../immersion/AmbientLayer';
 import { HeroCastle } from './HeroCastle';
 import { HeroScene } from './HeroScene';
+import { PATHS } from '../routes';
 
 interface HeroSectionProps {
   /** Where "Possess This App" goes. */
@@ -48,7 +49,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export function HeroSection({ to = '/journeys/send-payment/possession' }: HeroSectionProps) {
+export function HeroSection({ to = PATHS.try }: HeroSectionProps) {
   const reducedMotion = usePrefersReducedMotion();
   const hostRef = useRef<HTMLElement>(null);
 

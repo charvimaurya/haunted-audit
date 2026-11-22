@@ -1,25 +1,19 @@
 /**
- * AppLayout: sidebar + breadcrumbs + main for /app/* routes.
+ * AppLayout: sidebar, breadcrumbs and main for /app/* pages, under the shared top menu.
+ * Breadcrumbs come from the route table; the last crumb matches the page H1.
  */
 import { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Ghost, Menu, X } from 'lucide-react';
-import { SenseControls } from '../immersion/SenseControls';
-import { APP_NAV, pageFor } from '../routes';
-
-function breadcrumbLabel(pathname: string): string {
-  const page = pageFor(pathname);
-  if (!page) return 'App';
-  if (page.id === 'app-home') return 'Dashboard';
-  return page.h1;
-}
+import { Menu, X } from 'lucide-react';
+import { APP_NAV, NOT_FOUND_TITLE, pageFor, to, trailFor } from '../routes';
 
 export function AppLayout() {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
-  const crumb = breadcrumbLabel(pathname);
+  const current = pageFor(pathname);
+  const trail = current ? trailFor(current.id) : [];
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -38,7 +32,7 @@ export function AppLayout() {
 
   const linkClass = (isActive: boolean) =>
     [
-      'block w-full rounded-lg px-3 py-2 text-base font-ui transition-colors',
+      'flex min-h-11 w-full items-center rounded-lg px-3 text-base font-ui transition-colors',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
       isActive
         ? 'bg-violet-600/25 font-bold text-ink underline underline-offset-4'
@@ -63,62 +57,33 @@ export function AppLayout() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col pt-14 md:flex-row">
       {/* Desktop sidebar */}
       <aside
-        className="hidden w-56 shrink-0 border-r border-base-line bg-base-panel md:flex md:flex-col"
+        className="hidden w-56 shrink-0 border-r border-base-line bg-base-panel md:block"
         aria-label="App"
       >
-        <div className="flex h-14 items-center gap-2 border-b border-base-line px-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-            aria-label="Haunted Audit — home"
-          >
-            <Ghost size={20} className="text-violet-neon" aria-hidden="true" />
-            <span className="text-base text-ink" style={{ fontFamily: 'var(--font-display)' }}>
-              Haunted Audit
-            </span>
-          </Link>
-        </div>
-        <nav aria-label="App" className="flex-1 p-3">
+        <nav aria-label="App" className="sticky top-14 p-3">
           {navList}
         </nav>
-        <div className="border-t border-base-line p-3">
-          <SenseControls />
-        </div>
       </aside>
 
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-base-line bg-base/95 px-4 backdrop-blur-sm md:hidden">
-        <Link
-          to="/"
-          className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-          aria-label="Haunted Audit — home"
+      {/* Mobile: the sidebar opens from a button under the top menu */}
+      <div className="flex h-12 items-center border-b border-base-line bg-base/95 px-4 md:hidden">
+        <button
+          ref={burgerRef}
+          type="button"
+          className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-base font-ui text-ink-muted
+                     hover:bg-base-surface/60 hover:text-ink
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+          aria-expanded={menuOpen}
+          aria-controls="app-mobile-nav"
+          onClick={() => setMenuOpen((o) => !o)}
         >
-          <Ghost size={20} className="text-violet-neon" aria-hidden="true" />
-          <span className="text-base text-ink" style={{ fontFamily: 'var(--font-display)' }}>
-            Haunted Audit
-          </span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <SenseControls />
-          <button
-            ref={burgerRef}
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted
-                       hover:bg-base-surface/60 hover:text-ink
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-            aria-label={menuOpen ? 'Close app menu' : 'Open app menu'}
-            aria-expanded={menuOpen}
-            aria-controls="app-mobile-nav"
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
-          </button>
-        </div>
+          {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          {menuOpen ? 'Close app menu' : 'App menu'}
+        </button>
       </div>
-
       {menuOpen && (
         <div
           id="app-mobile-nav"
@@ -139,22 +104,29 @@ export function AppLayout() {
           <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
             <li>
               <Link
-                to="/app"
-                className="rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                to={to('app-home')}
+                className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
               >
                 App
               </Link>
             </li>
-            {pathname !== '/app' && (
-              <>
-                <li aria-hidden="true">/</li>
-                <li>
+            {(current ? trail.filter((p) => p.id !== 'app-home') : [null]).map((p, i, all) => (
+              <li key={p?.id ?? 'not-found'} className="flex items-center gap-2">
+                <span aria-hidden="true">/</span>
+                {p && i < all.length - 1 ? (
+                  <Link
+                    to={to(p.id)}
+                    className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                  >
+                    {p.h1}
+                  </Link>
+                ) : (
                   <span aria-current="page" className="font-semibold text-ink">
-                    {crumb}
+                    {p ? p.h1 : NOT_FOUND_TITLE}
                   </span>
-                </li>
-              </>
-            )}
+                )}
+              </li>
+            ))}
           </ol>
         </nav>
         <main

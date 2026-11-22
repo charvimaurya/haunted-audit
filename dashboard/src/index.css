@@ -109,17 +109,20 @@ html[data-calm='true'] *::after {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
-/* Mid open band beside the tagline, left → right. Starts mid-crossing so it is visible immediately. */
+/* Lower band, under the step chips and clear of the main button, left → right.
+   Starts mid-crossing so it is visible immediately. (site-shell-repair REQ-SH-08) */
 .ambient-roam-ltr {
-  top: 42%;
-  font-size: 4.75rem;
+  top: auto;
+  bottom: 0.25rem;
+  font-size: 3rem;
   animation-name: ambient-roam;
   animation-delay: -7s;
 }
-/* Upper band, right → left. A different, tinted ghost, already on screen. */
+/* Upper band, inside the hero's top padding, above the H1, right → left.
+   A different, tinted ghost, already on screen. */
 .ambient-roam-rtl {
-  top: 12%;
-  font-size: 4rem;
+  top: 0.5rem;
+  font-size: 3rem;
   animation-name: ambient-roam-back;
   animation-delay: -4s;
 }
