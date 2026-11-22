@@ -19,12 +19,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+_HERE = Path(__file__).resolve().parent
+# Workspace root: HAUNTED_AUDIT_ROOT, else the repo (this file in backend/), else the folder Kiro starts us in.
+REPO = Path(os.environ.get("HAUNTED_AUDIT_ROOT") or (_HERE.parent if _HERE.name == "backend" else Path.cwd()))
 SCOPES = ("bank/", "fixtures/haunted_bank/", "dashboard/src/")
 CONTROLS = {"input", "select", "textarea"}
 NO_LABEL_TYPES = {"hidden", "submit", "reset", "button", "image"}

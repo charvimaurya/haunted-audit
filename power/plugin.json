@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "haunted-audit",
+  "version": "0.1.0",
+  "description": "Find form fields with no label in HTML and TSX files, map a finding to WCAG, and review UI against accessibility rules. Read-only: a person approves every fix.",
+  "author": { "name": "Haunted Audit team" },
+  "keywords": ["accessibility", "a11y", "wcag", "form label", "aria", "screen reader", "keyboard", "haunted audit", "ghost"],
+  "repository": "https://github.com/charvimaurya/haunted-audit",
+  "license": "MIT"
+}
