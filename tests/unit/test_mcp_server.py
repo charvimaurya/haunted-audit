@@ -36,6 +36,7 @@ def test_scan_page_clean_file_has_no_findings():
     ("/etc/passwd", "outside this workspace"),
     ("dashboard/src/index.css", "Only .html and .tsx"),
     ("ftp://x/y.html", "never fetches a web page"),
+    ("file://evil-host/share/a.html", "with a host"),
     ("mailto:a@b.c", "file path or a file:// URL"),
     ("", "Give a file path"),
     ("fixtures/haunted_bank/missing.html", "No file at"),

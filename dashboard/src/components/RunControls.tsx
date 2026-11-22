@@ -5,7 +5,7 @@
  *
  * Accessibility (accessible-ui-review, 22 Nov 2026):
  * - Visible labels are the accessible names (no aria-label overriding "Run Journey", WCAG 2.5.3).
- * - While a run is going the controls use aria-disabled, so the focused button keeps focus.
+ * - While a run is going the button uses aria-disabled, so it keeps focus; the selects are disabled.
  * - Status is icon plus text, in a live region that is always rendered.
  * - Focus uses the global 3px outline from index.css; targets are at least 44px tall.
  */
@@ -31,7 +31,7 @@ const STATUS_LABEL: Record<RunStatus, string> = {
 };
 const FIELD =
   'min-h-11 bg-base border border-base-line text-ink text-base font-ui rounded-lg px-2 ' +
-  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed cursor-pointer';
+  'disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
 function StatusIcon({ status }: { status: RunStatus }) {
   if (status === 'running') return <Loader2 size={16} className="motion-safe:animate-spin" aria-hidden="true" />;
@@ -63,10 +63,8 @@ export function RunControls({
         <select
           id="variant-select"
           value={variant}
-          onChange={(e) => {
-            if (!isRunning) onVariantChange(e.target.value as Variant);
-          }}
-          aria-disabled={isRunning || undefined}
+          onChange={(e) => onVariantChange(e.target.value as Variant)}
+          disabled={isRunning}
           className={FIELD}
         >
           <option value="broken">broken (barrier present)</option>
@@ -81,10 +79,8 @@ export function RunControls({
         <select
           id="mode-select"
           value={mode}
-          onChange={(e) => {
-            if (!isRunning) onModeChange(e.target.value as AgentMode);
-          }}
-          aria-disabled={isRunning || undefined}
+          onChange={(e) => onModeChange(e.target.value as AgentMode)}
+          disabled={isRunning}
           className={FIELD}
         >
           <option value="scripted">scripted (fixed steps, no AI)</option>

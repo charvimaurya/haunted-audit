@@ -43,6 +43,8 @@ def scan_page_impl(target: str) -> dict:
     if scheme in ("http", "https", "ftp", "ws", "wss"):
         raise ValueError("scan_page only reads files in this workspace. It never fetches a web page.")
     if scheme == "file":
+        if parsed.netloc not in ("", "localhost"):
+            raise ValueError("A file:// URL with a host is not a file in this workspace.")
         raw = unquote(parsed.path)
         if re.match(r"^/[A-Za-z]:/", raw):  # file:///C:/... on Windows
             raw = raw[1:]

@@ -24,4 +24,4 @@ In `RunControls.tsx` the sub-agent reported four serious issues:
 3. The Complete and Error badges have no icon.
 4. The focus ring is 2px, not 3px.
 
-These are not fixed in this pull request. They are listed in `docs/plan-status.md`.
+All four were fixed in the same pull request and checked in Chrome: the button's name is "Run Journey", focus stays on it during a run (`aria-disabled`), the status shows an icon and "Run status: Complete", and the focus outline is solid 3px.
