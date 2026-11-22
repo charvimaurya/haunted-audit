@@ -14,3 +14,7 @@ dist/
 node_modules/
 .DS_Store
 budget-notifications.json
+
+# Team-only files: plans, scripts, old versions (never commit)
+team-private/
+Claude outputs/
