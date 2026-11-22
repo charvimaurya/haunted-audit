@@ -100,7 +100,7 @@ export function TopNav() {
             aria-label="Built with Kiro"
           >
             <Ghost size={16} aria-hidden="true" />
-            <span aria-hidden="true">Kiro</span>
+            <span>Kiro</span>
           </Link>
           <button
             ref={burgerRef}

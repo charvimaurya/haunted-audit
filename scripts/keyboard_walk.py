@@ -9,11 +9,16 @@ import sys
 from playwright.sync_api import sync_playwright
 
 import os
+import re
+from pathlib import Path
 BASE = os.environ.get('DASHBOARD_URL', 'http://localhost:5173')
-PAGES = ['/', '/how-it-works', '/try', '/results', '/trust', '/kiro', '/roadmap', '/about',
-         '/accessibility', '/app', '/app/scans', '/app/journeys', '/app/agents', '/app/fixes/find',
-         '/app/fixes/fix', '/app/fixes/verify', '/app/fixes/regression', '/app/reports', '/app/settings',
-         '/app/journeys/send-payment/possession']
+# Every page in the route table (dashboard/src/routes.ts, PATHS), so this list cannot drift from the app.
+_ROUTES = (Path(__file__).resolve().parent.parent / 'dashboard' / 'src' / 'routes.ts').read_text(encoding='utf-8')
+_APP = re.search(r"const APP = '([^']+)'", _ROUTES).group(1)
+_BLOCK = _ROUTES[_ROUTES.index('export const PATHS = {'):_ROUTES.index('} as const;')]
+PAGES = [v.replace('${APP}', _APP) for v in re.findall(r":\s*[`']([^`']+)[`']", _BLOCK)]
+PAGES = [_APP if p == 'APP' else p for p in PAGES] + ([_APP] if "'app-home': APP" in _BLOCK else [])
+PAGES = list(dict.fromkeys(PAGES))
 JS = """() => { const e = document.activeElement; if (!e || e === document.body) return null;
   const s = getComputedStyle(e); const r = e.getBoundingClientRect();
   const ring = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 || (s.boxShadow && s.boxShadow !== 'none');
