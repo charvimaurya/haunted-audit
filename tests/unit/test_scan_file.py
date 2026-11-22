@@ -167,3 +167,17 @@ def test_rejects_other_file_types(tmp_path):
     p.write_text("a{}")
     with pytest.raises(ValueError):
         sf.scan_file(p)
+
+
+# ── review fixes (22 Nov 2026) ──────────────────────────────────────────────
+
+@pytest.mark.parametrize("body", ['<input placeholder="abc', "<input value={x", "<input {...props"])
+def test_tsx_half_typed_tag_does_not_hang(body):
+    start = time.perf_counter()
+    assert sf.scan_tsx(f"const C = () => ({body}", "x.tsx") == []
+    assert time.perf_counter() - start < 1.0
+
+
+def test_html_aria_labelledby_to_missing_id_is_a_finding():
+    assert [f["element"] for f in html('<input id="a" aria-labelledby="missing">')] == ["input#a"]
+    assert html('<span id="t">Amount</span><input id="a" aria-labelledby="t">') == []

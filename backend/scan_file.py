@@ -80,6 +80,7 @@ class _Collector(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.controls: list[tuple[str, dict, int, int, bool]] = []  # tag, attrs, line, col, in_label
         self.label_for: set[str] = set()
+        self.ids: set[str] = set()
         self.scripts: list[tuple[str, int]] = []
         self._label_depth = 0
         self._in_script = False
@@ -87,6 +88,8 @@ class _Collector(HTMLParser):
     def handle_starttag(self, tag, attrs):
         a = {k: (v or "") for k, v in attrs}
         line, col = self.getpos()
+        if a.get("id"):
+            self.ids.add(a["id"])
         if tag == "label":
             self._label_depth += 1
             if a.get("for"):
@@ -140,9 +143,13 @@ def _js_unescape(s: str) -> str:
     return re.sub(r"\\(.)", r"\1", s)
 
 
-def _scan_controls(controls, label_for: set[str], rel: str, line_of) -> list[dict]:
+def _scan_controls(controls, label_for: set[str], rel: str, line_of, ids: set[str] | None = None) -> list[dict]:
     out = []
     for tag, attrs, line, col, in_label in controls:
+        if ids is not None and (attrs.get("aria-labelledby") or "").strip():
+            # aria-labelledby only names the field when at least one id it points to exists
+            if not any(t in ids for t in attrs["aria-labelledby"].split()):
+                attrs = {k: v for k, v in attrs.items() if k != "aria-labelledby"}
         if not _needs_label(tag, attrs) or in_label or _has_name(attrs):
             continue
         if attrs.get("id") and attrs["id"] in label_for:
@@ -155,7 +162,7 @@ def scan_html(text: str, rel: str) -> list[dict]:
     page = _Collector()
     page.feed(text)
     page.close()
-    findings = _scan_controls(page.controls, page.label_for, rel, lambda line, col: line)
+    findings = _scan_controls(page.controls, page.label_for, rel, lambda line, col: line, page.ids)
 
     # Markup built in scripts: each `.innerHTML = '...' + '...';` is its own fragment,
     # scanned together with the page's static labels.
@@ -183,7 +190,8 @@ def scan_html(text: str, rel: str) -> list[dict]:
                         found = line
                 return found
 
-            findings += _scan_controls(frag.controls, page.label_for | frag.label_for, rel, line_of)
+            findings += _scan_controls(frag.controls, page.label_for | frag.label_for, rel, line_of,
+                                       page.ids | frag.ids)
     return findings
 
 
@@ -215,6 +223,8 @@ def _read_jsx_attrs(src: str, i: int) -> tuple[dict, bool, bool, int]:
                     if depth == 0:
                         break
                 j += 1
+            if j >= n:
+                return attrs, True, False, n
             spread = spread or src[i:j].lstrip("{ ").startswith("...")
             i = j + 1
             continue
@@ -233,6 +243,8 @@ def _read_jsx_attrs(src: str, i: int) -> tuple[dict, bool, bool, int]:
             if i < n and src[i] in "\"'":
                 q = src[i]
                 j = src.find(q, i + 1)
+                if j == -1:  # half-typed attribute: cannot decide, stop here
+                    return attrs, True, False, n
                 attrs[name] = src[i + 1:j]
                 i = j + 1
             elif i < n and src[i] == "{":
@@ -245,6 +257,8 @@ def _read_jsx_attrs(src: str, i: int) -> tuple[dict, bool, bool, int]:
                         if depth == 0:
                             break
                     j += 1
+                if j >= n:  # unclosed {: cannot decide
+                    return attrs, True, False, n
                 inner = src[i + 1:j].strip()
                 lit = re.fullmatch(r"""(['"`])([^'"`$]*)\1""", inner)
                 attrs[name] = lit.group(2) if lit else None
@@ -292,8 +306,6 @@ def scan_tsx(text: str, rel: str) -> list[dict]:
         if spread or any(attrs.get(a, "") is None for a in (*NAME_ATTRS, "id", "type", "role")):
             continue
         html_attrs = {k: v for k, v in attrs.items() if isinstance(v, str)}
-        if "aria-label" in html_attrs and "aria-label" not in attrs:
-            continue
         if not _needs_label(tag, html_attrs) or _has_name(html_attrs):
             continue
         el_id = html_attrs.get("id")
@@ -376,7 +388,8 @@ def main(argv: list[str]) -> int:
         print(__doc__.strip(), file=sys.stderr)
         return 2
     findings = scan_file(args[0])
-    print(json.dumps({"file": args[0], "findings": findings}, indent=2))
+    shown = findings[0]["file"] if findings else Path(args[0]).as_posix()
+    print(json.dumps({"file": shown, "findings": findings}, indent=2))
     return 1 if strict and findings else 0
 
 
