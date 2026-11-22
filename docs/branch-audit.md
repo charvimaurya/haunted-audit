@@ -16,7 +16,7 @@ Date: Sun 22 Nov 2026. Repo: `charvimaurya/haunted-audit`. Base: `main` at `7042
 "Ahead" is the number of commits not on `main`. "Behind" is the number of commits on `main` that the
 branch lacks. Every branch is 0 behind, so each one merges into `main` without a rebase today.
 
-| Branch | Worktree folder | Ahead | Behind | Pushed | Uncommitted | Open PR | Files changed vs `main` |
+| Branch | Worktree folder | Ahead | Behind | Pushed | Uncommitted | Open PR at audit time | Files changed vs `main` |
 |---|---|---|---|---|---|---|---|
 | `main` | none | 0 | 0 | yes | none | none | none |
 | `chore/repo-hygiene` | none | 0 | 0 | yes | none | none | 0 (same commit as `main`) |
@@ -25,7 +25,7 @@ branch lacks. Every branch is 0 behind, so each one merges into `main` without a
 | `feature/payment-journey` | `Kiro.payment` | 3 | 0 | yes | none | #1 (draft) | 7 |
 | `feature/hero-scene` | `Kiro.hero` | 1 | 0 | yes | none | none | 3 |
 | `feature/voice-agent-spec` | `Kiro.voice` | 1 | 0 | yes | none | none | 1 |
-| `feature/exorcist` | `Kiro.hackathon` (main folder) | 8 | 0 | yes | none | none | 85 |
+| `feature/exorcist` | `Kiro.hackathon` (main folder) | 8 | 0 | yes | none | none | 75 |
 
 `~/Desktop/Kiro.payment` has no uncommitted work. Local and remote tips match on every branch.
 
@@ -64,3 +64,12 @@ This was computed with `git diff --name-only main origin/<branch>` for each pair
 
 - Branch protection and required reviews on `main`.
 - Test results and secrets scan per branch. These run in step 3.
+
+## PRs opened after this audit
+
+#1 `feature/payment-journey` (already open), #2 this audit, #3 `chore/unblock`, #4 `feature/hero-scene`,
+#5 `feature/bank-payment-barriers`, #6 `feature/exorcist` (draft). `feature/voice-agent-spec` has no PR because it has no spec.
+
+## Correction
+
+The first version of this file said `feature/exorcist` changes 85 files. `git diff --name-only origin/main origin/feature/exorcist` gives 75. Corrected after review.
