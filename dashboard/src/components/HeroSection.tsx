@@ -86,7 +86,7 @@ export function HeroSection({ to = '/journeys/send-payment/possession' }: HeroSe
       <p className="text-base text-ink-muted max-w-md mb-1 font-ui">
         The accessibility guardrail for AI-built applications.
       </p>
-      <p className="text-sm text-ghost-ready mb-8 font-ui">
+      <p className="text-base text-ghost-ready mb-8 font-ui">
         Feel the barrier. Fix the cause. Prove the journey.
       </p>
 
@@ -120,7 +120,7 @@ export function HeroSection({ to = '/journeys/send-payment/possession' }: HeroSe
         {PILL_STEPS.map(({ icon: Icon, label, tone }) => (
           <li
             key={label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-ui
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-base font-ui
                        bg-base-surface/80 border border-base-line text-ink-muted"
           >
             <Icon size={16} className={tone} aria-hidden="true" />

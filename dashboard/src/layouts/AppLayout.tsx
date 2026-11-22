@@ -76,7 +76,7 @@ export function AppLayout() {
             aria-label="Haunted Audit — home"
           >
             <Ghost size={20} className="text-violet-neon" aria-hidden="true" />
-            <span className="text-sm text-ink" style={{ fontFamily: 'var(--font-display)' }}>
+            <span className="text-base text-ink" style={{ fontFamily: 'var(--font-display)' }}>
               Haunted Audit
             </span>
           </Link>
@@ -97,7 +97,7 @@ export function AppLayout() {
           aria-label="Haunted Audit — home"
         >
           <Ghost size={20} className="text-violet-neon" aria-hidden="true" />
-          <span className="text-sm text-ink" style={{ fontFamily: 'var(--font-display)' }}>
+          <span className="text-base text-ink" style={{ fontFamily: 'var(--font-display)' }}>
             Haunted Audit
           </span>
         </Link>

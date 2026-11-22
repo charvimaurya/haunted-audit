@@ -53,11 +53,11 @@ export function MetricValueDisplay({
       </span>
 
       {/* Label */}
-      <span className="text-xs text-ink-muted text-center leading-tight">{label}</span>
+      <span className="text-base text-ink-muted text-center leading-tight">{label}</span>
 
       {/* Agent mode badge (always shown) */}
       <span
-        className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium ${MODE_BADGE[agentMode]}`}
+        className={`text-base px-1.5 py-0.5 rounded-full font-mono font-medium ${MODE_BADGE[agentMode]}`}
         aria-label={`agent mode: ${agentMode}`}
       >
         {agentMode}
@@ -65,7 +65,7 @@ export function MetricValueDisplay({
 
       {/* Screen-reader note for unmeasured — also render visible hint text */}
       {isUnmeasured && (
-        <span className="text-[10px] font-ui text-ink-faint" aria-hidden="true">
+        <span className="text-base font-ui text-ink-faint" aria-hidden="true">
           not yet measured
         </span>
       )}
@@ -86,14 +86,14 @@ export function MetricChip({
   const isUnmeasured = value === null || value === undefined;
   return (
     <span
-      className="inline-flex items-center gap-1 font-mono text-sm"
+      className="inline-flex items-center gap-1 font-mono text-base"
       aria-label={isUnmeasured ? 'not yet measured' : format(value as number)}
     >
       <span className={isUnmeasured ? 'text-ink-faint' : 'text-ink'}>
         {isUnmeasured ? '--' : format(value as number)}
       </span>
       <span
-        className={`text-[9px] px-1 py-0.5 rounded font-mono ${MODE_BADGE[agentMode]}`}
+        className={`text-base px-1 py-0.5 rounded font-mono ${MODE_BADGE[agentMode]}`}
       >
         {agentMode}
       </span>

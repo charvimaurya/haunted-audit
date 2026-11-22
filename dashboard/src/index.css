@@ -186,10 +186,8 @@ html, body {
 /* ── Code block ─────────────────────────────────────────────────────────── */
 .code-block {
   font-family: var(--font-mono);
-  /* 0.875rem = 14px at default zoom; scales to 28px at 200% — satisfies
-     WCAG 1.4.4 Resize Text. Code samples are exempt from the 16px body-copy
-     minimum; we keep them rem-based so they honour user zoom preferences. */
-  font-size: 0.875rem;
+  /* 16px minimum applies to code too (accessibility.md). rem so zoom and text size work. */
+  font-size: 1rem;
   line-height: 1.6;
   background: #0d0714;
   border: 1px solid var(--color-line);

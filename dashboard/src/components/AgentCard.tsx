@@ -38,7 +38,7 @@ export function AgentCard({ name, icon, outcomes, isRunning = false }: AgentCard
         >
           {icon}
         </span>
-        <h3 className="text-sm font-semibold font-ui text-ink">{name}</h3>
+        <h3 className="text-base font-semibold font-ui text-ink">{name}</h3>
         {isRunning && (
           <Loader2
             size={13}
@@ -49,9 +49,15 @@ export function AgentCard({ name, icon, outcomes, isRunning = false }: AgentCard
       </div>
 
       {/* Outcomes */}
+      {outcomes.length === 0 && (
+        <p className="m-0 text-base font-ui text-ink-muted">
+          <span aria-hidden="true">--</span> <span>not yet measured</span>
+        </p>
+      )}
+      {outcomes.length > 0 && (
       <ul className="flex flex-col gap-1.5" aria-label={`${name} outcome list`}>
         {outcomes.map((o, i) => (
-          <li key={i} className="flex items-start gap-2 text-xs font-ui">
+          <li key={i} className="flex items-start gap-2 text-base font-ui">
             {o.passed ? (
               <CheckCircle2
                 size={13}
@@ -68,12 +74,13 @@ export function AgentCard({ name, icon, outcomes, isRunning = false }: AgentCard
             <span className={o.passed ? 'text-ink-muted' : 'text-ghost-blocked'}>
               {o.label}
               {o.detail && (
-                <span className="block text-[10px] text-ink-faint mt-0.5">{o.detail}</span>
+                <span className="block text-base text-ink-faint mt-0.5">{o.detail}</span>
               )}
             </span>
           </li>
         ))}
       </ul>
+      )}
     </article>
   );
 }

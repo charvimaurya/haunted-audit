@@ -13,7 +13,6 @@
 
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { CodeBlock } from './CodeBlock';
-import { GhostMascot } from './GhostMascot';
 import type { JourneyResult } from '../types';
 
 type PipelineStep = 1 | 2 | 3 | 4;
@@ -64,7 +63,7 @@ function StepTab({
       tabIndex={0}
       onClick={() => onSelect?.(step)}
       className={[
-        'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-ui font-medium',
+        'flex items-center gap-2 px-4 py-2 rounded-full text-base font-ui font-medium',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
         active
           ? 'bg-violet-600 text-white shadow-glow'
@@ -77,7 +76,7 @@ function StepTab({
     >
       <span
         className={[
-          'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
+          'w-5 h-5 rounded-full flex items-center justify-center text-base font-bold shrink-0',
           active ? 'bg-white/20' : 'bg-base-line',
         ].join(' ')}
         aria-hidden="true"
@@ -105,7 +104,7 @@ export function PipelineSection({ result, activeStep = 1, onSelectStep }: Pipeli
       {/* Visible section heading at small size (not sr-only — helps orientation) */}
       <h2
         id="pipeline-heading"
-        className="text-xs font-ui font-semibold text-ink-faint uppercase tracking-widest"
+        className="text-base font-ui font-semibold text-ink-faint uppercase tracking-widest"
       >
         Audit Pipeline
       </h2>
@@ -138,64 +137,52 @@ export function PipelineSection({ result, activeStep = 1, onSelectStep }: Pipeli
       >
         {/* ── Fix ──────────────────────────────────────────────────── */}
         <div className="panel p-4 flex flex-col gap-3">
-          <p className="text-xs font-ui text-ink-faint uppercase tracking-widest">
+          <p className="text-base font-ui text-ink-faint uppercase tracking-widest">
             Proposed Fix (by Exorcist Agent)
+          </p>
+          <p className="m-0 text-base font-ui text-ink-muted">
+            Example fix. The Exorcist agent is not built yet, so no fix has been proposed.
           </p>
           <CodeBlock
             lines={[...BROKEN_CODE, ...FIXED_CODE]}
             language="html"
             ariaLabel="Fix: replace div.pay-btn with a proper button element"
           />
-          <div className="flex gap-2 mt-1">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-ui font-semibold
-                         bg-ghost-verified/15 border border-ghost-verified/40 text-ghost-verified
-                         hover:bg-ghost-verified/25 transition-colors
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ghost-verified"
-              aria-label="Approve the proposed fix"
-            >
-              <CheckCircle2 size={12} aria-hidden="true" />
-              Approve Fix
-            </button>
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-ui font-semibold
-                         bg-base-surface border border-base-line text-ink-muted
-                         hover:text-ink hover:border-base-surface transition-colors
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-              aria-label="Reject the proposed fix"
-            >
-              <XCircle size={12} aria-hidden="true" />
-              Reject
-            </button>
-          </div>
+          <p className="m-0 text-base font-ui text-ink-muted">
+            Approve and Reject appear when a fix exists. A person approves every change.
+          </p>
         </div>
-
         {/* ── Verify ─────────────────────────────────────────────── */}
         <div className="panel p-4 flex flex-col gap-3">
-          <p className="text-xs font-ui text-ink-faint uppercase tracking-widest">
+          <p className="text-base font-ui text-ink-faint uppercase tracking-widest">
             Verification (by Verifier Agent)
           </p>
-          <ul className="flex flex-col gap-2 list-none p-0 m-0" aria-label="Verification steps">
-            {[
-              { label: 'Replaying journey…',  done: true  },
-              { label: 'Tab to Send Payment', done: true  },
-              { label: 'Activate with Enter', done: true  },
-              { label: 'Payment successful',  done: isPassed },
-            ].map(({ label, done }) => (
-              <li key={label} className="flex items-center gap-2 text-xs font-ui">
-                <CheckCircle2
-                  size={13}
-                  className={done ? 'text-ghost-verified' : 'text-ink-faint'}
-                  aria-hidden="true"
-                />
-                <span className={done ? 'text-ink-muted' : 'text-ink-faint'}>{label}</span>
-                {/* Status conveyed in text so colour is not the sole carrier */}
-                <span className="sr-only">{done ? 'done' : 'not yet done'}</span>
-              </li>
-            ))}
-          </ul>
+          {result?.verdict ? (
+            <ul className="flex flex-col gap-2 list-none p-0 m-0" aria-label="Verification steps">
+              {[
+                { label: 'Reached Send Payment by keyboard', done: result.target_ever_focused },
+                { label: 'Payment journey completed', done: isPassed },
+              ].map(({ label, done }) => (
+                <li key={label} className="flex items-center gap-2 text-base font-ui">
+                  {done ? (
+                    <CheckCircle2 size={16} className="text-ghost-verified" aria-hidden="true" />
+                  ) : (
+                    <XCircle size={16} className="text-ghost-blocked" aria-hidden="true" />
+                  )}
+                  <span className="text-ink-muted">{label}</span>
+                  {/* Status in text so colour is not the only carrier */}
+                  <span className="sr-only">{done ? 'yes' : 'no'}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="m-0 text-base font-ui text-ink-muted">
+              <span aria-hidden="true">--</span> not yet measured. Run a journey first.
+            </p>
+          )}
+          <p className="m-0 text-base font-ui text-ink-faint">
+            From the checker ({result?.agent_mode ?? '--'} mode). A Verifier agent is not built yet.
+          </p>
           {isPassed && (
             <div
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg
@@ -204,7 +191,7 @@ export function PipelineSection({ result, activeStep = 1, onSelectStep }: Pipeli
               aria-live="polite"
             >
               <CheckCircle2 size={14} className="text-ghost-verified" aria-hidden="true" />
-              <span className="text-xs font-semibold font-ui text-ghost-verified">
+              <span className="text-base font-semibold font-ui text-ghost-verified">
                 Journey Verified
               </span>
             </div>
@@ -213,32 +200,13 @@ export function PipelineSection({ result, activeStep = 1, onSelectStep }: Pipeli
 
         {/* ── Regression Guard ─────────────────────────────────────── */}
         <div className="panel p-4 flex flex-col gap-3">
-          <p className="text-xs font-ui text-ink-faint uppercase tracking-widest">
+          <p className="text-base font-ui text-ink-faint uppercase tracking-widest">
             Regression Guard (The Returning Ghost)
           </p>
-          <div className="flex flex-col gap-1.5 text-xs font-ui text-ink-muted">
-            <p>Bug reintroduced on purpose</p>
-            <code className="font-mono text-xs text-ink-faint block mt-1">
-              send_payment.spec.ts
-            </code>
-          </div>
-          {/* role="alert" so AT immediately announces the failure */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-                       bg-ghost-blocked/10 border border-ghost-blocked/40"
-            role="alert"
-          >
-            <XCircle size={13} className="text-ghost-blocked shrink-0" aria-hidden="true" />
-            <span className="text-xs font-mono text-ghost-blocked">
-              FAILED: button not focusable
-            </span>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <GhostMascot state="blocked" size={24} animate={false} />
-            <p className="text-xs font-ui text-ink-muted italic">
-              The ghost is back. But this time, we caught it.
-            </p>
-          </div>
+          <p className="m-0 text-base font-ui text-ink-muted">
+            <span aria-hidden="true">--</span> not yet measured. No regression test exists yet, so
+            nothing has been reintroduced or caught.
+          </p>
         </div>
       </div>
     </section>
