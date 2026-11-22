@@ -38,7 +38,7 @@ export function ResultsSection({
       aria-labelledby="results-heading"
       className="flex flex-col gap-4"
     >
-      <h2 id="results-heading" className="flex items-center gap-2 text-sm font-semibold font-ui text-ink">
+      <h2 id="results-heading" className="flex items-center gap-2 text-base font-semibold font-ui text-ink">
         <span aria-hidden="true">📊</span>
         Results
       </h2>
@@ -91,7 +91,7 @@ export function ResultsSection({
       <OutcomeCard result={result} />
 
       {/* Attribution */}
-      <p className="text-xs font-ui text-ink-faint text-right">
+      <p className="text-base font-ui text-ink-faint text-right">
         Built with Kiro
       </p>
     </section>

@@ -13,6 +13,7 @@
 /// <reference types="vitest/globals" />
 import { render } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
+import { MemoryRouter } from 'react-router-dom';
 import { expect, describe, it } from 'vitest';
 
 import { ImmersionProvider } from '../immersion/ImmersionContext';
@@ -51,18 +52,22 @@ describe('Accessibility — zero axe violations', () => {
 
   it('TopNav (default + mobile open)', async () => {
     const { container } = render(
-      <ImmersionProvider>
-        <TopNav activeSection="Home" />
-      </ImmersionProvider>,
+      <MemoryRouter>
+        <ImmersionProvider>
+          <TopNav />
+        </ImmersionProvider>
+      </MemoryRouter>,
     );
     expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
   });
 
   it('HeroSection', async () => {
     const { container } = render(
-      <ImmersionProvider>
-        <HeroSection />
-      </ImmersionProvider>,
+      <MemoryRouter>
+        <ImmersionProvider>
+          <HeroSection />
+        </ImmersionProvider>
+      </MemoryRouter>,
     );
     expect(await axe(container, AXE_OPTIONS)).toHaveNoViolations();
   });

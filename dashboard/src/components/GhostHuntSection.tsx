@@ -5,9 +5,10 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Mic, Ghost } from 'lucide-react';
-import { AgentCard } from './AgentCard';
+import { Keyboard, Ghost } from 'lucide-react';
+import { AgentCard, type AgentOutcome } from './AgentCard';
 import { GhostMascot } from './GhostMascot';
+import { VoiceAgentPanel } from './VoiceAgentPanel';
 import type { JourneyResult, StepEvent } from '../types';
 
 interface GhostHuntSectionProps {
@@ -31,6 +32,23 @@ function toolColor(tool: string) {
   return TOOL_COLOR[tool] ?? 'text-ink-muted';
 }
 
+
+/** Keyboard Agent rows, read only from the checker's result. Empty until a run finishes. */
+function keyboardOutcomes(result: JourneyResult | null): AgentOutcome[] {
+  if (!result || !result.verdict) return [];
+  if (result.verdict === 'PASSED') return [{ label: 'Reached Send Payment by keyboard', passed: true }];
+  return [
+    { label: 'Could not reach Send Payment', passed: false, detail: result.reason_code ?? undefined },
+  ];
+}
+
+/** Ghost Hunter rows: the blocked element the checker measured. Empty when nothing was blocked. */
+function hunterOutcomes(result: JourneyResult | null): AgentOutcome[] {
+  const el = result?.verdict === 'BLOCKED' ? result.blocked_element : null;
+  if (!el) return [];
+  return [{ label: 'Found the blocked control', passed: false, detail: el.selector }];
+}
+
 export function GhostHuntSection({
   result,
   isRunning = false,
@@ -51,11 +69,16 @@ export function GhostHuntSection({
       <div className="px-5 py-3 border-b border-base-line">
         <h2
           id="ghost-hunt-heading"
-          className="text-sm font-semibold font-ui text-ink"
+          className="text-base font-semibold font-ui text-ink"
         >
           The Ghost Hunt —{' '}
           <span className="text-ink-muted font-normal">Agent Investigation</span>
         </h2>
+        {result === null && !isRunning && (
+          <p className="m-0 mt-1 text-base font-ui text-ink-muted">
+            -- not yet measured. Run a journey to see what each agent found.
+          </p>
+        )}
       </div>
 
       <div className="p-4 grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_auto] gap-4">
@@ -64,37 +87,13 @@ export function GhostHuntSection({
           name="Keyboard Agent"
           icon={<Keyboard size={14} />}
           isRunning={isRunning}
-          outcomes={[
-            {
-              label: 'Navigated form',
-              passed: true,
-            },
-            {
-              label: 'Could not reach Send Payment',
-              passed: false,
-              detail: result?.reason_code ?? undefined,
-            },
-          ]}
+          outcomes={keyboardOutcomes(result)}
         />
-        <AgentCard
-          name="Voice Agent"
-          icon={<Mic size={14} />}
-          outcomes={[
-            { label: 'Found by name "Send Payment"', passed: true },
-            { label: 'Could not activate button', passed: false },
-          ]}
-        />
+        <VoiceAgentPanel result={result} />
         <AgentCard
           name="Ghost Hunter"
           icon={<Ghost size={14} />}
-          outcomes={[
-            { label: 'Identified root cause', passed: true },
-            {
-              label: 'Custom element not keyboard accessible',
-              passed: false,
-              detail: result?.blocked_element?.selector ?? 'div.pay-btn',
-            },
-          ]}
+          outcomes={hunterOutcomes(result)}
         />
 
         {/* ── Live step timeline ───────────────────────────────────── */}
@@ -104,17 +103,17 @@ export function GhostHuntSection({
           aria-live="polite"
           aria-atomic="false"
         >
-          <p className="text-[10px] font-ui text-ink-faint uppercase tracking-widest mb-2">
+          <p className="text-base font-ui text-ink-faint uppercase tracking-widest mb-2">
             Live steps
           </p>
           {displayEvents.length === 0 ? (
-            <p className="text-xs text-ink-faint font-ui">
+            <p className="text-base text-ink-faint font-ui">
               {isRunning ? 'Waiting…' : 'No steps yet'}
             </p>
           ) : (
             <ol className="flex flex-col gap-1">
               {displayEvents.map((ev) => (
-                <li key={ev.step} className="flex items-center gap-1.5 text-[11px] font-mono">
+                <li key={ev.step} className="flex items-center gap-1.5 text-base font-mono">
                   <span className="text-ink-faint tabular-nums w-5 text-right shrink-0">
                     {ev.step}
                   </span>
@@ -136,23 +135,23 @@ export function GhostHuntSection({
         >
           <GhostMascot state="blocked" size={28} animate className="mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold font-ui text-ghost-blocked mb-0.5">
+            <p className="text-base font-bold font-ui text-ghost-blocked mb-0.5">
               Critical Ghost Detected
             </p>
-            <p className="text-xs font-ui text-ink-muted">
+            <p className="text-base font-ui text-ink-muted">
               Barrier: Payment button inaccessible to keyboard navigation
             </p>
-            <p className="text-xs font-ui text-ink-muted">
+            <p className="text-base font-ui text-ink-muted">
               Impact: Customer cannot complete payment
             </p>
-            <p className="text-[11px] font-mono text-ink-faint mt-1">
+            <p className="text-base font-mono text-ink-faint mt-1">
               WCAG: 2.1.1 Keyboard, 4.1.2 Name, Role, Value
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {/* The blocked element name — shown as a chip, never a real button */}
             <span
-              className="px-3 py-1 rounded-full text-xs font-ui font-medium
+              className="px-3 py-1 rounded-full text-base font-ui font-medium
                          bg-ghost-blocked/20 border border-ghost-blocked/50 text-ghost-blocked"
               aria-label={`Blocked element: ${result.blocked_element.text ?? result.blocked_element.selector}`}
             >

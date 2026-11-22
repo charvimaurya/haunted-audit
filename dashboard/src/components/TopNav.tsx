@@ -1,44 +1,19 @@
 /**
- * TopNav
- *
- * Fixed top navigation bar matching the v7 design.
- * Wordmark uses the display (spooky) font; nav links use the UI font.
- *
- * Accessibility:
- * - Mobile burger button toggles a full-width menu at ≤768px (WCAG 2.1.1, 1.4.10).
- * - Burger button uses aria-expanded / aria-controls.
- * - Menu closes on Escape and when focus leaves.
- * - All interactive elements have a visible focus ring.
+ * TopNav — marketing header (wordmark, primary links, calm/sound, App CTA).
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Ghost, Menu, X } from 'lucide-react';
 import { SenseControls } from '../immersion/SenseControls';
+import { MARKETING_NAV } from '../routes';
 
-interface NavLink {
-  label: string;
-  href: string;
-}
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'Home',      href: '#home' },
-  { label: 'Scans',     href: '#scans' },
-  { label: 'Journeys',  href: '#journeys' },
-  { label: 'Fixes',     href: '#fixes' },
-  { label: 'Kiro',      href: '#kiro' },
-  { label: 'Reports',   href: '#reports' },
-];
-
-interface TopNavProps {
-  activeSection?: string;
-}
-
-export function TopNav({ activeSection = 'Home' }: TopNavProps) {
+export function TopNav() {
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
 
-  // Close on Escape
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && menuOpen) {
@@ -50,7 +25,6 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
 
-  // Close when focus moves outside the nav entirely
   useEffect(() => {
     function onFocusOut(e: FocusEvent) {
       if (
@@ -66,25 +40,28 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
     return () => document.removeEventListener('focusout', onFocusOut);
   }, [menuOpen]);
 
-  const linkClass = (label: string) => {
-    const isActive = label === activeSection;
-    return [
-      'font-ui text-sm transition-colors duration-150 rounded px-2 py-1',
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const linkClass = (isActive: boolean) =>
+    [
+      'font-ui text-base transition-colors duration-150 rounded px-2 py-1',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-      isActive ? 'text-ink font-semibold' : 'text-ink-muted hover:text-ink',
+      isActive ? 'text-ink font-bold underline underline-offset-4' : 'text-ink-muted hover:text-ink',
     ].join(' ');
-  };
+
+  // Header shows marketing destinations only (not the App shortcut as "current" competition).
+  const headerLinks = MARKETING_NAV.filter((l) => l.label !== 'App');
 
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 bg-base/95 border-b border-base-line backdrop-blur-sm"
       aria-label="Primary navigation"
     >
-      {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-4 sm:px-6 h-14 max-w-7xl mx-auto">
-        {/* Wordmark */}
-        <a
-          href="#home"
+        <Link
+          to="/"
           className="flex items-center gap-2 shrink-0
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
           aria-label="Haunted Audit — home"
@@ -98,41 +75,35 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
           >
             Haunted Audit
           </span>
-        </a>
+        </Link>
 
-        {/* Desktop nav links — hidden on mobile */}
-        <ul
-          className="hidden md:flex items-center gap-6 list-none m-0 p-0"
-          role="list"
-        >
-          {NAV_LINKS.map((link) => (
+        <ul className="hidden md:flex items-center gap-4 list-none m-0 p-0" role="list">
+          {headerLinks.map((link) => (
             <li key={link.label}>
-              <a
-                href={link.href}
-                className={linkClass(link.label)}
-                aria-current={link.label === activeSection ? 'page' : undefined}
+              <Link
+                to={link.to}
+                className={linkClass(link.isCurrent(pathname))}
+                aria-current={link.isCurrent(pathname) ? 'page' : undefined}
               >
                 {link.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
 
         <div className="flex items-center gap-2">
           <SenseControls />
-          {/* Kiro CTA — always visible */}
-          <a
-            href="#kiro"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold
+          <Link
+            to="/app"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-base font-semibold
                        bg-violet-600 text-white border border-violet-neon/50
                        hover:bg-violet-500 transition-colors duration-150 shrink-0
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
           >
             <Ghost size={14} aria-hidden="true" />
-            <span>Kiro</span>
-          </a>
+            <span>App</span>
+          </Link>
 
-          {/* Burger — mobile only */}
           <button
             ref={burgerRef}
             type="button"
@@ -145,15 +116,11 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
             aria-controls="mobile-nav-menu"
             onClick={() => setMenuOpen((o) => !o)}
           >
-            {menuOpen
-              ? <X size={20} aria-hidden="true" />
-              : <Menu size={20} aria-hidden="true" />
-            }
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
         </div>
       </div>
 
-      {/* ── Mobile dropdown menu ── */}
       {menuOpen && (
         <div
           id="mobile-nav-menu"
@@ -163,21 +130,27 @@ export function TopNav({ activeSection = 'Home' }: TopNavProps) {
           aria-label="Navigation menu"
         >
           <ul className="flex flex-col p-3 gap-1 list-none m-0" role="list">
-            {NAV_LINKS.map((link) => (
+            {headerLinks.map((link) => (
               <li key={link.label}>
-                <a
-                  href={link.href}
-                  className={[
-                    linkClass(link.label),
-                    'block w-full px-3 py-2',
-                  ].join(' ')}
-                  aria-current={link.label === activeSection ? 'page' : undefined}
+                <Link
+                  to={link.to}
+                  className={[linkClass(link.isCurrent(pathname)), 'block w-full px-3 py-2'].join(' ')}
+                  aria-current={link.isCurrent(pathname) ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
+            <li>
+              <Link
+                to="/app"
+                className={[linkClass(pathname.startsWith('/app')), 'block w-full px-3 py-2'].join(' ')}
+                onClick={() => setMenuOpen(false)}
+              >
+                App
+              </Link>
+            </li>
           </ul>
         </div>
       )}

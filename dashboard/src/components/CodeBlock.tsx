@@ -34,12 +34,12 @@ export function CodeBlock({ lines, language = 'html', ariaLabel }: CodeBlockProp
       {language && (
         <figcaption className="sr-only">{language} code snippet</figcaption>
       )}
-      <pre className="m-0 overflow-x-auto">
+      <pre className="m-0 whitespace-pre-wrap break-words">
         <code>
           {lines.map((line, i) => (
             <span
               key={i}
-              className={`block px-1 rounded-sm leading-relaxed whitespace-pre font-mono text-[0.8125rem] ${
+              className={`block px-1 rounded-sm leading-relaxed whitespace-pre-wrap break-all font-mono text-base ${
                 LINE_STYLE[line.type ?? ' '] ?? LINE_STYLE[' ']
               }`}
             >

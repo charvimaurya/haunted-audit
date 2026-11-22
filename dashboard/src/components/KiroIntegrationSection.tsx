@@ -64,14 +64,14 @@ export function KiroIntegrationSection() {
         <span className="text-base" aria-hidden="true">🦇</span>
         <h2
           id="kiro-integration-heading"
-          className="text-sm font-semibold font-ui text-ink"
+          className="text-base font-semibold font-ui text-ink"
         >
           Kiro Integration —{' '}
           <span className="text-ink-muted font-normal">Accessibility in Your Workflow</span>
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-base-line">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-0 divide-y xl:divide-y-0 xl:divide-x divide-base-line">
 
         {/* ── Left: IDE illustration ───────────────────────────────── */}
         <div className="p-4 flex flex-col gap-3">
@@ -87,7 +87,7 @@ export function KiroIntegrationSection() {
                   <li
                     key={name}
                     className={[
-                      'text-xs font-mono rounded px-1 py-0.5',
+                      'text-base font-mono rounded px-1 py-0.5',
                       active
                         ? 'bg-violet-600/20 text-violet-300'
                         : 'text-ink-faint',
@@ -110,7 +110,7 @@ export function KiroIntegrationSection() {
                 aria-label="Active editor file"
               >
                 <div
-                  className="flex items-center gap-1 px-2 py-1 rounded-t-md text-xs font-mono
+                  className="flex items-center gap-1 px-2 py-1 rounded-t-md text-base font-mono
                              bg-base border-t border-l border-r border-base-line text-ink-muted"
                 >
                   <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true" />
@@ -127,7 +127,7 @@ export function KiroIntegrationSection() {
                 <figcaption className="sr-only">
                   accessibility-hook.ts — Kiro hook that triggers Haunted Audit on save
                 </figcaption>
-                <pre className="m-0 overflow-x-auto">
+                <pre className="m-0 whitespace-pre-wrap break-words">
                   <code>
                     {HOOK_CODE_LINES.map(({ n, text, muted, highlight }) => (
                       <span
@@ -162,7 +162,7 @@ export function KiroIntegrationSection() {
         <div className="p-4 flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <Zap size={13} className="text-amber-400" aria-hidden="true" />
-            <h3 className="text-sm font-semibold font-ui text-ink">Kiro Hook (Live)</h3>
+            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook (Live)</h3>
           </div>
 
           <ul
@@ -172,7 +172,7 @@ export function KiroIntegrationSection() {
             aria-atomic="false"
           >
             {DEFAULT_EVENTS.map(({ type, message }, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs font-ui">
+              <li key={i} className="flex items-start gap-2 text-base font-ui">
                 {type === 'success' && (
                   <CheckCircle2
                     size={13}
@@ -209,7 +209,7 @@ export function KiroIntegrationSection() {
           </ul>
 
           {/* Attribution — plain text, not a link, not a logo */}
-          <p className="mt-auto text-xs font-ui text-ink-faint pt-2 border-t border-base-line">
+          <p className="mt-auto text-base font-ui text-ink-faint pt-2 border-t border-base-line">
             Built with Kiro
           </p>
         </div>

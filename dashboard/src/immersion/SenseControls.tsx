@@ -7,7 +7,7 @@ import { useImmersion } from './ImmersionContext';
 
 const buttonClass = [
   'inline-flex items-center gap-1 rounded-full border px-2.5 py-1',
-  'font-ui text-xs font-semibold text-ink',
+  'font-ui text-base font-semibold text-ink',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
 ].join(' ');
 

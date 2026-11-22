@@ -6,5 +6,6 @@
   "python.testing.cwd": "${workspaceFolder}",
   "python.testing.pytestArgs": [
     "agent/tests"
-  ]
+  ],
+  "python.terminal.useEnvFile": true
 }

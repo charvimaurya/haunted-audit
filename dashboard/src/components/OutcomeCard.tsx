@@ -42,7 +42,7 @@ export function OutcomeCard({ result }: OutcomeCardProps) {
         </h3>
         <ul className="flex flex-col gap-2" aria-label="Journey outcomes">
           {OUTCOMES.map((outcome) => (
-            <li key={outcome} className="flex items-start gap-2 text-sm font-ui">
+            <li key={outcome} className="flex items-start gap-2 text-base font-ui">
               <CheckCircle2
                 size={15}
                 className="shrink-0 mt-0.5"

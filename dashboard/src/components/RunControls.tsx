@@ -48,7 +48,7 @@ export function RunControls({
     >
       {/* Variant select */}
       <div className="flex flex-col gap-0.5">
-        <label htmlFor="variant-select" className="text-[10px] font-ui text-ink-faint uppercase tracking-wider">
+        <label htmlFor="variant-select" className="text-base font-ui text-ink-faint uppercase tracking-wider">
           Variant
         </label>
         <select
@@ -56,7 +56,7 @@ export function RunControls({
           value={variant}
           onChange={(e) => onVariantChange(e.target.value as Variant)}
           disabled={isRunning}
-          className="bg-base border border-base-line text-ink text-sm font-ui rounded-lg px-2 py-1.5
+          className="bg-base border border-base-line text-ink text-base font-ui rounded-lg px-2 py-1.5
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon
                      disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           aria-label="Select page variant"
@@ -68,7 +68,7 @@ export function RunControls({
 
       {/* Mode select */}
       <div className="flex flex-col gap-0.5">
-        <label htmlFor="mode-select" className="text-[10px] font-ui text-ink-faint uppercase tracking-wider">
+        <label htmlFor="mode-select" className="text-base font-ui text-ink-faint uppercase tracking-wider">
           Agent mode
         </label>
         <select
@@ -76,7 +76,7 @@ export function RunControls({
           value={mode}
           onChange={(e) => onModeChange(e.target.value as AgentMode)}
           disabled={isRunning}
-          className="bg-base border border-base-line text-ink text-sm font-ui rounded-lg px-2 py-1.5
+          className="bg-base border border-base-line text-ink text-base font-ui rounded-lg px-2 py-1.5
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon
                      disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           aria-label="Select agent mode"
@@ -91,7 +91,7 @@ export function RunControls({
         type="button"
         onClick={onRun}
         disabled={isRunning}
-        className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg text-sm font-ui font-semibold
+        className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg text-base font-ui font-semibold
                    bg-violet-600 text-white border border-violet-neon/50
                    hover:bg-violet-500 active:scale-95
                    transition-all duration-150
@@ -111,7 +111,7 @@ export function RunControls({
       {/* Status badge */}
       {status !== null && (
         <span
-          className={`flex items-center gap-1.5 px-3 py-1.5 mt-4 rounded-full text-xs font-ui font-medium
+          className={`flex items-center gap-1.5 px-3 py-1.5 mt-4 rounded-full text-base font-ui font-medium
                       border ${STATUS_STYLE[status]}`}
           role="status"
           aria-live="polite"
