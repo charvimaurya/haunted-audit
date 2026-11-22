@@ -28,3 +28,5 @@ One line for each activity in `docs/Sukhdha plan.docx` that has work in the repo
 - 1.9 (partly): a Dockerfile, a smoke test script and the staging spec were added on 2026-11-19. The image has never been built and nothing is deployed.
 - 3.4 (partly): a guard that blocks private and local addresses, with tests, was added on 2026-11-19. There is no scan endpoint and no one-scan-a-minute limit yet.
 - 3.5 (partly): the dashboard's axe tests run in jsdom. They have not been run on every screen in a real browser and no screenshot was saved.
+
+- 2026-11-22: Origin note. `feature/exorcist` tracks `.cursor/rules/haunted-audit-dashboard.mdc` and a commit message mentions a Cursor rule, so part of the dashboard work (Stage 1 shell, Voice Agent panel wiring, README AI-IDE prompts) may have been prototyped outside Kiro. It is not yet reviewed. The reviewer agent must check it and the result will be recorded here before PR #6 merges. Branch audit: `docs/branch-audit.md`.
