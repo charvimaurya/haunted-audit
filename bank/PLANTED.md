@@ -34,3 +34,7 @@ Barriers 1, 4 and 6 cannot be found by axe. They are found by the keyboard agent
 - Never change a measured number here without re-running the tests that produce it.
 - A new barrier needs a row here, a test pair, and a place in the axe list if axe can see it.
 - Nothing in the page's visible text or source names a barrier (no words "barrier", "planted" or "ghost" in `index.html`; a test checks `read_page` and the visible text for the state words).
+
+## Not planted: the Send Payment button colour
+
+White text on the Send Payment button measures 5.37:1 at the top of its gradient (`#c2392a`) and 6.9:1 at the bottom (`#a62f1c`). Both pass 4.5:1. The first version of the page used `#ff7a59` to `#d84a32` (2.57:1 and 4.25:1). The reviewer found it on 22 Nov 2026 and the colours were changed. Axe skips gradient backgrounds, so only a hand calculation catches this. The helper text and eyebrow are 1rem (16px).
