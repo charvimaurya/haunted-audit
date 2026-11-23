@@ -137,7 +137,14 @@ html[data-calm='true'] *::after {
   color: var(--color-ghost-ready);
 }
 /* Our SVG ghost (docs/ui-fidelity.md D1). Decorative: soft, behind content. */
-.ambient-ghost-svg { color: var(--scene-ghost); opacity: 0.55; display: block; }
+/* Roaming ghosts: one red, one green, as the owner asked (22 Nov). Decorative only: aria-hidden, no pointer,
+   behind content. The run's real state is always given in text (run-state badge, panels). */
+.ambient-ghost-svg { opacity: 0.8; display: block; filter: drop-shadow(0 0 8px currentColor); }
+.ambient-ghost-red { color: var(--color-ghost-blocked); }
+.ambient-ghost-green { color: var(--color-ghost-verified); }
+/* In the slim band at the top of every page: smaller, and inside the band's height. */
+.site-band .ambient-roam-ltr, .site-band .ambient-roam-rtl { top: 0.35rem; bottom: auto; }
+.site-band .ambient-ghost-svg { width: 36px; height: 36px; opacity: 0.6; }
 
 @keyframes ambient-drift {
   0%, 100% { transform: translateY(16vh); opacity: 0.25; }

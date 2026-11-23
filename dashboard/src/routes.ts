@@ -198,14 +198,16 @@ export const FOOTER_NAV: NavItem[] = [
 ];
 
 /** App sidebar. */
+/** App sidebar, exactly the v7 labels (panel C). Scans and Journeys are in the top menu; display settings in the top bar. */
 export const APP_NAV: NavItem[] = [
-  { ...item('Dashboard', 'app-home'), isCurrent: (p) => p === APP },
-  item('Scans', 'app-scans'),
-  item('Journeys', 'app-journeys'),
+  { ...item('Overview', 'app-home'), isCurrent: (p) => p === APP },
   item('Agents', 'app-agents'),
-  item('Fixes', 'app-fixes-find', `${APP}/fixes`),
+  item('Findings', 'app-fixes-find'),
+  item('Fixes', 'app-fixes-fix'),
+  item('Verification', 'app-fixes-verify'),
+  item('Regression', 'app-fixes-regression'),
+  item('Kiro', 'kiro'),
   item('Reports', 'app-reports'),
-  item('Settings', 'app-settings'),
 ];
 
 /** Old and short URLs, each redirected to a page. `:step` is kept. */

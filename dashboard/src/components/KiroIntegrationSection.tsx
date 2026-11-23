@@ -14,7 +14,7 @@
  * - The code listing is a figure with a caption.
  * - Status is icon plus text. "Built with Kiro" is plain text.
  */
-import { FileSearch } from 'lucide-react';
+import { AlertTriangle, Dot, FileSearch, Zap } from 'lucide-react';
 
 /** The real hook, as in .kiro/hooks/scan-on-save.json (description and matcher shortened). */
 const HOOK_CODE_LINES = [
@@ -118,28 +118,36 @@ export function KiroIntegrationSection() {
           </div>
         </div>
 
-        {/* ── Right: one recorded finding, with its source ─────────── */}
+        {/* ── Right: the hook's events, as v7 lays them out; one real recorded finding ── */}
         <div className="p-4 flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <FileSearch size={16} className="text-amber-400" aria-hidden="true" />
-            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook: recorded finding</h3>
+            <Zap size={16} className="text-amber-400" aria-hidden="true" />
+            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook (recorded {RECORDED_FINDING.recorded})</h3>
           </div>
+          <ul className="m-0 flex list-none flex-col gap-2 p-0 text-base font-ui" aria-label="Recorded hook events">
+            <li className="flex items-start gap-2 text-ink">
+              <FileSearch size={16} className="mt-1 shrink-0 text-ink-muted" aria-hidden="true" />
+              <span>File scanned: <span className="font-mono break-all">{RECORDED_FINDING.file}</span></span>
+            </li>
+            <li className="flex items-start gap-2 text-ink">
+              <Dot size={16} className="mt-1 shrink-0 text-violet-neon" aria-hidden="true" />
+              <span>Haunted Audit scan triggered (<span className="font-mono">scan_page</span>)</span>
+            </li>
+            <li className="flex items-start gap-2 text-ink">
+              <AlertTriangle size={16} className="mt-1 shrink-0 text-ghost-blocked" aria-hidden="true" />
+              <span>
+                <span className="sr-only">Finding: </span>Accessibility issue found:{' '}
+                <span className="text-ghost-blocked">Missing accessible label</span>{' '}
+                (<span className="font-mono">{RECORDED_FINDING.element}</span>, line {RECORDED_FINDING.line})
+              </span>
+            </li>
+          </ul>
           <p className="m-0 text-base font-ui text-ink-muted">
-            This page cannot see the hook run in your editor. Below is one real finding, recorded on{' '}
-            {RECORDED_FINDING.recorded}. It is not live.
+            Recorded, not live: this page cannot see the hook run in your editor. Source: {RECORDED_FINDING.source}
           </p>
-          <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-base font-ui">
-            <dt className="text-ink-faint">File</dt>
-            <dd className="m-0 font-mono text-ink break-all">{RECORDED_FINDING.file}, line {RECORDED_FINDING.line}</dd>
-            <dt className="text-ink-faint">Element</dt>
-            <dd className="m-0 font-mono text-ink">{RECORDED_FINDING.element}</dd>
-            <dt className="text-ink-faint">Finding</dt>
-            <dd className="m-0 text-ink">{RECORDED_FINDING.message} WCAG 1.3.1, 3.3.2, 4.1.2.</dd>
-            <dt className="text-ink-faint">ID</dt>
-            <dd className="m-0 font-mono text-ink-muted">{RECORDED_FINDING.findingId}</dd>
-          </dl>
-          <p className="m-0 text-base font-ui text-ink-faint">Source: {RECORDED_FINDING.source}</p>
-          <p className="mt-auto text-base font-ui text-ink-faint pt-2 border-t border-base-line">Built with Kiro</p>
+          <p className="mt-auto ml-auto inline-flex w-fit items-center rounded-lg border border-violet-neon/60 bg-violet-600/25 px-3 py-1 text-base font-ui font-semibold text-ink">
+            Built with Kiro
+          </p>
         </div>
       </div>
     </section>

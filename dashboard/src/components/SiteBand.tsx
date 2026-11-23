@@ -1,3 +1,5 @@
+import { AmbientLayer } from '../immersion/AmbientLayer';
+
 /**
  * SiteBand: slim decorative castle and fog strip behind the breadcrumb row (docs/ui-fidelity.md D7).
  * aria-hidden, ignores the pointer, never focusable, painted under the breadcrumb text.
@@ -5,6 +7,8 @@
 export function SiteBand() {
   return (
     <div className="site-band" aria-hidden="true" data-testid="site-band">
+      {/* The red and green roaming ghosts cross the band on every page (Calm mode stops them). */}
+      <AmbientLayer />
       <svg
         className="absolute bottom-0 left-1/2 h-full w-56 -translate-x-1/2"
         viewBox="0 0 224 48"

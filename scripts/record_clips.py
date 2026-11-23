@@ -52,7 +52,7 @@ def fix_loop(pg):
     pg.wait_for_timeout(1200)
     pg.get_by_role('navigation', name='App').first.get_by_role('link', name='Fixes').click()
     pg.wait_for_selector('h1:has-text("Fixes: Find")')
-    for name, wait in [('Propose a fix (scripted Exorcist)', 'Approve fix'), ('Approve fix', 'Verify on a patched copy'),
+    for name, wait in [('Propose a fix (scripted Exorcist)', 'Approve Fix'), ('Approve Fix', 'Verify on a patched copy'),
                        ('Verify on a patched copy', 'Put the bug back and check'), ('Put the bug back and check', None)]:
         pg.get_by_role('button', name=name).focus(); pg.wait_for_timeout(400); pg.keyboard.press('Enter')
         if wait:

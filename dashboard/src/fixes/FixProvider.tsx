@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { API_BASE } from '../runs/api';
 import { useRun } from '../runs/runContext';
 import { FixContext, type Fix, type FixValue } from './fixContext';
+import type { JourneyResult } from '../types';
 
 async function call(path: string, body?: unknown): Promise<{ ok: boolean; data: unknown }> {
   const res = await fetch(`${API_BASE}${path}`, body === undefined
@@ -28,6 +29,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [fix, setFix] = useState<Fix | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verifyResult, setVerifyResult] = useState<JourneyResult | null>(null);
   const runId = result?.run_id ?? null;
   const fixRef = useRef<Fix | null>(null);
   useEffect(() => {
@@ -37,7 +39,22 @@ export function FixProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setFix(null);
     setError(null);
+    setVerifyResult(null);
   }, [runId]);
+
+  // When the Verifier's run is finished, read its steps once for the checklist.
+  const verifyRunId = fix?.verify?.status === 'complete' ? fix.verify.run_id : null;
+  useEffect(() => {
+    if (!verifyRunId) return;
+    let live = true;
+    void call(`/runs/${verifyRunId}`).then((r) => {
+      const rec = r.data as { result?: JourneyResult | null } | null;
+      if (live && r.ok) setVerifyResult(rec?.result ?? null);
+    }).catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [verifyRunId]);
 
   const act = useCallback(async (path: string, body?: unknown, thenRead = false) => {
     setBusy(true);
@@ -97,8 +114,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   }, [fix, running]);
 
   const value = useMemo<FixValue>(
-    () => ({ fix, busy, error, propose, approve, reject, verify, regression }),
-    [fix, busy, error, propose, approve, reject, verify, regression],
+    () => ({ fix, verifyResult, busy, error, propose, approve, reject, verify, regression }),
+    [fix, verifyResult, busy, error, propose, approve, reject, verify, regression],
   );
   return <FixContext.Provider value={value}>{children}</FixContext.Provider>;
 }

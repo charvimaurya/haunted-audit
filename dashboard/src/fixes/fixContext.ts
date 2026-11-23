@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { BlockedElement } from '../types';
+import type { BlockedElement, JourneyResult } from '../types';
 
 /** A copy run started by the Verifier or the regression check (data-contract.md, "Fix"). */
 export interface CopyRun {
@@ -39,6 +39,8 @@ export interface Fix {
 
 export interface FixValue {
   fix: Fix | null;
+  /** The Verifier's finished keyboard run on the patched copy (its steps fill the checklist). */
+  verifyResult: JourneyResult | null;
   busy: boolean;
   /** One plain sentence when the last action was refused or the API did not answer. */
   error: string | null;

@@ -64,10 +64,10 @@ describe('fix panels', () => {
     expect(screen.getByText(/scripted Exorcist · 2 lines changed · tokens 0 in, 0 out · cost 0 USD/)).toBeTruthy();
     expect(screen.getByText('Waiting for a person to approve a fix.')).toBeTruthy();
     expect(await axe(container)).toHaveNoViolations();
-    screen.getByRole('button', { name: 'Approve fix' }).focus();
+    screen.getByRole('button', { name: 'Approve Fix' }).focus();
     await user.keyboard(' ');
     expect(await screen.findByText(/Approved by demo user/)).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Approve fix' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Approve Fix' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Verify on a patched copy' })).toBeTruthy();
     expect(calls.find((c) => c.startsWith('POST /fixes/f1/approve'))).toContain(`"diff_sha256":"${'a'.repeat(64)}"`);
   });
@@ -88,10 +88,10 @@ describe('fix panels', () => {
     const { container } = renderWithApi({ 'POST /runs/r1/fixes': done });
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Propose a fix (scripted Exorcist)' }));
-    expect(await screen.findByText('Journey Verified.')).toBeTruthy();
-    expect(screen.getByText('Checker: PASSED, scripted mode.')).toBeTruthy();
-    expect(screen.getByText('The ghost is back. But this time, we caught it.')).toBeTruthy();
-    expect(screen.getByText('Checker: BLOCKED (TARGET_NOT_FOCUSABLE), scripted mode.')).toBeTruthy();
+    expect(await screen.findByText('Journey Verified')).toBeTruthy();
+    expect(screen.getByText('Checker: PASSED, scripted mode, on a patched copy.')).toBeTruthy();
+    expect(screen.getByText(/The ghost is back\./)).toBeTruthy();
+    expect(screen.getByText('FAILED: Send Payment not focusable (TARGET_NOT_FOCUSABLE)')).toBeTruthy();
     expect(await axe(container)).toHaveNoViolations();
   });
 

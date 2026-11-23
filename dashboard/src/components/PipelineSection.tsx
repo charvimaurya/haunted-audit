@@ -154,10 +154,10 @@ export function PipelineSection({
         role="tabpanel"
         aria-labelledby={`pipeline-tab-${activeStep}`}
         tabIndex={0}
-        className={`grid grid-cols-1 lg:grid-cols-2 ${flow ? '' : 'xl:grid-cols-4'} gap-4
+        className={`grid grid-cols-1 lg:grid-cols-3 ${flow ? '' : 'xl:grid-cols-4'} gap-4
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded-xl`}
       >
-        <FindPanel result={result} apiStatus={apiStatus} isRunning={isRunning} />
+        {!flow && <FindPanel result={result} apiStatus={apiStatus} isRunning={isRunning} />}
 
         {flow ? (
           <>

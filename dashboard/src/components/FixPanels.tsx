@@ -43,7 +43,15 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
   const blocked = result && !isRunning && result.verdict === 'BLOCKED' && (result.agent_kind ?? 'keyboard') === 'keyboard';
   return (
     <div className="panel p-4 flex flex-col gap-3">
-      <p className="text-base font-ui text-ink-faint uppercase tracking-widest">Proposed Fix (by Exorcist Agent)</p>
+      <p className="m-0 text-base font-ui text-ink">
+        <span className="font-semibold">Proposed Fix</span> <span className="text-ink-muted">(by Exorcist Agent)</span>
+      </p>
+      {blocked && result?.blocked_element && (
+        <p className="m-0 text-base font-ui text-ink-muted">
+          Finding: <span className="font-mono text-ink">{result.blocked_element.selector}</span> ({result.reason_code}), from the
+          checker, {result.agent_mode} mode.
+        </p>
+      )}
       {!result || isRunning ? (
         <ResultState result={result} apiStatus={apiStatus} isRunning={isRunning} hint="Start one in Possession Mode." />
       ) : !blocked ? (
@@ -75,7 +83,7 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
               <button type="button" onClick={() => void flow.approve()} disabled={busy}
                 className={`${BTN} border-ghost-verified/60 bg-ghost-verified/15 text-ghost-verified hover:bg-ghost-verified/25`}>
                 <CheckCircle2 size={16} aria-hidden="true" />
-                Approve fix
+                Approve Fix
               </button>
               <button type="button" onClick={() => void flow.reject()} disabled={busy}
                 className={`${BTN} border-base-line bg-base-surface text-ink hover:border-violet-neon`}>
@@ -101,62 +109,81 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
   );
 }
 
-function CopyRunResult({ run, okVerdict, okText, badText }: {
-  run: NonNullable<FixValue['fix']>['verify']; okVerdict: 'PASSED' | 'BLOCKED'; okText: React.ReactNode; badText: string;
-}) {
-  if (!run) return null;
-  if (run.status === 'running') {
-    return (
-      <p className="m-0 flex items-center gap-2 text-base font-ui text-ink-muted" role="status">
-        <Loader2 size={16} className="motion-safe:animate-spin" aria-hidden="true" />
-        The keyboard walker is running on the copy.
-      </p>
-    );
-  }
-  if (run.status === 'error' || !run.verdict) {
-    return <Note>The run failed, so no result is shown. {run.error}</Note>;
-  }
-  const ok = run.verdict === okVerdict;
+type Mark = 'yes' | 'no' | 'pending' | 'busy';
+
+function MarkRow({ mark, children }: { mark: Mark; children: React.ReactNode }) {
+  const word = mark === 'yes' ? 'Done' : mark === 'no' ? 'Not done' : mark === 'busy' ? 'Running' : 'Not run yet';
   return (
-    <div role="status" className="flex flex-col gap-2">
-      <p className="m-0 flex items-start gap-2 text-base font-ui text-ink">
-        {ok ? (
-          <CheckCircle2 size={16} className="mt-1 shrink-0 text-ghost-verified" aria-hidden="true" />
-        ) : (
-          <XCircle size={16} className="mt-1 shrink-0 text-ghost-blocked" aria-hidden="true" />
-        )}
-        <span>{ok ? okText : badText}</span>
-      </p>
-      <p className="m-0 text-base font-ui text-ink-muted">
-        Checker: {run.verdict}
-        {run.reason_code ? ` (${run.reason_code})` : ''}, {run.agent_mode} mode.
-      </p>
-    </div>
+    <li className="flex items-start gap-2 text-base font-ui text-ink">
+      {mark === 'yes' && <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-ghost-verified" aria-hidden="true" />}
+      {mark === 'no' && <XCircle size={18} className="mt-0.5 shrink-0 text-ghost-blocked" aria-hidden="true" />}
+      {mark === 'busy' && <Loader2 size={18} className="mt-0.5 shrink-0 motion-safe:animate-spin" aria-hidden="true" />}
+      {mark === 'pending' && <CircleDashed size={18} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />}
+      <span className="sr-only">{word}: </span>
+      <span>{children}</span>
+    </li>
   );
 }
 
+/** The v7 checklist, each line read from the Verifier's run on the patched copy (or Not run yet). */
+function verifyMarks(fix: FixValue['fix'], run: FixValue['verifyResult']): { label: string; mark: Mark }[] {
+  const v = fix?.verify;
+  const started = Boolean(v);
+  const running = v?.status === 'running';
+  const done = v?.status === 'complete' && run;
+  const reached = done ? run.target_ever_focused || run.focus_trail.some((f) => f.selector_hint.includes('send-payment')) : false;
+  const entered = done
+    ? run.step_events.some((e) => e.tool === 'press_enter' && (e.focused_before?.selector_hint ?? '').includes('send-payment'))
+    : false;
+  const paid = done ? run.verdict === 'PASSED' : false;
+  const m = (ok: boolean): Mark => (running ? 'busy' : done ? (ok ? 'yes' : 'no') : 'pending');
+  return [
+    { label: 'Replaying journey…', mark: running ? 'busy' : started && v?.status === 'complete' ? 'yes' : 'pending' },
+    { label: 'Tab to Send Payment', mark: m(reached) },
+    { label: 'Activate with Enter', mark: m(entered) },
+    { label: 'Payment successful', mark: m(paid) },
+  ];
+}
+
 export function VerificationPanel({ flow }: { flow: FixValue }) {
-  const { fix, busy } = flow;
+  const { fix, busy, verifyResult } = flow;
+  const passed = fix?.verify?.verdict === 'PASSED';
   return (
-    <div className="panel p-4 flex flex-col gap-3">
-      <p className="text-base font-ui text-ink-faint uppercase tracking-widest">Verification (by Verifier Agent)</p>
+    <div className={`panel p-4 flex flex-col gap-3 ${passed ? 'border-ghost-verified/70' : ''}`}>
+      <p className="m-0 text-base font-ui text-ink">
+        <span className="font-semibold">Verification</span> <span className="text-ink-muted">(by Verifier Agent)</span>
+      </p>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Verification steps" aria-live="polite">
+        {verifyMarks(fix, verifyResult).map((r) => (
+          <MarkRow key={r.label} mark={r.mark}>{r.label}</MarkRow>
+        ))}
+      </ul>
       {!fix || fix.status === 'proposed' ? (
         <Note>Waiting for a person to approve a fix.</Note>
       ) : fix.status !== 'approved' ? (
         <Note>The fix was {fix.status === 'rejected' ? 'rejected' : 'not proposed'}, so there is nothing to verify.</Note>
       ) : !fix.verify ? (
-        <>
-          <Note>The approved fix is applied to a copy of the bank, never the real file. Then the keyboard walker tries the payment.</Note>
-          <button type="button" onClick={() => void flow.verify()} disabled={busy}
-            className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
-            Verify on a patched copy
-          </button>
-        </>
-      ) : (
-        <CopyRunResult run={fix.verify} okVerdict="PASSED"
-          okText={<><span className="font-semibold">Journey Verified.</span> The keyboard walker sent the payment on the patched copy.</>}
-          badText="Not verified: the keyboard walker still could not send the payment on the patched copy." />
-      )}
+        <button type="button" onClick={() => void flow.verify()} disabled={busy}
+          className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
+          Verify on a patched copy
+        </button>
+      ) : fix.verify.status === 'complete' && fix.verify.verdict ? (
+        <div role="status" className="flex flex-col gap-2">
+          {passed ? (
+            <p className="m-0 inline-flex w-fit items-center gap-2 rounded-lg border border-ghost-verified/60 bg-ghost-verified/15 px-4 py-2 text-base font-ui font-semibold text-ghost-verified">
+              <CheckCircle2 size={18} aria-hidden="true" />
+              Journey Verified
+            </p>
+          ) : (
+            <p className="m-0 text-base font-ui text-ink">Not verified: the payment still could not be sent on the patched copy.</p>
+          )}
+          <p className="m-0 text-base font-ui text-ink-muted">
+            Checker: {fix.verify.verdict}{fix.verify.reason_code ? ` (${fix.verify.reason_code})` : ''}, {fix.verify.agent_mode} mode, on a patched copy.
+          </p>
+        </div>
+      ) : fix.verify.status === 'error' ? (
+        <Note>The run failed, so no result is shown. {fix.verify.error}</Note>
+      ) : null}
     </div>
   );
 }
@@ -164,33 +191,52 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
 export function RegressionPanel({ flow }: { flow: FixValue }) {
   const { fix, busy } = flow;
   const verified = fix?.verify?.verdict === 'PASSED';
-  const caught = fix?.regression?.verdict === 'BLOCKED';
+  const g = fix?.regression;
+  const caught = g?.verdict === 'BLOCKED';
+  const reintroduced: Mark = g ? (g.status === 'running' ? 'busy' : 'yes') : 'pending';
   return (
     <div className={`panel p-4 flex flex-col gap-3 ${caught ? 'border-ghost-blocked/70' : ''}`}>
-      <p className="text-base font-ui text-ink-faint uppercase tracking-widest">Regression Guard (The Returning Ghost)</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="m-0 text-base font-ui text-ink">
+          <span className="font-semibold text-ghost-blocked">Regression Guard</span>{' '}
+          <span className="text-ink-muted">(The Returning Ghost)</span>
+        </p>
+        {caught && <GhostMascot state="blocked" size={44} animate={false} className="shrink-0" />}
+      </div>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Regression steps" aria-live="polite">
+        <MarkRow mark={reintroduced}>Bug reintroduced on purpose</MarkRow>
+        <MarkRow mark={reintroduced}>
+          <span className="font-mono">reintroduced.html</span> (a copy of the bank)
+        </MarkRow>
+        {g?.status === 'complete' && g.verdict && (
+          <MarkRow mark={caught ? 'no' : 'yes'}>
+            <span className={`font-mono ${caught ? 'text-ghost-blocked' : ''}`}>
+              {caught ? `FAILED: Send Payment not focusable (${g.reason_code})` : 'PASSED: the bug was not caught'}
+            </span>
+          </MarkRow>
+        )}
+      </ul>
       {!verified ? (
         <Note>Runs after the fix is verified.</Note>
-      ) : !fix?.regression ? (
-        <>
-          <Note>Puts the bug back on purpose, on a copy, and checks that the checker blocks it again.</Note>
-          <button type="button" onClick={() => void flow.regression()} disabled={busy}
-            className={`${BTN} border-ghost-blocked/60 bg-ghost-blocked/15 text-ink hover:bg-ghost-blocked/25`}>
-            Put the bug back and check
-          </button>
-        </>
-      ) : (
-        <>
-          <CopyRunResult run={fix.regression} okVerdict="BLOCKED"
-            okText={<>Bug reintroduced on purpose. <span className="font-semibold">Caught:</span> the keyboard walker is blocked again.</>}
-            badText="Not caught: with the bug put back, the checker did not block the journey." />
-          {caught && (
-            <p className="m-0 flex items-center gap-3 rounded-lg border border-base-line p-3 text-base font-ui font-semibold text-ink">
-              <GhostMascot state="blocked" size={36} animate={false} />
-              The ghost is back. But this time, we caught it.
-            </p>
-          )}
-        </>
-      )}
+      ) : !g ? (
+        <button type="button" onClick={() => void flow.regression()} disabled={busy}
+          className={`${BTN} border-ghost-blocked/60 bg-ghost-blocked/15 text-ink hover:bg-ghost-blocked/25`}>
+          Put the bug back and check
+        </button>
+      ) : g.status === 'error' ? (
+        <Note>The run failed, so no result is shown. {g.error}</Note>
+      ) : caught ? (
+        <div role="status" className="flex items-center gap-3 rounded-lg border border-base-line p-3">
+          <GhostMascot state="ready" size={36} animate={false} />
+          <p className="m-0 text-base font-ui font-bold text-ink">
+            The ghost is back.
+            <br />
+            But this time, we caught it.
+          </p>
+        </div>
+      ) : g.status === 'complete' ? (
+        <p className="m-0 text-base font-ui text-ink" role="status">Not caught: with the bug put back, the checker did not block the journey.</p>
+      ) : null}
     </div>
   );
 }
