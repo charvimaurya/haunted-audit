@@ -318,3 +318,7 @@ html[data-contrast='high'] .ambient-layer,
 html[data-contrast='high'] .site-band,
 html[data-contrast='high'] .hero-scene,
 html[data-contrast='high'] .hero-castle { opacity: 0.25; }
+
+/* Text size setting (docs/ui-fidelity.md D20): every size is in rem, so the root size scales them all. */
+html[data-text-size='125'] { font-size: 125%; }
+html[data-text-size='150'] { font-size: 150%; }

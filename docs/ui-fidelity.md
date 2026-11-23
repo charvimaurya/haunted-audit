@@ -28,7 +28,7 @@ Some v7 content is placeholder by the design's own note ("[x] and [n] are filled
 | D17 | Results (F) | Green tick on "Approved fixes verified" | Neutral wrench (PR #11, a tick beside `--` reads as a pass) | **kept** |
 | D18 | Kiro (E) | "Kiro Hook (Live)" list | One recorded finding with its source (PR #11) | **kept** |
 | D19 | Every page | High-contrast mode required by `product-ux.md` | Not built | **fix**: High contrast switch beside Calm mode, saved, applied before first paint |
-| D20 | Every page | Text-size setting required by `product-ux.md` | Not built | **open**: not in this round |
+| D20 | Every page | Text-size setting required by `product-ux.md` | Not built | **fixed 22 Nov (on main)**: Text size switch (100, 125, 150 %), saved, applied before first paint |
 
 ## Checks for this round
 

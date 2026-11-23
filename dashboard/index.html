@@ -11,6 +11,8 @@
           var d = document.documentElement;
           d.dataset.contrast = localStorage.getItem('haunted-audit.contrast') === 'on' ? 'high' : 'normal';
           if (localStorage.getItem('haunted-audit.calm') === 'on') d.dataset.calm = 'true';
+          var t = localStorage.getItem('haunted-audit.text-size');
+          d.dataset.textSize = t === '125' || t === '150' ? t : '100';
         } catch (e) {}
       })();
     </script>

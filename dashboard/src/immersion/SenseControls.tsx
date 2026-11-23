@@ -5,6 +5,7 @@
 
 import { useImmersion } from './ImmersionContext';
 import { useHighContrast } from './useHighContrast';
+import { useTextSize } from './useTextSize';
 
 const buttonClass = [
   'inline-flex items-center gap-1 rounded-full border px-2.5 py-1',
@@ -15,6 +16,7 @@ const buttonClass = [
 export function SenseControls() {
   const { calm, systemReduce, soundOn, toggleCalm, toggleSound } = useImmersion();
   const contrast = useHighContrast();
+  const text = useTextSize();
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Display, motion and sound">
@@ -40,6 +42,15 @@ export function SenseControls() {
       >
         High contrast {contrast.high ? 'on' : 'off'}
       </button>
+      <button
+        type="button"
+        className={`${buttonClass} ${text.size !== '100' ? 'border-violet-neon bg-violet-600/40' : 'border-base-line bg-base-surface/60'}`}
+        onClick={text.next}
+        aria-describedby="text-size-note"
+      >
+        Text size {text.size}%
+      </button>
+      <span id="text-size-note" className="sr-only">Press to step through 100, 125 and 150 percent.</span>
       <button
         type="button"
         className={`${buttonClass} ${soundOn ? 'border-violet-neon bg-violet-600/40' : 'border-base-line bg-base-surface/60'}`}

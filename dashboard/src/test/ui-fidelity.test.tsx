@@ -90,3 +90,20 @@ describe('high contrast', () => {
     document.documentElement.dataset.contrast = 'normal';
   });
 });
+
+describe('text size', () => {
+  it('steps 100, 125, 150 by keyboard, is saved and sets data-text-size', async () => {
+    const { TEXT_SIZE_STORAGE_KEY } = await import('../immersion/useTextSize');
+    const user = userEvent.setup();
+    render(<ImmersionProvider><SenseControls /></ImmersionProvider>);
+    screen.getByRole('button', { name: 'Text size 100%' }).focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Text size 125%' })).toBeTruthy();
+    expect(document.documentElement.dataset.textSize).toBe('125');
+    await user.keyboard('{Enter}');
+    expect(localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBe('150');
+    await user.keyboard('{Enter}');
+    expect(document.documentElement.dataset.textSize).toBe('100');
+    localStorage.removeItem(TEXT_SIZE_STORAGE_KEY);
+  });
+});
