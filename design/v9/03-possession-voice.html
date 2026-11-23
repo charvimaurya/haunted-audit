@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Possession Mode – Voice – Haunted Audit UI v9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Creepster;font-style:normal;font-weight:400;font-display:swap;src:url(assets/creepster-latin-400-normal.woff2) format("woff2")}
+:root{
+  --page:#08060f;
+  --frame-a:#15102b;--frame-b:#0c0919;
+  --card-a:#171c34;--card-b:#10142a;--card-line:#2b3254;
+  --violet:#8b5cf6;--violet-hi:#b794ff;--violet-neon:#c084fc;--violet-deep:#2a1a5c;
+  --ink:#eef0ff;--mute:#a9afcc;--dim:#7f86a8;
+  --ok:#22c55e;--ok-hi:#4ade80;--bad:#ef4444;--bad-hi:#ff6b6b;--amber:#f59e0b;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{font-size:16px}
+body{margin:0;background:radial-gradient(90% 60% at 50% -10%,#1c1240 0%,var(--page) 60%) fixed;color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.45}
+a{color:var(--violet-hi)}
+button{font:inherit;color:inherit;cursor:pointer}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+:focus-visible{outline:3px solid #fde047;outline-offset:3px;border-radius:8px}
+h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.skip{position:absolute;left:12px;top:-60px;background:#fde047;color:#000;padding:10px 14px;border-radius:8px;z-index:99}.skip:focus{top:12px}
+
+/* ===== shared building blocks ===== */
+.frame{position:relative;border-radius:20px;background:linear-gradient(180deg,var(--frame-a),var(--frame-b));
+  border:1.5px solid #7c4dff;box-shadow:0 0 0 1px #a78bfa22,0 0 26px #7c3aed77,0 0 70px #7c3aed2a,inset 0 0 40px #7c3aed1f}
+.card{border-radius:16px;background:linear-gradient(180deg,var(--card-a),var(--card-b));border:1px solid var(--card-line);box-shadow:inset 0 1px 0 #ffffff0d,0 8px 24px #0006}
+.neon{color:var(--violet-neon);filter:drop-shadow(0 0 6px #a855f7aa)}
+.dot{display:inline-flex;flex:none;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;box-shadow:0 0 10px currentColor}
+.dot.ok{background:radial-gradient(circle at 35% 30%,#5ef08f,#16a34a);color:#22c55e}
+.dot.bad{background:radial-gradient(circle at 35% 30%,#ff8080,#dc2626);color:#ef4444}
+.dot.wait{background:#252b46;color:transparent;box-shadow:none;border:1px dashed #4b5375}
+.dot svg{color:#fff}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;font-size:15px;font-weight:600}
+.chip.live{background:#3a1222;color:#ff8a8a;border:1px solid #ff6b6b55}
+.chip.live i{width:9px;height:9px;border-radius:50%;background:#ff5a5a;box-shadow:0 0 8px #ff5a5a}
+.chip.idle{background:#1d2140;color:var(--mute);border:1px solid var(--card-line)}
+.chip.pass{background:#0f2a1b;color:#6ee7a0;border:1px solid #22c55e55}
+.chip.pass i{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:0 22px;border-radius:12px;font-weight:700;font-size:16px;border:1.5px solid transparent;text-decoration:none}
+.btn.green{background:linear-gradient(180deg,#14532d,#0f3d22);border-color:#22c55e;color:#dcfce7;box-shadow:0 0 16px #22c55e55,inset 0 1px 0 #ffffff22}
+.btn.grey{background:#1e2340;border-color:#353c60;color:#dfe3ff}
+.btn.violet{background:linear-gradient(180deg,#3b1f86,#2a1466);border-color:#a78bfa;color:#fff;box-shadow:0 0 18px #8b5cf688,inset 0 1px 0 #ffffff22}
+.btn.danger{background:linear-gradient(180deg,#4a1220,#3a0f1a);border-color:#ff6b6b;color:#ffd5d5;box-shadow:0 0 16px #ef444455}
+
+/* ===== top nav (v7 panel A) ===== */
+.topnav{display:flex;align-items:center;gap:24px;padding:14px 40px;position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:22px;letter-spacing:.2px}
+.primary{flex:1;display:flex;justify-content:center;gap:42px;flex-wrap:wrap}
+.primary a{color:#d6d9f3;text-decoration:none;font-weight:500;padding:6px 2px}
+.primary a[aria-current="page"]{color:#fff;font-weight:700;text-shadow:0 0 12px #c4b5fd}
+.kiropill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;color:#fff;text-decoration:none;font-weight:700;
+  background:linear-gradient(180deg,#3b1f86,#26135a);border:1.5px solid #a78bfa;box-shadow:0 0 14px #8b5cf688}
+.settings{position:absolute;right:40px;top:70px;display:none;min-width:260px;padding:10px;border-radius:14px;background:#151a33;border:1px solid var(--card-line);box-shadow:0 16px 40px #000a;z-index:30}
+.settings.open{display:block}
+.settings label{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 8px;gap:10px}
+.settings select{background:#0d1022;border:1px solid var(--card-line);border-radius:8px;color:var(--ink);min-height:36px}
+.gear{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid #3a3363;background:#140f2a;color:#cfc6ff}
+
+/* ===== HOME ===== */
+.hero{position:relative;overflow:hidden;margin:0 16px;border-radius:22px;min-height:clamp(560px,46vw,780px);display:flex;align-items:center;justify-content:center;
+  border:1.5px solid #7c4dff66;box-shadow:0 0 40px #7c3aed44}
+.hero .scene{position:absolute;inset:0;width:100%;height:100%}
+.hero .center{position:relative;z-index:3;text-align:center;padding:30px 20px 90px;max-width:900px}
+.wordmark{margin:0;font-family:Creepster,cursive;font-weight:400;font-size:clamp(64px,8.6vw,128px);line-height:1;letter-spacing:3px;
+  background:linear-gradient(180deg,#ffffff 0%,#f1e9ff 38%,#d3bbff 60%,#a77bff 82%,#8b5cf6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 14px #b794ffcc) drop-shadow(0 0 40px #7c3aed99)}
+.tag{margin:18px 0 0;font-size:clamp(18px,1.8vw,26px);font-weight:700;color:#fff;text-shadow:0 2px 12px #000}
+.sub{margin:12px 0 0;font-size:clamp(16px,1.3vw,19px);color:#e6defa;text-shadow:0 2px 12px #000}
+.cta{display:inline-flex;align-items:center;gap:16px;margin-top:34px;min-height:70px;padding:0 46px;border-radius:20px;font-size:26px;font-weight:700;color:#fff;text-decoration:none;
+  background:linear-gradient(180deg,#4b23a8,#2c1370);border:2px solid #b794ff;box-shadow:0 0 0 5px #7c3aed33,0 0 30px #8b5cf6cc,inset 0 1px 0 #ffffff33}
+.cta:hover{filter:brightness(1.12)}
+.chips{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:34px 0 0;padding:0;list-style:none}
+.chips li{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 22px;border-radius:16px;background:#120c26ee;border:1px solid #2f2756;color:#fff;font-weight:600;font-size:18px;box-shadow:0 6px 18px #000a}
+.chips li.prev{border-color:#7c4dff;box-shadow:0 0 14px #7c3aed66}
+.roam{position:absolute;z-index:2;pointer-events:none}
+.roam-a{top:60%;left:-110px}.roam-b{top:22%;right:-110px}
+@media (prefers-reduced-motion:no-preference){
+ .roam-a{animation:roamA 24s linear infinite}.roam-b{animation:roamB 29s linear infinite}
+ @keyframes roamA{0%{transform:translate(0,0)}20%{transform:translate(24vw,-50px)}45%{transform:translate(52vw,10px)}70%{transform:translate(78vw,-40px)}100%{transform:translate(112vw,0)}}
+ @keyframes roamB{0%{transform:translate(0,0) scaleX(-1)}25%{transform:translate(-28vw,60px) scaleX(-1)}55%{transform:translate(-60vw,0) scaleX(-1)}100%{transform:translate(-114vw,40px) scaleX(-1)}}
+ .bob{animation:bob 5s ease-in-out infinite}@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+}
+body.calm .roam{display:none}body.calm .bob{animation:none}
+.mascot{position:absolute;left:1.5%;top:14%;width:min(21vw,310px);z-index:2;pointer-events:none}
+@media (max-width:900px){.mascot{opacity:.3;width:50vw}.primary{gap:18px}}
+
+/* ===== APP SHELL (v7 panel C) ===== */
+.appframe{margin:6px 16px 24px;display:flex;flex-direction:column;min-height:calc(100vh - 100px)}
+.apphead{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 26px;border-bottom:1px solid #2a2350}
+.apphead ol{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:18px}
+.apphead li{display:flex;align-items:center;gap:14px;color:#d2d5ee}
+.apphead li+li::before{content:"›";color:#7d74a8;font-size:22px}
+.apphead b{color:#fff}.apphead .here{color:#c9b5ff;font-weight:700;text-shadow:0 0 10px #a78bfa88}
+.appbody{display:flex;flex:1;min-height:0;flex-wrap:wrap}
+.side{flex:0 0 230px;padding:18px 12px;border-right:1px solid #2a2350;display:flex;flex-direction:column;gap:4px}
+.side a{display:flex;align-items:center;gap:14px;min-height:46px;padding:0 14px;border-radius:12px;color:#d6d9f0;text-decoration:none;font-size:17px;font-weight:500}
+.side a svg{color:#c4b5fd}
+.side a[aria-current="page"]{background:linear-gradient(90deg,#3a2479,#2a1a5c);color:#fff;font-weight:700;box-shadow:inset 3px 0 0 #b794ff,0 0 16px #7c3aed55}
+.content{flex:1 1 600px;min-width:0;padding:26px 30px 34px}
+.content h2.title{margin:0 0 20px;font-size:26px;font-weight:800}
+.dim{color:var(--mute)}
+
+/* possession (v7 panel B) */
+.pos{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(300px,1fr);gap:22px}
+.bank{display:flex;overflow:visible}
+.banknav{flex:0 0 230px;padding:22px 16px;border-right:1px solid var(--card-line);display:flex;flex-direction:column;gap:8px;background:#0e1226aa;border-radius:16px 0 0 16px}
+.bankname{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.bankname b{display:block;font-size:19px;letter-spacing:.3px}
+.bankname span{color:var(--mute);font-size:15px}
+.banknav div.it{display:flex;align-items:center;gap:14px;min-height:50px;padding:0 14px;border-radius:12px;color:#d7dbef;font-size:17px}
+.banknav div.it svg{color:#9aa3c7}
+.banknav div.it.on{background:#1c2b4d;color:#7cc4ff;box-shadow:inset 0 0 0 1px #3b82f655}
+.banknav div.it.on svg{color:#7cc4ff}
+.payform{flex:1;min-width:0;padding:30px 34px;position:relative}
+.payform h3{margin:0 0 22px;font-size:28px;font-weight:800}
+.payform label{display:block;font-weight:600;margin:0 0 8px}
+.payform input{width:100%;max-width:560px;min-height:52px;margin-bottom:18px;padding:0 16px;border-radius:12px;border:1px solid #2f3760;background:#121731;color:#fff;font-size:18px}
+.amtbar{height:3px;max-width:560px;margin:-16px 0 26px;border-radius:2px;background:linear-gradient(90deg,#8b5cf6,#c084fc 60%,transparent)}
+.paybtn{display:flex;align-items:center;justify-content:center;width:min(100%,330px);min-height:58px;border-radius:14px;font-size:20px;font-weight:700;color:#fff;
+  border:2.5px dashed #ff5a5a;background:#2a1020;box-shadow:0 0 20px #ef444455,inset 0 0 20px #ef444422}
+.paybtn.ok{border:2.5px solid #22c55e;background:#0f2a1b;box-shadow:0 0 20px #22c55e66}
+.paybtn.idle{border:2px dashed #4b5375;background:#161a33;box-shadow:none}
+.ghostpin{position:absolute;left:min(400px,62%);top:262px;width:130px;filter:drop-shadow(0 0 18px #ff3b3b)}
+.ghostpin.ok{filter:drop-shadow(0 0 18px #22c55e)}
+.tooltip{position:absolute;left:min(330px,52%);top:390px;width:320px;padding:16px 18px;border-radius:14px;background:#1a0c16f2;border:1.5px solid #ff5a5a;box-shadow:0 0 22px #ef444466;z-index:3}
+.tooltip b{display:flex;align-items:center;gap:10px;color:#ff7a7a;font-size:19px;margin-bottom:6px}
+.tooltip.ok{background:#0b1d14f2;border-color:#22c55e;box-shadow:0 0 22px #22c55e55}.tooltip.ok b{color:#6ee7a0}
+.pmode{padding:20px 20px 22px;display:flex;flex-direction:column}
+.pmhead{display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--card-line)}
+.pmhead h3{margin:0;font-size:20px;font-weight:800}
+.pmhead p{margin:4px 0 0;color:#c8cce6}
+.agentseg{display:flex;gap:4px;margin:14px 0 4px;padding:4px;border-radius:12px;background:#0d1022;border:1px solid var(--card-line)}
+.agentseg button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--mute);font-weight:600}
+.agentseg button[aria-pressed="true"]{background:linear-gradient(180deg,#4b23a8,#32178a);color:#fff;box-shadow:0 0 12px #8b5cf688}
+.steps{list-style:none;margin:6px 0 14px;padding:0}
+.steps li{display:flex;align-items:center;gap:16px;min-height:66px;padding:8px 2px;border-bottom:1px solid #262c4b;font-size:17px;font-weight:500}
+.steps li small{display:block;color:#ff7373;font-size:16px;font-weight:700}
+.steps li code{font-size:15px}
+.pmbtns{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pmbtns .btn{flex:1 1 120px;min-height:44px;padding:0 12px;font-size:15px;white-space:nowrap}.pmbtns #runBtn{flex:1 1 100%}
+.barrier{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;border-radius:12px;font-weight:800;font-size:18px}
+.barrier.bad{background:#3a0f1a;border:1.5px solid #ff5a5a;color:#ffd0d0;box-shadow:0 0 18px #ef444466}
+.barrier.ok{background:#0f2a1b;border:1.5px solid #22c55e;color:#c9f7da;box-shadow:0 0 18px #22c55e55}
+.barrier.idle{border:1px dashed #4b5375;color:var(--mute);font-weight:600;font-size:16px}
+.cmdbox{margin:4px 0 12px;padding:10px 12px;border-radius:10px;background:#0d1022;border:1px solid var(--card-line);font-family:"JetBrains Mono",monospace;font-size:14px;color:#cfd3f0}
+.cmdbox textarea{width:100%;min-height:86px;background:transparent;border:0;color:inherit;font:inherit;resize:vertical}
+
+/* agents (v7 panel C) */
+.acards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;position:relative}
+.acard{padding:22px 22px 24px}
+.acard h3{display:flex;align-items:center;gap:14px;margin:0 0 18px;font-size:20px;font-weight:800}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.rows li{display:flex;gap:14px;align-items:flex-start;font-size:17px}
+.rows li .dot{margin-top:-2px}
+.rows .red{color:#ff6b6b;display:block}
+.crit{margin-top:24px;display:flex;align-items:center;gap:26px;padding:22px 26px;border-radius:16px;flex-wrap:wrap;
+  background:linear-gradient(90deg,#3a1022 0%,#2a0d1c 55%,#1a0c1c 100%);border:1.5px solid #ff5a5a88;box-shadow:0 0 24px #ef444444,inset 0 0 30px #ef44441a}
+.crit h3{margin:0 0 8px;color:#ff6b6b;font-size:24px;font-weight:800;text-shadow:0 0 12px #ef444477}
+.crit p{margin:2px 0;font-size:17px;color:#f1e6ee}
+.thumb{flex:0 0 260px;padding:12px;border-radius:12px;background:#121631;border:1px solid #2e3558}
+.thumb .lines{height:30px;margin-bottom:10px;background:repeating-linear-gradient(180deg,#22c55e33 0 3px,transparent 3px 8px);opacity:.6;border-radius:4px}
+.thumb .mini{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:10px;border:2px solid #ff5a5a;background:#2a1020;color:#fff;font-weight:700;box-shadow:0 0 14px #ef444466}
+.tl{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--mute)}
+.tl span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#12162d;border:1px solid var(--card-line);font-family:"JetBrains Mono",monospace}
+.tl .g{color:#6ee7a0}.tl .r{color:#ff7a7a}
+
+/* fixes (v7 panel D) */
+.strip{list-style:none;margin:0 0 24px;padding:0;display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.strip li.arrow{flex:1 1 30px;max-width:90px;height:2px;margin:0 10px;background:linear-gradient(90deg,#3b3466,#5b4f99);position:relative}
+.strip li.arrow::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid #5b4f99}
+.strip button{display:flex;align-items:center;gap:12px;min-height:54px;padding:0 30px;border-radius:16px;border:1px solid #2c2a52;background:#141230;color:#d9dcf5;font-size:19px;font-weight:600}
+.strip button .n{display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;border:2px solid #b794ff;color:#d9c8ff;font-size:15px;font-weight:800}
+.strip button[aria-current="step"]{background:linear-gradient(180deg,#5a2fc2,#3b1d8f);border:1.5px solid #c4a8ff;color:#fff;box-shadow:0 0 22px #8b5cf6aa}
+.strip button[aria-current="step"] .n{border-color:#fff;color:#fff}
+.fgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1.2fr);gap:22px}
+.fcard{padding:0 0 22px;display:flex;flex-direction:column;transition:box-shadow .3s,border-color .3s}
+.fcard>h3{margin:0;padding:18px 22px;font-size:19px;font-weight:800;border-bottom:1px solid var(--card-line)}
+.fcard>h3 span{font-weight:500;color:#cfd3ee}
+.fcard.focus{border-color:#a78bfa;box-shadow:0 0 22px #8b5cf688}
+.diff{margin:18px 0 0;font-family:"JetBrains Mono",monospace;font-size:14.5px;line-height:1.75;overflow-x:auto}
+.diff div{padding:6px 22px;white-space:pre}
+.diff .del{background:linear-gradient(90deg,#7f1d2d,#5a1522);color:#ffc9c9}
+.diff .add{background:linear-gradient(90deg,#14532d,#0f3d22);color:#c7f9d5}
+.diff .sign{color:#fff;margin-right:12px;font-weight:700}
+.fbtns{display:flex;gap:14px;padding:22px 22px 0;margin-top:auto;border-top:1px solid var(--card-line);margin-left:0}
+.vrows{list-style:none;margin:16px 22px 18px;padding:0;display:flex;flex-direction:column;gap:12px}
+.vrows li{display:flex;align-items:center;gap:12px;font-size:17px}
+.vrows li .tick{color:#4ade80;font-weight:800;margin-left:4px}
+.vrows li.voice{color:#e5dcff}
+.verified{margin:auto 22px 0;justify-content:center}
+.fcard.reg{background:linear-gradient(180deg,#2a0f1c,#1a0b16);border:1.5px solid #ff5a5a;box-shadow:0 0 26px #ef444455,inset 0 0 30px #ef44441a}
+.fcard.reg>h3{color:#ff8a8a;border-color:#4a1a2a}.fcard.reg>h3 span{color:#ffd5d5}
+.regbody{position:relative;padding:16px 22px 0;display:flex;flex-direction:column;gap:12px}
+.regline{display:flex;align-items:center;gap:10px;color:#e7dbe6;font-size:16px}
+.regline::before{content:"";width:10px;height:10px;border-radius:50%;border:2px solid #f1c8d0}
+.failed{display:flex;align-items:center;gap:10px;color:#ff6b6b;font-weight:800;font-family:"JetBrains Mono",monospace;font-size:15px}
+.regghost{position:absolute;right:12px;top:4px;width:90px;filter:drop-shadow(0 0 14px #ff3b3b)}
+.caught{display:flex;align-items:center;gap:16px;margin:8px 0 0;padding:16px 18px;border-radius:14px;background:#140c1c;border:1px solid #3a2236;font-weight:800;font-size:19px;color:#fff;line-height:1.3}
+
+/* kiro (v7 panel E) */
+.kgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:22px}
+.ide{display:flex;overflow:hidden}
+.tree{flex:0 0 230px;padding:18px 12px;border-right:1px solid var(--card-line);font-size:17px}
+.tree .k{display:flex;align-items:center;gap:10px;font-weight:700;margin:0 0 14px 6px}
+.tree ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.tree li{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 10px;border-radius:10px;color:#d7dbef}
+.tree li.sub{padding-left:28px}
+.tree li svg.f{color:#cfd3ee}
+.tree li.on{background:#3a2479;color:#fff;box-shadow:0 0 14px #7c3aed66}.tree li.on svg.f{color:#d8b4fe}
+.editor{flex:1;min-width:0}
+.tab{display:inline-flex;align-items:center;gap:10px;margin:0;padding:12px 18px;background:#1b2140;border-right:1px solid var(--card-line);font-family:"JetBrains Mono",monospace;font-size:15px}
+.tabbar{border-bottom:1px solid var(--card-line);background:#12162d}
+.editor pre{margin:0;padding:18px 20px;font-family:"JetBrains Mono",monospace;font-size:17px;line-height:1.9;overflow-x:auto}
+.ln{display:inline-block;width:2ch;text-align:right;margin-right:28px;color:#6f789e}
+.c{color:#4ade80}.kw{color:#c084fc}.fn{color:#7dd3fc}.s{color:#fbbf24}
+.hook{padding:22px;display:flex;flex-direction:column;gap:16px;border-color:#7c4dff;box-shadow:0 0 22px #7c3aed55,inset 0 0 26px #7c3aed1a}
+.hook h3{display:flex;align-items:center;gap:12px;margin:0;font-size:21px;font-weight:800}
+.hook ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;font-size:17px}
+.hook li{display:flex;gap:12px;align-items:flex-start}
+.built{align-self:flex-end;margin-top:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:14px;font-weight:800;background:linear-gradient(180deg,#3b1f86,#26135a);border:1.5px solid #b794ff;box-shadow:0 0 16px #8b5cf688}
+
+/* results (v7 panel F) */
+.rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,2.3fr);gap:20px;align-items:stretch;margin-top:30px}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:26px 12px;border-radius:18px;text-align:center}
+.tile .big{white-space:nowrap;font-family:"JetBrains Mono",monospace;font-size:clamp(22px,2vw,34px);font-weight:700;color:#fff}
+.tile .lbl{font-size:17px;color:#e3e6f8}
+.t1{background:linear-gradient(180deg,#2a1230,#1a0e26);border:1.5px solid #ec4899aa;box-shadow:0 0 18px #ec489944}
+.t2{background:linear-gradient(180deg,#0f2620,#0c1a18);border:1.5px solid #22c55eaa;box-shadow:0 0 18px #22c55e44}
+.t3{background:linear-gradient(180deg,#22164a,#160f33);border:1.5px solid #a855f7aa;box-shadow:0 0 18px #a855f744}
+.t4{background:linear-gradient(180deg,#10203f,#0c162d);border:1.5px solid #3b82f6aa;box-shadow:0 0 18px #3b82f644}
+.parch{position:relative;padding:30px 34px;color:#2a1a0a;border-radius:6px;
+  background:radial-gradient(120% 120% at 30% 20%,#f6e3bc 0%,#ecd29c 55%,#d9b679 100%);
+  clip-path:polygon(2% 4%,8% 0,20% 3%,34% 1%,50% 4%,66% 0,80% 3%,95% 1%,100% 6%,98% 22%,100% 40%,98% 60%,100% 80%,97% 96%,86% 100%,70% 97%,54% 100%,38% 97%,22% 100%,8% 97%,0 92%,2% 72%,0 52%,2% 30%,0 14%);
+  box-shadow:inset 0 0 40px #8a5a2a88}
+.parch h3{margin:0 0 16px;font-size:28px;font-weight:800;color:#1f1408}
+.parch ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.parch li{display:flex;gap:12px;align-items:center;font-size:18px;font-weight:600}
+.okghost{position:absolute;right:-14px;top:-96px;width:170px;z-index:2;filter:drop-shadow(0 0 22px #22c55e)}
+.rwrap{position:relative}
+
+/* high contrast */
+body.hc{--card-a:#000;--card-b:#000;--frame-a:#000;--frame-b:#000;--card-line:#fff;--mute:#f0f0f0}
+body.hc .frame,body.hc .card{box-shadow:none}
+
+@media (max-width:1100px){.pos,.kgrid,.fgrid{grid-template-columns:1fr}.acards{grid-template-columns:1fr}.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.parch{grid-column:1/-1}.tooltip{position:static;margin-top:14px;width:auto}.ghostpin{position:static;width:110px}}
+@media (max-width:700px){.side{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid #2a2350}.bank{flex-direction:column}.banknav{flex:auto;border-right:0;border-radius:16px 16px 0 0}}
+
+/* ===== HOME v2: v7 artwork as background, live text on top ===== */
+.hero2{position:relative;container-type:inline-size;margin:4px auto 16px;width:min(100% - 24px,(100vh - 110px)*2.418,1360px);aspect-ratio:1296/536;border-radius:18px;overflow:hidden;
+  border:1.5px solid #7c4dff88;box-shadow:0 0 30px #7c3aed55}
+.hero2 .art{position:absolute;inset:0;background:url(assets/hero-bg.jpg) center/cover no-repeat}
+.center2{position:absolute;left:56.6%;top:9%;transform:translateX(-50%);width:52cqw;text-align:center;z-index:3}
+.wordmark2{margin:0;white-space:nowrap;font-family:Creepster,cursive;font-weight:400;font-size:max(34px,7.8cqw);line-height:1;letter-spacing:.25cqw;color:#efe7ff;
+  text-shadow:0 0 .3cqw #fff,0 0 1.4cqw #b794ff,0 0 3cqw #7c3aed}
+.wordmark2 span{color:#c4a3ff}
+.tag2{margin:1.2cqw 0 0;font-size:max(16px,1.95cqw);font-weight:700;color:#fff;text-shadow:0 2px 8px #000}
+.sub2{margin:1cqw 0 0;font-size:max(14px,1.45cqw);color:#ece6ff;text-shadow:0 2px 8px #000}
+.cta2{display:inline-flex;align-items:center;gap:1.2cqw;margin-top:2.6cqw;height:max(48px,6cqw);padding:0 3.4cqw;border-radius:1.6cqw;font-size:max(17px,2.2cqw);font-weight:700;color:#fff;text-decoration:none;
+  background:linear-gradient(180deg,#45209c,#2a1270);border:2px solid #b794ff;box-shadow:0 0 0 .4cqw #7c3aed33,0 0 2.4cqw #8b5cf6cc,inset 0 1px 0 #ffffff33}
+.cta2 svg{width:max(26px,3cqw);height:max(26px,3cqw)}
+.cta2:hover{filter:brightness(1.12)}
+.chips2{display:flex;justify-content:center;gap:1.6cqw;margin:3cqw 0 0;padding:0;list-style:none;flex-wrap:wrap}
+.chips2 li{display:flex;align-items:center;gap:.8cqw;height:max(36px,3.6cqw);padding:0 1.7cqw;border-radius:1.3cqw;background:#0f0a22e6;border:1px solid #2f2756;color:#fff;font-weight:600;font-size:max(14px,1.45cqw);box-shadow:0 .4cqw 1.2cqw #000a}
+.chips2 li svg{width:max(16px,1.6cqw);height:max(16px,1.6cqw)}
+.chips2 .dot{width:max(18px,1.8cqw);height:max(18px,1.8cqw)}
+.chips2 li.prev{border-color:#7c4dff;box-shadow:0 0 1.2cqw #7c3aed66}
+.hero2 .roam{width:5cqw;height:5cqw}
+.hero2 .roam{z-index:1;opacity:.95}.center2{z-index:3}.hero2 .roam-a{top:86%;left:-8cqw}.hero2 .roam-b{top:3%;right:-8cqw}
+.hero2 .roam-a{animation-name:laneA}.hero2 .roam-b{animation-name:laneB}
+@keyframes laneA{0%{transform:translate(0,0)}50%{transform:translate(56cqw,-1.5cqw)}100%{transform:translate(116cqw,0)}}
+@keyframes laneB{0%{transform:translate(0,0) scaleX(-1)}50%{transform:translate(-56cqw,1.5cqw) scaleX(-1)}100%{transform:translate(-116cqw,0) scaleX(-1)}}
+@media (max-width:760px){.topnav{flex-wrap:wrap;padding:8px 14px}.primary{order:3;flex:1 1 100%;justify-content:flex-start;gap:18px;overflow-x:auto;flex-wrap:nowrap}.hero2{aspect-ratio:auto;min-height:640px}.hero2 .art{background-position:22% center}.center2{left:50%;top:6%;width:92%}.hero2 .roam{width:56px;height:56px}}
+
+.pausebtn{position:absolute;right:1.4cqw;bottom:1.4cqw;z-index:4;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:12px;
+  background:#0f0a22e6;border:1px solid #7c4dff;color:#fff;font-weight:600;font-size:15px;box-shadow:0 0 12px #7c3aed55}
+.pausebtn:hover{background:#1c1340}
+.pausebtn .pi{width:12px;height:12px;border-left:4px solid #fff;border-right:4px solid #fff}
+.pausebtn[aria-pressed="true"] .pi{width:0;height:0;border-left:11px solid #fff;border-right:0;border-top:7px solid transparent;border-bottom:7px solid transparent}
+body.paused .roam,body.paused .bob{animation-play-state:paused}
+/* ===== COMPACT: fit a panel on a laptop screen at 100% zoom ===== */
+.topnav{padding:8px 28px;gap:18px}
+.brand{font-size:19px}.brand svg{width:32px;height:32px}
+.primary{gap:34px}.primary a{font-size:15.5px}
+.kiropill{min-height:38px;padding:0 14px}.gear{width:38px;height:38px}
+.appframe{margin:4px auto 14px;width:min(100% - 24px,1480px);min-height:auto}
+.apphead{padding:9px 20px}.apphead ol{font-size:16px;gap:10px}.apphead li{gap:10px}.apphead li svg{width:26px;height:26px}
+.chip{font-size:14px;padding:4px 12px}
+.side{flex:0 0 190px;padding:12px 10px}.side a{min-height:38px;font-size:15px;gap:12px;padding:0 12px}.side a svg{width:19px;height:19px}
+.content{padding:16px 20px 18px}
+.content h2.title{font-size:21px;margin:0 0 14px}
+.pos{grid-template-columns:minmax(0,2.4fr) minmax(270px,1fr);gap:16px}
+.banknav{flex:0 0 190px;padding:16px 12px;gap:4px}
+.bankname{margin-bottom:10px}.bankname b{font-size:16px}.bankname span{font-size:14px}
+.banknav div.it{min-height:40px;font-size:15.5px;gap:12px;padding:0 12px}
+.payform{padding:20px 24px}
+.payform h3{font-size:23px;margin:0 0 14px}
+.payform label{margin:0 0 6px}
+.payform input{min-height:42px;margin-bottom:12px;font-size:16px}
+.amtbar{margin:-10px 0 18px}
+.paybtn{min-height:48px;font-size:17px;width:min(100%,290px)}
+.ghostpin{left:min(330px,60%);top:186px;width:104px}
+.tooltip{left:min(300px,50%);top:288px;width:280px;padding:12px 14px}
+.tooltip b{font-size:17px}
+.pmode{padding:14px 16px 16px}
+.pmhead{padding-bottom:10px;gap:12px}.pmhead h3{font-size:17px}.pmhead p{font-size:15px}.pmhead svg{width:32px;height:32px}
+.agentseg{margin:10px 0 2px}.agentseg button{min-height:36px;font-size:15px}
+.steps li{min-height:46px;padding:6px 2px;gap:12px;font-size:15.5px}
+.steps li small{font-size:14.5px}.steps li code{font-size:13.5px}
+.dot{width:24px!important;height:24px!important}
+.pmbtns{gap:8px;margin-bottom:10px}.pmbtns .btn{min-height:38px;font-size:14.5px}
+.barrier{min-height:44px;font-size:16px}
+.acards{gap:16px}.acard{padding:16px 16px 18px}.acard h3{font-size:17px;margin:0 0 12px;gap:10px}.acard h3 svg{width:28px;height:28px}
+.rows{gap:12px}.rows li{font-size:15.5px;gap:10px}
+.tl{margin-top:12px}
+.crit{margin-top:16px;padding:16px 20px;gap:18px}.crit>svg{width:84px;height:84px}.crit h3{font-size:20px;margin:0 0 4px}.crit p{font-size:15.5px}
+.thumb{flex:0 0 220px}
+.strip{margin:0 0 16px}.strip button{min-height:44px;padding:0 22px;font-size:16px}
+.strip button .n{width:24px;height:24px;font-size:13px}
+.fgrid{gap:16px}
+.fcard>h3{padding:12px 16px;font-size:16px}
+.diff{font-size:13px;margin-top:12px;line-height:1.65}.diff div{padding:4px 16px}
+.fbtns{padding:14px 16px 0;gap:10px}.fbtns .btn{min-height:40px;padding:0 14px;font-size:15px}
+.vrows{margin:12px 16px 12px;gap:8px}.vrows li{font-size:15px;gap:10px}
+.verified{margin:auto 16px 0;min-height:42px}
+.regbody{padding:12px 16px 0;gap:8px}.regline{font-size:14.5px}.failed{font-size:13px}.regghost{width:70px}
+.caught{padding:12px 14px;font-size:16px;gap:12px}.caught svg{width:42px;height:42px}
+.fcard{padding-bottom:16px}
+.kgrid{gap:16px}.tree{flex:0 0 190px;padding:14px 10px;font-size:15.5px}.tree li{min-height:34px}
+.tab{padding:9px 14px;font-size:14px}.editor pre{font-size:15px;line-height:1.75;padding:14px 16px}
+.hook{padding:16px;gap:12px}.hook h3{font-size:18px}.hook ul{font-size:15.5px;gap:10px}.built{padding:8px 14px;font-size:15px}
+.rgrid{gap:14px;margin-top:70px}
+.tile{padding:18px 10px;gap:8px}.tile svg{width:34px;height:34px}.tile .lbl{font-size:15px}
+.parch{padding:22px 24px}.parch h3{font-size:22px;margin:0 0 10px}.parch li{font-size:15.5px}.parch ul{gap:10px}
+.okghost{width:130px;top:-82px}
+
+.view{display:none}.view.active{display:block}
+</style>
+</head>
+<body>
+<a class="skip" href="#app">Skip to content</a>
+
+<!-- ghost artwork: glowing 3D-style ghost, coloured by state -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="gR" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#ffb4b4"/><stop offset=".45" stop-color="#ff5a5a"/><stop offset="1" stop-color="#b3122b"/></radialGradient>
+    <radialGradient id="gG" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#d4ffe3"/><stop offset=".45" stop-color="#5ef08f"/><stop offset="1" stop-color="#138a42"/></radialGradient>
+    <radialGradient id="gW" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#efe8ff"/><stop offset="1" stop-color="#b79cf5"/></radialGradient>
+    <symbol id="ghostbody" viewBox="0 0 120 120"><path d="M60 6C36 6 24 26 24 48c0 6-4 12-12 18 8 3 14 1 18-2-2 14-6 26-14 38 12 2 22-2 28-8 4 10 12 14 22 12 8 6 18 6 24-2 8 6 18 4 22-2-8-12-10-26-10-40 4 3 10 5 18 2-8-6-12-12-12-18C96 26 84 6 60 6z"/></symbol>
+    <symbol id="face-angry" viewBox="0 0 120 120"><path d="M38 40l16 7M82 40l-16 7" stroke="#1b0710" stroke-width="5" stroke-linecap="round"/><ellipse cx="47" cy="54" rx="6.5" ry="8" fill="#1b0710"/><ellipse cx="73" cy="54" rx="6.5" ry="8" fill="#1b0710"/><circle cx="49" cy="51" r="2" fill="#fff"/><circle cx="75" cy="51" r="2" fill="#fff"/><path d="M48 76q12-10 24 0l-4 2-4-4-4 4-4-4-4 4z" fill="#1b0710"/></symbol>
+    <symbol id="face-happy" viewBox="0 0 120 120"><ellipse cx="47" cy="50" rx="6.5" ry="8.5" fill="#1b0710"/><ellipse cx="73" cy="50" rx="6.5" ry="8.5" fill="#1b0710"/><circle cx="49" cy="47" r="2.2" fill="#fff"/><circle cx="75" cy="47" r="2.2" fill="#fff"/><path d="M50 66q10 8 20 0" stroke="#1b0710" stroke-width="4.5" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="face-worried" viewBox="0 0 120 120"><ellipse cx="47" cy="52" rx="6.5" ry="8.5" fill="#1b0710"/><ellipse cx="73" cy="52" rx="6.5" ry="8.5" fill="#1b0710"/><circle cx="49" cy="49" r="2.2" fill="#fff"/><circle cx="75" cy="49" r="2.2" fill="#fff"/><ellipse cx="60" cy="72" rx="6" ry="7" fill="#1b0710"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="brand" href="#home"><svg width="40" height="40" viewBox="0 0 120 120" aria-hidden="true" style="filter:drop-shadow(0 0 6px #fff8)"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-happy"/></svg>Haunted Audit</a>
+  <nav class="primary" aria-label="Primary">
+    <a href="#home" data-n="home">Home</a><a href="#scans" data-n="scans">Scans</a><a href="#possession" data-n="possession">Journeys</a><a href="#fixes" data-n="fixes">Fixes</a><a href="#kiro" data-n="kiro">Kiro</a><a href="#results" data-n="results">Reports</a>
+  </nav>
+  <a class="kiropill" href="#kiro"><i data-i="kiro"></i>Kiro</a>
+  <button class="gear" id="gear" type="button" aria-label="Display settings" aria-expanded="false" aria-controls="settings"><i data-i="settings"></i></button>
+  <div class="settings" id="settings" role="group" aria-label="Display settings">
+    <label>Calm mode (no motion)<input type="checkbox" id="calm"></label>
+    <label>High contrast<input type="checkbox" id="hc"></label>
+    <label for="ts">Text size<select id="ts"><option value="16">100%</option><option value="20">125%</option><option value="24">150%</option></select></label>
+  </div>
+</header>
+
+<div id="app" tabindex="-1">
+
+<!-- ================= HOME (panel A) ================= -->
+<section class="view" id="v-home" aria-labelledby="h-home">
+ <div class="hero2">
+  <div class="art" role="img" aria-label="A friendly witch-hat ghost holding a laptop and a magnifying glass, in a moonlit graveyard with a castle and glowing pumpkins"></div>
+  <svg class="roam roam-a" viewBox="0 0 120 120" aria-hidden="true" style="filter:drop-shadow(0 0 16px #ff3b3b)"><use href="#ghostbody" fill="url(#gR)"/><use href="#face-angry"/></svg>
+  <svg class="roam roam-b" viewBox="0 0 120 120" aria-hidden="true" style="filter:drop-shadow(0 0 16px #22c55e)"><use href="#ghostbody" fill="url(#gG)"/><use href="#face-happy"/></svg>
+  <button type="button" class="pausebtn" id="pauseBtn" aria-pressed="false"><span class="pi" aria-hidden="true"></span><span id="pauseTxt">Pause animation</span></button>
+  <div class="center2">
+   <h1 id="h-home" class="wordmark2">Haunted <span>Audit</span></h1>
+   <p class="tag2">The accessibility guardrail for AI-built applications.</p>
+   <p class="sub2">Feel the barrier. Fix the cause. Prove the journey.</p>
+   <a class="cta2" href="#possession"><svg viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-happy"/></svg>Possess This App</a>
+   <ul class="chips2" aria-label="What it does">
+     <li><i data-i="search" style="color:#fb923c"></i>Detect</li>
+     <li><i data-i="code" style="color:#4ade80"></i>Fix</li>
+     <li><span class="dot ok"><i data-i="tick" data-s="12"></i></span>Verify</li>
+     <li class="prev"><i data-i="shield" style="color:#c084fc"></i>Prevent</li>
+   </ul>
+  </div>
+ </div>
+</section>
+
+<!-- ================= APP SHELL ================= -->
+<section class="view" id="v-app">
+ <div class="frame appframe">
+  <div class="apphead">
+   <ol id="crumbs" aria-label="Breadcrumb"></ol>
+   <span id="liveChip" class="chip idle"><i></i><span id="liveTxt">Ready</span></span>
+  </div>
+  <div class="appbody">
+   <nav class="side" aria-label="App">
+    <a href="#possession" data-s="possession"><i data-i="house"></i>Overview</a>
+    <a href="#agents" data-s="agents"><i data-i="agents"></i>Agents</a>
+    <a href="#scans" data-s="scans"><i data-i="findings"></i>Findings</a>
+    <a href="#fixes" data-s="fixes"><i data-i="code"></i>Fixes</a>
+    <a href="#fixes/verify" data-s="verify"><i data-i="checkc"></i>Verification</a>
+    <a href="#fixes/regression" data-s="regression"><i data-i="reg"></i>Regression</a>
+    <a href="#kiro" data-s="kiro"><i data-i="kiro"></i>Kiro</a>
+    <a href="#results" data-s="results"><i data-i="report"></i>Reports</a>
+   </nav>
+   <div class="content">
+
+    <!-- POSSESSION (panel B + voice) -->
+    <div class="pane" id="p-possession">
+     <h2 class="sr-only" tabindex="-1">Possession Mode</h2>
+     <div class="pos">
+      <div class="card bank">
+       <div class="banknav">
+        <div class="bankname"><i data-i="bank" data-s="30" style="color:#5ec8ff"></i><div><b>Haunted Bank</b><span>Test site</span></div></div>
+        <div class="it"><i data-i="home"></i>Dashboard</div>
+        <div class="it on"><i data-i="bankdoor"></i>Send Payment</div>
+        <div class="it"><i data-i="acct"></i>Accounts</div>
+        <div class="it"><i data-i="tx"></i>Transactions</div>
+       </div>
+       <div class="payform">
+        <h3>Send Payment</h3>
+        <label for="rec">Recipient</label><input id="rec" readonly>
+        <label for="amt">Amount</label><input id="amt" readonly><div class="amtbar"></div>
+        <div class="paybtn idle" id="payBtn">Send Payment</div>
+        <svg class="ghostpin" id="ghostPin" viewBox="0 0 120 120" aria-hidden="true" hidden><use href="#ghostbody" id="gpBody" fill="url(#gR)"/><use href="#face-angry" id="gpFace"/></svg>
+        <div class="tooltip" id="tip" role="note" hidden><b id="tipT"></b><div id="tipD"></div></div>
+       </div>
+      </div>
+      <div class="card pmode">
+       <div class="pmhead"><span class="neon" id="pmIcon"><i data-i="keyboard" data-s="40"></i></span><div><h3>Possession Mode</h3><p id="pmSub">Keyboard-only demonstration</p></div></div>
+       <div class="agentseg" role="group" aria-label="Agent">
+        <button type="button" data-agent="keyboard" aria-pressed="true"><i data-i="keyboard"></i>Keyboard</button>
+        <button type="button" data-agent="voice" aria-pressed="false"><i data-i="mic"></i>Voice</button>
+       </div>
+       <ul class="steps" id="steps"></ul>
+       <div class="cmdbox" id="cmdbox" hidden><label for="cmds" class="sr-only">Voice commands, one per line</label><textarea id="cmds"></textarea></div>
+       <div class="pmbtns">
+        <button class="btn violet" id="runBtn" type="button"><i data-i="play"></i><span id="runTxt">Run</span></button>
+        <button class="btn grey" id="pttBtn" type="button" hidden><i data-i="mic"></i>Push to talk</button>
+        <button class="btn grey" id="editBtn" type="button" hidden aria-expanded="false" aria-controls="cmdbox"><i data-i="edit"></i>Edit</button>
+       </div>
+       <div class="barrier idle" id="barrier" role="status" aria-live="polite">Run a journey to look for barriers</div>
+      </div>
+     </div>
+     <p class="dim" style="margin:28px 0 0">Variant: <select id="variant" aria-label="Variant" style="background:#0d1022;color:#fff;border:1px solid var(--card-line);border-radius:8px;min-height:36px"><option value="broken">broken (barrier present)</option><option value="fixed">fixed (barrier repaired)</option></select> · Agent mode: scripted (fixed steps, no AI)</p>
+    </div>
+
+    <!-- AGENTS (panel C) -->
+    <div class="pane" id="p-agents">
+     <h2 class="title" tabindex="-1">The Ghost Hunt — Agent Investigation</h2>
+     <div class="acards">
+      <article class="card acard"><h3><span class="neon"><i data-i="keyboard" data-s="34"></i></span>Keyboard Agent</h3><ul class="rows" id="kbRows"></ul></article>
+      <article class="card acard"><h3><span class="neon"><i data-i="mic" data-s="34"></i></span>Voice Agent</h3><ul class="rows" id="voRows"></ul></article>
+      <article class="card acard"><h3><span class="neon"><i data-i="target" data-s="34"></i></span>Ghost Hunter</h3><ul class="rows" id="ghRows"></ul></article>
+     </div>
+     <div class="tl" id="tl" aria-label="Live timeline"></div>
+     <div class="crit" id="crit">
+      <svg width="110" height="110" viewBox="0 0 120 120" aria-hidden="true" style="filter:drop-shadow(0 0 16px #ff3b3b);flex:none"><use href="#ghostbody" fill="url(#gR)"/><use href="#face-worried"/></svg>
+      <div style="flex:1 1 360px"><h3>Critical Ghost Detected</h3>
+       <p>Barrier: Payment button inaccessible to keyboard and voice</p>
+       <p>Impact: Customer cannot complete payment</p>
+       <p>WCAG: 2.1.1 Keyboard, 4.1.2 Name, Role, Value</p></div>
+      <div class="thumb" aria-hidden="true"><div class="lines"></div><div class="mini">Send Payment <i data-i="ban" data-s="26" style="color:#ff6b6b"></i></div></div>
+     </div>
+    </div>
+
+    <!-- FIXES (panel D) -->
+    <div class="pane" id="p-fixes">
+     <h2 class="sr-only" tabindex="-1">Fix pipeline</h2>
+     <ol class="strip" id="strip" aria-label="Fix pipeline"></ol>
+     <div class="fgrid">
+      <section class="card fcard" id="fc-fix" aria-label="Proposed fix">
+       <h3>Proposed Fix <span>(by Exorcist Agent)</span></h3>
+       <div class="diff" tabindex="0" role="region" aria-label="Code change">
+        <div class="del"><span class="sign">-</span>&lt;div class="pay-btn"&gt;Send Payment&lt;/div&gt;</div>
+        <div class="add"><span class="sign">+</span>&lt;button type="submit" class="btn-primary"&gt;
+    Send Payment
+  &lt;/button&gt;</div>
+       </div>
+       <div class="fbtns" id="fixBtns"></div>
+      </section>
+      <section class="card fcard" id="fc-verify" aria-label="Verification">
+       <h3>Verification <span>(by Verifier Agent)</span></h3>
+       <ul class="vrows" id="vrows"></ul>
+       <div id="verified"></div>
+      </section>
+      <section class="card fcard reg" id="fc-reg" aria-label="Regression guard">
+       <h3>Regression Guard <span>(The Returning Ghost)</span></h3>
+       <div class="regbody" id="regbody"></div>
+      </section>
+     </div>
+    </div>
+
+    <!-- KIRO (panel E) -->
+    <div class="pane" id="p-kiro">
+     <h2 class="title" tabindex="-1" style="display:flex;align-items:center;gap:12px"><span class="neon"><i data-i="kiro" data-s="30"></i></span>Kiro Integration — Accessibility in Your Workflow</h2>
+     <div class="kgrid">
+      <div class="card ide">
+       <div class="tree"><div class="k"><span style="display:inline-flex;width:24px;height:24px;border-radius:6px;background:#7c3aed;align-items:center;justify-content:center;font-size:13px;font-weight:800">K</span>Kiro</div>
+        <ul aria-label=".kiro folder"><li><i data-i="logout"></i>.kiro/</li><li class="sub"><i data-i="folder" class="f"></i>agents/</li><li class="sub"><i data-i="folder"></i>specs/</li><li class="sub on"><i data-i="folder"></i>hooks/</li><li class="sub"><i data-i="folder"></i>powers/</li><li class="sub"><i data-i="folder"></i>steering/</li></ul></div>
+       <div class="editor">
+        <div class="tabbar"><span class="tab"><i data-i="file" data-s="16"></i>scan-on-save.json</span></div>
+<pre><span class="ln">1</span>{
+<span class="ln">2</span>  <span class="fn">"name"</span>: <span class="s">"Form label check on save"</span>,
+<span class="ln">3</span>  <span class="fn">"trigger"</span>: <span class="s">"PostFileSave"</span>,
+<span class="ln">4</span>  <span class="fn">"action"</span>: {
+<span class="ln">5</span>    <span class="fn">"type"</span>: <span class="s">"command"</span>,
+<span class="ln">6</span>    <span class="fn">"command"</span>: <span class="s">"python3 backend/scan_file.py --hook"</span>
+<span class="ln">7</span>  }
+<span class="ln">8</span>}</pre>
+       </div>
+      </div>
+      <div class="card hook">
+       <h3><i data-i="bolt" data-s="26" style="color:#fb923c"></i>Kiro Hook (recorded 22 Nov)</h3>
+       <ul>
+        <li><span class="dot ok" style="width:24px;height:24px"><i data-i="tick" data-s="14"></i></span>File saved: fixtures/haunted_bank/index.html</li>
+        <li><svg width="24" height="24" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-happy"/></svg>Haunted Audit scan triggered</li>
+        <li><span class="dot bad" style="width:24px;height:24px"><i data-i="alertw" data-s="14"></i></span><span>Accessibility issue found:<br><b style="color:#ff6b6b">input#amount has no accessible name</b></span></li>
+       </ul>
+       <span class="built">Built with Kiro</span>
+      </div>
+     </div>
+    </div>
+
+    <!-- RESULTS (panel F) -->
+    <div class="pane" id="p-results">
+     <h2 class="title" tabindex="-1" style="display:flex;align-items:center;gap:12px"><svg width="30" height="30" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-worried"/></svg>Results</h2>
+     <div class="rwrap">
+      <div class="rgrid">
+       <div class="tile t1"><i data-i="target" data-s="42" style="color:#f472b6"></i><div class="big">[x] / [n]</div><div class="lbl">Planted barriers detected</div></div>
+       <div class="tile t2"><i data-i="checkc" data-s="42" style="color:#4ade80"></i><div class="big">[x]%</div><div class="lbl">Approved fixes verified</div></div>
+       <div class="tile t3"><i data-i="flask" data-s="42" style="color:#c084fc"></i><div class="big">[n]</div><div class="lbl">Journeys passing (keyboard + voice)</div></div>
+       <div class="tile t4"><i data-i="users" data-s="42" style="color:#60a5fa"></i><div class="big">[n]</div><div class="lbl">User sessions</div></div>
+       <div style="position:relative">
+        <svg class="okghost bob" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gG)"/><use href="#face-worried"/></svg>
+        <div class="parch"><h3>The Outcome</h3><ul>
+         <li><span class="dot ok" style="width:26px;height:26px"><i data-i="tick" data-s="15"></i></span>Customer can complete the payment</li>
+         <li><span class="dot ok" style="width:26px;height:26px"><i data-i="tick" data-s="15"></i></span>A regression test prevents it from breaking again</li>
+         <li><span class="dot ok" style="width:26px;height:26px"><i data-i="tick" data-s="15"></i></span>Accessibility built into the dev workflow with Kiro</li>
+        </ul></div>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- SCANS -->
+    <div class="pane" id="p-scans">
+     <h2 class="title" tabindex="-1">Findings</h2>
+     <div class="card" style="padding:22px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1 1 360px"><label for="url" style="display:block;font-weight:600;margin-bottom:8px">Scan a public URL (scan only)</label><input id="url" type="url" placeholder="https://example.com" style="width:100%;min-height:50px;padding:0 14px;border-radius:12px;border:1px solid #2f3760;background:#121731;color:#fff;font-size:17px"></div>
+      <button class="btn violet" type="button"><i data-i="search"></i>Scan page</button>
+     </div>
+    </div>
+
+   </div>
+  </div>
+ </div>
+</section>
+</div>
+<div class="sr-only" aria-live="polite" id="say"></div>
+
+<script>
+const P={
+ search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-5-5"/>',
+ code:'<path d="m8 6-6 6 6 6M16 6l6 6-6 6M14 4l-4 16"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+ tick:'<path d="m5 12 5 5 9-10" stroke-width="3.5"/>',
+ xw:'<path d="M7 7l10 10M17 7 7 17" stroke-width="3.5"/>',
+ alertw:'<path d="M12 6v8M12 18h.01" stroke-width="3.5"/>',
+ kiro:'<path d="M5 3h14l-7 9 7 9H5l7-9z"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+ keyboard:'<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h.01M9.5 9h.01M13 9h.01M16.5 9h.01M6 12.5h.01M9.5 12.5h.01M13 12.5h.01M16.5 12.5h.01M7 16h10"/>',
+ mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 17v5M8 22h8"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
+ house:'<path d="M3 11 12 3l9 8v10H3z"/><path d="M9 21v-6h6v6"/>',
+ agents:'<circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0M9 7h.01M15 7h.01"/>',
+ findings:'<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/>',
+ checkc:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+ reg:'<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
+ report:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 17v-3M12 17v-6M16 17v-2"/>',
+ bank:'<path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10l10-6 10 6"/>',
+ home:'<path d="M3 11 12 3l9 8v10H3z"/><path d="M9 21v-6h6v6"/>',
+ bankdoor:'<path d="M3 10l9-6 9 6M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
+ acct:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+ tx:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18M12 8h5M12 12h5M12 16h5"/>',
+ play:'<path d="m6 4 14 8-14 8z" fill="currentColor"/>',
+ edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+ ban:'<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+ folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="currentColor" fill-opacity=".35"/>',
+ logout:'<path d="M10 17l-5-5 5-5M5 12h12M17 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"/>',
+ file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+ bolt:'<path d="M13 2 3 14h8l-1 8 10-12h-8z" fill="currentColor"/>',
+ flask:'<path d="M9 3h6M10 3v6L4 20a1 1 0 0 0 .9 1.5h14.2A1 1 0 0 0 20 20l-6-11V3"/><path d="M7 15h10"/>',
+ users:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-5-6.7"/>',
+};
+const ico=(n,s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none">${P[n]}</svg>`;
+document.querySelectorAll('i[data-i]').forEach(i=>{const st=i.getAttribute('style')||'';i.outerHTML=ico(i.dataset.i,+(i.dataset.s||22)).replace('style="flex:none"',`style="flex:none;${st}"`)});
+const dot=(k,s=28)=>`<span class="dot ${k}" style="width:${s}px;height:${s}px">${k==='wait'?'':ico(k==='ok'?'tick':'xw',Math.round(s*.55))}</span>`;
+const $=id=>document.getElementById(id);
+const say=t=>$('say').textContent=t;
+
+/* ---------- state ---------- */
+const DEFAULT_CMDS=['type "Alex Carter" in Recipient','type 50.00 in Amount','click Send Payment'];
+const S={agent:'keyboard',variant:'broken',run:{keyboard:'blocked',voice:'blocked'},running:false,cmds:[...DEFAULT_CMDS],
+  fix:{approved:true,verified:true,regression:true},step:3};
+
+function steps(){
+  const broken=S.variant==='broken';
+  if(S.agent==='keyboard') return [{t:'Tab to Recipient',ok:true},{t:'Tab to Amount',ok:true},{t:'Tab to Send Payment',ok:!broken,why:'(stuck)'}];
+  return S.cmds.map((c,i)=>({t:`Say <code>"${c.replace(/</g,'&lt;')}"</code>`,ok:!(broken&&i===S.cmds.length-1),why:'(no button with that name)'}));
+}
+
+/* ---------- possession ---------- */
+function renderPos(partial){
+  const v=S.agent==='voice', r=S.run[S.agent];
+  document.querySelectorAll('[data-agent]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.agent===S.agent));
+  $('pmSub').textContent=v?'Voice-command demonstration':'Keyboard-only demonstration';
+  $('pmIcon').innerHTML=ico(v?'mic':'keyboard',40);
+  $('pttBtn').hidden=!v;$('editBtn').hidden=!v;if(!v){$('cmdbox').hidden=true;$('editBtn').setAttribute('aria-expanded','false')}
+  $('runTxt').textContent=v?'Run voice journey':'Run keyboard journey';
+  const d=steps();
+  if(!partial) $('steps').innerHTML=d.map(x=>`<li>${r?dot(x.ok?'ok':'bad'):dot('wait')}<span>${x.t}${r&&!x.ok?`<small>${x.why}</small>`:''}</span></li>`).join('');
+  $('rec').value=r?'Alex Carter':'';$('amt').value=r?'€50.00':'';
+  const bad=r==='blocked', ok=r==='passed';
+  $('payBtn').className='paybtn'+(bad?'':ok?' ok':' idle');
+  r?$('ghostPin').removeAttribute('hidden'):$('ghostPin').setAttribute('hidden','');$('tip').hidden=!r;
+  if(r){
+    $('ghostPin').setAttribute('class','ghostpin'+(ok?' ok':''));
+    $('gpBody').setAttribute('fill',ok?'url(#gG)':'url(#gR)');$('gpFace').setAttribute('href',ok?'#face-happy':'#face-angry');
+    $('tip').className='tooltip'+(ok?' ok':'');
+    $('tipT').innerHTML=(ok?dot('ok',22):ico('ban',22))+(ok?'Journey Completed':'Journey Blocked');
+    $('tipD').textContent=ok?'The payment was sent on the test site.':v?'"Send Payment" is not a button, so a voice user cannot say its name to press it.':'The payment button cannot be reached using keyboard navigation.';
+  }
+  const b=$('barrier');
+  if(S.running){b.className='barrier idle';b.textContent='Journey running…'}
+  else if(bad){b.className='barrier bad';b.innerHTML=ico('alertw',22).replace('stroke="currentColor"','stroke="#fff"').replace('<svg','<svg style="background:#ef4444;border-radius:50%;padding:2px"')+'Barrier Detected!'}
+  else if(ok){b.className='barrier ok';b.innerHTML=dot('ok',24)+'No barrier found'}
+  else {b.className='barrier idle';b.textContent='Run a journey to look for barriers'}
+  const lc=$('liveChip');
+  if(S.running){lc.className='chip live';$('liveTxt').textContent='Live Test'}
+  else if(r){lc.className=bad?'chip live':'chip pass';$('liveTxt').textContent=bad?'Live Test':'Verified'}
+  else {lc.className='chip idle';$('liveTxt').textContent='Ready'}
+}
+function run(){
+  if(S.running) return;
+  S.running=true;S.run[S.agent]=null;renderPos();
+  const d=steps(); let i=0; const items=$('steps').children; const fast=document.body.classList.contains('calm');
+  const tick=()=>{
+    if(i<d.length){const x=d[i];items[i].innerHTML=`${dot(x.ok?'ok':'bad')}<span>${x.t}${x.ok?'':`<small>${x.why}</small>`}</span>`;
+      if(i===0) $('rec').value='Alex Carter'; if(i===1) $('amt').value='€50.00';
+      say(x.t.replace(/<[^>]+>/g,'')+(x.ok?': done':': blocked'));i++;
+      if(!x.ok) return end('blocked'); setTimeout(tick,fast?120:750);}
+    else end('passed');
+  };
+  setTimeout(tick,350);
+  function end(res){S.running=false;S.run[S.agent]=res;renderAll();say(res==='blocked'?'Barrier detected':'Journey completed')}
+}
+
+/* ---------- agents ---------- */
+function renderAgents(){
+  const k=S.run.keyboard,v=S.run.voice;
+  const R=(ok,t)=>`<li>${dot(ok?'ok':'bad')}<span>${t}</span></li>`, W=t=>`<li>${dot('wait')}<span class="dim">${t}</span></li>`;
+  $('kbRows').innerHTML=!k?W('Not run yet'):R(1,'Navigated form')+(k==='blocked'?R(0,'Could not reach<span class="red">Send Payment</span>'):R(1,'Sent payment with Enter'));
+  $('voRows').innerHTML=!v?W('Not run yet'):R(1,'Found by name<br>\'Send Payment\'')+(v==='blocked'?R(0,'Could not activate button'):R(1,'Activated the button'));
+  const blocked=[k,v].includes('blocked');
+  $('ghRows').innerHTML=!(k||v)?W('Waiting for a run'):blocked?R(1,'Identified root cause')+R(0,'Custom element not keyboard accessible'):R(1,'No barrier on this page');
+  $('crit').hidden=!blocked;
+  const ev=[];if(k)ev.push(['keyboard','press_tab',1],['keyboard','press_tab',1],['keyboard',k==='blocked'?'stuck':'press_enter',k!=='blocked']);
+  if(v)ev.push(['mic','type Recipient',1],['mic','type Amount',1],['mic','click Send Payment',v!=='blocked']);
+  $('tl').innerHTML=ev.length?'Live timeline: '+ev.map(([i,t,ok])=>`<span class="${ok?'g':'r'}">${ico(i,14)}${t}</span>`).join(''):'';
+}
+
+/* ---------- fixes ---------- */
+const STEPS=['Find','Fix','Verify','Regression'];
+function renderFixes(){
+  const f=S.fix;
+  $('strip').innerHTML=STEPS.map((n,i)=>`<li><button type="button" data-step="${i}"${i===S.step?' aria-current="step"':''}><span class="n">${i+1}</span>${n}</button></li>`+(i<3?'<li class="arrow" aria-hidden="true"></li>':'')).join('');
+  document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{S.step=+b.dataset.step;renderFixes()});
+  ['fc-fix','fc-verify','fc-reg'].forEach((id,i)=>$(id).classList.toggle('focus',S.step===i+1&&id!=='fc-reg'));
+  $('fixBtns').innerHTML=f.approved===null?`<button class="btn green" id="approve" type="button">${dot('ok',22)}Approve Fix</button><button class="btn grey" id="reject" type="button">${ico('xw',18)}Reject</button>`
+    :f.approved?`<button class="btn green" type="button" aria-disabled="true">${dot('ok',22)}Approve Fix</button><button class="btn grey" type="button" aria-disabled="true">${ico('xw',18)}Reject</button>`
+    :`<span class="dim">Rejected. No change applied.</span>`;
+  const V=[['Replaying journey…',''],['Tab to Send Payment','✓'],['Activate with Enter','✓'],['Say "click Send Payment"','✓',1],['Payment successful','✓']];
+  $('vrows').innerHTML=V.map(([t,c,vo])=>`<li class="${vo?'voice':''}">${f.verified?dot('ok',26):dot('wait',26)}${vo?ico('mic',16).replace('<svg','<svg style="flex:none;color:#c084fc"'):''}${t}${f.verified&&c?` <span class="tick">${c}</span>`:''}</li>`).join('');
+  $('verified').innerHTML=f.verified?`<div class="btn green verified" role="status">${dot('ok',22)}Journey Verified</div><p class="dim" style="margin:8px 22px 0;text-align:center">Keyboard and voice</p>`
+    :f.approved?`<button class="btn violet verified" id="verify" type="button">${ico('play',18)}Replay both journeys</button>`:`<p class="dim" style="margin:0 22px">Approve the fix first.</p>`;
+  $('regbody').innerHTML=f.regression?`<svg class="regghost" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gR)"/><use href="#face-worried"/></svg>
+      <div class="regline">Bug reintroduced on purpose</div><div class="regline">send_payment.spec.ts</div><div class="regline">send_payment_voice.spec.ts</div>
+      <div class="failed">${dot('bad',22)}FAILED: button not focusable</div><div class="failed">${dot('bad',22)}FAILED: no button named "Send Payment"</div>
+      <div class="caught"><svg width="54" height="54" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-worried"/></svg><span>The ghost is back.<br>But this time, we caught it.</span></div>`
+    :f.verified?`<button class="btn danger" id="regress" type="button" style="margin-top:6px">${ico('play',18)}Put the bug back and run both tests</button>`:`<p class="dim" style="margin:0">Verify the fix first.</p>`;
+  const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};
+  on('approve',()=>{f.approved=true;S.step=2;renderFixes();say('Fix approved')});
+  on('reject',()=>{f.approved=false;renderFixes();say('Fix rejected')});
+  on('verify',()=>{f.verified=true;S.step=3;S.run={keyboard:'passed',voice:'passed'};renderAll();say('Both journeys verified')});
+  on('regress',()=>{f.regression=true;renderFixes();say('Both tests caught the returning bug')});
+}
+
+/* ---------- routing ---------- */
+const CRUMB={possession:['Kiro','Journey: <b>Send Payment</b>','<span class="here">Possession Mode</span>'],agents:['Haunted Audit','Journey: <b>Send Payment</b>'],
+  fixes:['Haunted Audit','Journey: <b>Send Payment</b>','<span class="here">Fixes</span>'],kiro:['Haunted Audit','<span class="here">Kiro</span>'],results:['Haunted Audit','<span class="here">Reports</span>'],scans:['Haunted Audit','<span class="here">Findings</span>']};
+function renderAll(){renderPos();renderAgents();renderFixes();}
+function route(){
+  let [view,arg]=(location.hash.slice(1)||'home').split('/');
+  if(!['home','possession','agents','fixes','kiro','results','scans'].includes(view)) view='home';
+  if(view==='possession'&&arg){S.agent=arg==='voice'?'voice':'keyboard'}
+  if(view==='fixes'&&arg){S.step=arg==='verify'?2:arg==='regression'?3:S.step}
+  $('v-home').classList.toggle('active',view==='home');$('v-app').classList.toggle('active',view!=='home');
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.id!=='p-'+view);
+  const navMap={agents:'possession'};
+  document.querySelectorAll('.primary a').forEach(a=>a.dataset.n===(navMap[view]||view)?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  const sideKey=view==='fixes'&&arg?arg:view;
+  document.querySelectorAll('.side a').forEach(a=>a.dataset.s===sideKey?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  if(view!=='home'){$('crumbs').innerHTML=(view==='possession'?`<li>${ico('kiro',20)}Kiro</li>`:`<li><svg width="34" height="34" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-happy"/></svg><b>Haunted Audit</b></li>`)+CRUMB[view].slice(1).map(c=>`<li>${c}</li>`).join('');}
+  renderAll();
+  $('liveChip').hidden=!['possession','agents','fixes'].includes(view);
+  const h=view==='home'?$('h-home'):document.querySelector('#p-'+view+' h2'); if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}
+  document.title=(view==='home'?'Haunted Audit':(h?h.textContent:'')+' – Haunted Audit');
+}
+window.addEventListener('hashchange',route);
+
+/* ---------- events ---------- */
+document.querySelectorAll('[data-agent]').forEach(b=>b.onclick=()=>{if(S.running)return;S.agent=b.dataset.agent;renderPos()});
+$('runBtn').onclick=run;
+$('variant').onchange=e=>{S.variant=e.target.value;S.run={keyboard:null,voice:null};renderAll()};
+$('editBtn').onclick=()=>{const box=$('cmdbox'),open=box.hidden;box.hidden=!open;$('editBtn').setAttribute('aria-expanded',open);
+  if(open){$('cmds').value=S.cmds.join('\n');$('cmds').focus()}else{S.cmds=$('cmds').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!S.cmds.length)S.cmds=[...DEFAULT_CMDS];S.run.voice=null;renderAll()}};
+$('pttBtn').onclick=()=>say('In the app, Chrome speech recognition fills the command list. Not part of this prototype.');
+$('gear').onclick=()=>{const o=!$('settings').classList.contains('open');$('settings').classList.toggle('open',o);$('gear').setAttribute('aria-expanded',o)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('settings').classList.contains('open')){$('settings').classList.remove('open');$('gear').setAttribute('aria-expanded','false');$('gear').focus()}});
+$('calm').onchange=e=>document.body.classList.toggle('calm',e.target.checked);
+$('hc').onchange=e=>document.body.classList.toggle('hc',e.target.checked);
+$('ts').onchange=e=>document.documentElement.style.fontSize=e.target.value+'px';
+/* pause or play decorative animation (WCAG 2.2.2) */
+const pb=$('pauseBtn');
+function setPaused(on){document.body.classList.toggle('paused',on);pb.setAttribute('aria-pressed',on);$('pauseTxt').textContent=on?'Play animation':'Pause animation';}
+pb.onclick=()=>setPaused(!document.body.classList.contains('paused'));
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){pb.hidden=true}
+$('calm').addEventListener('change',e=>{pb.hidden=e.target.checked||matchMedia('(prefers-reduced-motion: reduce)').matches});
+if(!location.hash)history.replaceState(null,'','#possession/voice');
+route();
+</script>
+</body>
+</html>
