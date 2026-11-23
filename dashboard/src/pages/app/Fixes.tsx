@@ -3,6 +3,7 @@ import { Page } from '../../components/Page';
 import { PipelineSection } from '../../components/PipelineSection';
 import { FIX_STEPS, FIX_STEP_LABEL, fixStepId, to, type FixStep } from '../../routes';
 import { useRun } from '../../runs/runContext';
+import { useFix } from '../../fixes/fixContext';
 
 function isStep(value: string | undefined): value is FixStep {
   return FIX_STEPS.includes(value as FixStep);
@@ -16,6 +17,7 @@ const linkClass =
 export default function Fixes() {
   const { step } = useParams();
   const { result, apiStatus, isRunning } = useRun();
+  const flow = useFix();
   const navigate = useNavigate();
   if (!isStep(step)) return <Navigate to={to('app-fixes-find')} replace />;
   const index = FIX_STEPS.indexOf(step);
@@ -27,6 +29,7 @@ export default function Fixes() {
         result={result}
         apiStatus={apiStatus}
         isRunning={isRunning}
+        flow={flow}
         activeStep={(index + 1) as 1 | 2 | 3 | 4}
         onSelectStep={(s) => navigate(to(fixStepId(FIX_STEPS[s - 1])))}
       />

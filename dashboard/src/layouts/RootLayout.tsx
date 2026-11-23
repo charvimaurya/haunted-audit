@@ -8,6 +8,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { TopNav } from '../components/TopNav';
 import { useRouteAnnouncer } from '../lib/useRouteAnnouncer';
 import { RunProvider } from '../runs/RunProvider';
+import { FixProvider } from '../fixes/FixProvider';
 
 function moveFocusToMain(e: React.MouseEvent<HTMLAnchorElement>) {
   e.preventDefault();
@@ -18,6 +19,7 @@ export function RootLayout() {
   useRouteAnnouncer();
   return (
     <RunProvider>
+      <FixProvider>
       <div className="min-h-screen bg-base font-ui">
         <a
           href="#main-content"
@@ -42,6 +44,7 @@ export function RootLayout() {
         <SiteFooter />
         <div id="live-region" role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       </div>
+      </FixProvider>
     </RunProvider>
   );
 }

@@ -5,8 +5,8 @@
  *
  * Real data only (no-mock-results REQ-NM-04, 05):
  * - Find shows the keyboard checker's finding from the last run, with its agent_mode.
- * - Proposed Fix (Exorcist), Verification (Verifier) and Regression show "Not available yet":
- *   those agents and a fix endpoint do not exist (data-contract.md, "Fix: PLANNED").
+ * - With a fix flow (FixProvider, the Fix pages), Proposed Fix, Verification and Regression show the real
+ *   fix from GET /fixes/{id} (components/FixPanels.tsx). Without one they show "Not available yet".
  * - The step tabs show position only. They never claim a step is "completed".
  *
  * Accessibility:
@@ -17,6 +17,8 @@
  */
 import { ArrowRight, CircleSlash, XCircle, CheckCircle2 } from 'lucide-react';
 import { ResultState } from './ResultState';
+import { ProposedFixPanel, RegressionPanel, VerificationPanel } from './FixPanels';
+import type { FixValue } from '../fixes/fixContext';
 import type { ApiStatus } from '../runs/runContext';
 import type { JourneyResult } from '../types';
 
@@ -27,6 +29,8 @@ interface PipelineSectionProps {
   apiStatus?: ApiStatus;
   isRunning?: boolean;
   activeStep?: PipelineStep;
+  /** The fix flow (FixProvider). Without it the three fix panels say "Not available yet". */
+  flow?: FixValue | null;
   /** Called when a step tab is chosen (click, Enter, Space). */
   onSelectStep?: (step: PipelineStep) => void;
 }
@@ -127,6 +131,7 @@ export function PipelineSection({
   isRunning = false,
   activeStep = 1,
   onSelectStep,
+  flow = null,
 }: PipelineSectionProps) {
   return (
     <section id="fixes" aria-labelledby="pipeline-heading" className="flex flex-col gap-4">
@@ -149,11 +154,19 @@ export function PipelineSection({
         role="tabpanel"
         aria-labelledby={`pipeline-tab-${activeStep}`}
         tabIndex={0}
-        className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded-xl"
+        className={`grid grid-cols-1 lg:grid-cols-2 ${flow ? '' : 'xl:grid-cols-4'} gap-4
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded-xl`}
       >
         <FindPanel result={result} apiStatus={apiStatus} isRunning={isRunning} />
 
+        {flow ? (
+          <>
+            <ProposedFixPanel result={result} apiStatus={apiStatus} isRunning={isRunning} flow={flow} />
+            <VerificationPanel flow={flow} />
+            <RegressionPanel flow={flow} />
+          </>
+        ) : (
+          <>
         <div className="panel p-4 flex flex-col gap-3">
           <p className="text-base font-ui text-ink-faint uppercase tracking-widest">Proposed Fix (by Exorcist Agent)</p>
           <NotAvailable
@@ -177,6 +190,8 @@ export function PipelineSection({
             why="It will put the bug back on purpose and check that the test catches it."
           />
         </div>
+          </>
+        )}
       </div>
     </section>
   );

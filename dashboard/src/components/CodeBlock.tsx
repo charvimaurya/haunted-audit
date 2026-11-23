@@ -43,8 +43,9 @@ export function CodeBlock({ lines, language = 'html', ariaLabel }: CodeBlockProp
                 LINE_STYLE[line.type ?? ' '] ?? LINE_STYLE[' ']
               }`}
             >
-              {line.type === '+' && <span aria-hidden="true">+ </span>}
-              {line.type === '-' && <span aria-hidden="true">- </span>}
+              {/* Marker in text, so a change is not shown by colour alone */}
+              {line.type === '+' && <><span aria-hidden="true">+ </span><span className="sr-only">Added: </span></>}
+              {line.type === '-' && <><span aria-hidden="true">- </span><span className="sr-only">Removed: </span></>}
               {line.type === ' ' && <span aria-hidden="true">  </span>}
               {line.text}
             </span>
