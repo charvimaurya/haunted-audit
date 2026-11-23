@@ -17,3 +17,8 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 });
+
+// No test may reach a real API: by default every fetch fails, so the dashboard sees the API as offline.
+// A test that needs the API online stubs fetch itself (vi.stubGlobal('fetch', ...)).
+globalThis.fetch = (() =>
+  Promise.reject(new TypeError('Network is disabled in tests'))) as typeof fetch;

@@ -2,6 +2,9 @@ import { createContext, useContext } from 'react';
 import type { RunNoticeProps } from '../components/RunNotice';
 import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from '../types';
 
+/** Result of the last GET /health check. */
+export type ApiStatus = 'checking' | 'online' | 'offline';
+
 export interface RunValue {
   variant: Variant;
   mode: AgentMode;
@@ -10,6 +13,9 @@ export interface RunValue {
   liveEvents: StepEvent[];
   notice: RunNoticeProps | null;
   isRunning: boolean;
+  apiStatus: ApiStatus;
+  /** Set when the last run crashed. No result is shown then. */
+  runError: string | null;
   setVariant: (v: Variant) => void;
   setMode: (m: AgentMode) => void;
   run: () => Promise<void>;

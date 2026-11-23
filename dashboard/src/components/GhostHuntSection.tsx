@@ -6,6 +6,8 @@
  */
 
 import { Keyboard, Ghost } from 'lucide-react';
+import { ResultState } from './ResultState';
+import type { ApiStatus } from '../runs/runContext';
 import { AgentCard, type AgentOutcome } from './AgentCard';
 import { GhostMascot } from './GhostMascot';
 import { VoiceAgentPanel } from './VoiceAgentPanel';
@@ -15,6 +17,8 @@ interface GhostHuntSectionProps {
   result: JourneyResult | null;
   isRunning?: boolean;
   liveEvents?: StepEvent[];
+  /** Result of the last GET /health check. */
+  apiStatus?: ApiStatus;
 }
 
 const TOOL_COLOR: Record<string, string> = {
@@ -53,6 +57,7 @@ export function GhostHuntSection({
   result,
   isRunning = false,
   liveEvents = [],
+  apiStatus = 'online',
 }: GhostHuntSectionProps) {
   const isBlocked = result?.verdict === 'BLOCKED';
   const displayEvents: StepEvent[] = result?.step_events?.length
@@ -74,11 +79,9 @@ export function GhostHuntSection({
           The Ghost Hunt —{' '}
           <span className="text-ink-muted font-normal">Agent Investigation</span>
         </h2>
-        {result === null && !isRunning && (
-          <p className="m-0 mt-1 text-base font-ui text-ink-muted">
-            -- not yet measured. Run a journey to see what each agent found.
-          </p>
-        )}
+        <div className="mt-1">
+          <ResultState result={result} apiStatus={apiStatus} isRunning={isRunning} hint="Run a journey to see what each agent found." />
+        </div>
       </div>
 
       <div className="p-4 grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_auto] gap-4">

@@ -6,14 +6,19 @@
  * [x] and [n] placeholders from the design become real numbers once measured.
  */
 
-import { Target, CheckCircle2, FlaskConical, Users } from 'lucide-react';
+import { Target, Wrench, FlaskConical, Users } from 'lucide-react';
 import { MetricValueDisplay } from './MetricValue';
 import { OutcomeCard } from './OutcomeCard';
+import { ResultState } from './ResultState';
+import type { ApiStatus } from '../runs/runContext';
 import type { AgentMode, JourneyResult, MetricValue } from '../types';
 
 interface ResultsSectionProps {
   result: JourneyResult | null;
   agentMode: AgentMode;
+  /** Result of the last GET /health check. */
+  apiStatus?: ApiStatus;
+  isRunning?: boolean;
   /** Total barriers detected across all scans — null = not yet measured */
   barriersDetected?: MetricValue;
   /** Percentage of fixes approved — null = not yet measured */
@@ -27,6 +32,8 @@ interface ResultsSectionProps {
 export function ResultsSection({
   result,
   agentMode,
+  apiStatus = 'online',
+  isRunning = false,
   barriersDetected = null,
   fixesVerifiedPct = null,
   testScenarios = null,
@@ -43,6 +50,7 @@ export function ResultsSection({
         Results
       </h2>
 
+      <ResultState result={result} apiStatus={apiStatus} isRunning={isRunning} hint="Start one in Possession Mode." />
       {/* Metric tiles */}
       <div
         className="grid grid-cols-2 sm:grid-cols-4 gap-3"
@@ -59,7 +67,8 @@ export function ResultsSection({
         </div>
 
         <div className="panel p-4 flex flex-col items-center gap-2">
-          <CheckCircle2 size={18} className="text-ghost-verified" aria-hidden="true" />
+          {/* Neutral icon: a tick beside "--" would read as a pass (no-mock-results REQ-NM-02) */}
+          <Wrench size={18} className="text-ink-muted" aria-hidden="true" />
           <MetricValueDisplay
             value={fixesVerifiedPct}
             format={(n) => `${n}%`}
@@ -88,7 +97,7 @@ export function ResultsSection({
       </div>
 
       {/* Outcome card */}
-      <OutcomeCard result={result} />
+      <OutcomeCard result={result} apiStatus={apiStatus} />
 
       {/* Attribution */}
       <p className="text-base font-ui text-ink-faint text-right">
