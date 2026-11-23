@@ -1,5 +1,68 @@
 # Plan status: Sukhda's Build Plan
 
+Audit date: **Sun 22 Nov 2026, evening** (gate day). Feature freeze: Tue 24 Nov evening. Handover: Wed 25 Nov.
+
+**Done** means every Definition-of-done box is met with evidence: built in Kiro, merged through a PR with the template filled in, tests pass, reviewer has no serious issue open, no secrets, keyboard check on touched screens, failures in `evals/cases.yaml`, one devlog line.
+
+**Kiro CLI:** `kiro-cli` 3.5.0 is installed. From PR #10 on, the `qa` agent (claude-sonnet-4.6) and the read-only `reviewer` agent (claude-opus-4.6, `accessible-ui-review` skill loaded) ran from the CLI on every PR. The earlier caveat (a sub-agent fallback for PRs #1 to #9) applies only to those PRs.
+
+## This round (Phases 1 to 4)
+
+| Item | Status | Evidence | Left |
+|---|---|---|---|
+| **U11 Site shell** | **Done** | [PR #10](https://github.com/charvimaurya/haunted-audit/pull/10): v7 top menu on every page, one route table for every link, Possession Mode and four fix steps load, redirects, not-found with a way back. `docs/shell-regression.md`. Link crawl (12 tests) and ghost overlap (5 Playwright tests, fails on the old ghost paths) | none |
+| **U2 No made-up results** | **Done** | [PR #11](https://github.com/charvimaurya/haunted-audit/pull/11): 13 made-up results removed (`docs/mock-data-audit.md`), Not run yet / offline / Not available yet states, guard test over every page, build check against `src/samples/`, crashed runs never shown as a verdict | none |
+| **24 Voice agent drives the bank** | **Done** | [PR #12](https://github.com/charvimaurya/haunted-audit/pull/12): `POST /voice-runs`, accessible names only. Haunted: "Could not activate Send Payment: no accessible role or name", 5 of 5. Fixed: payment confirmed, 5 of 5. Steps on the same SSE; `agent_kind` and `input_source` in every result | optional LLM mapping (needs AWS) |
+| **U2 UI fidelity** | **Done** when PR #13 merges | [PR #13](https://github.com/charvimaurya/haunted-audit/pull/13): `docs/ui-fidelity.md` (D1 to D20), before/after screenshots at 1440 px, SVG mascot in Ready/Blocked/Verified, Critical Ghost card from data, high contrast mode, axe 0 in three modes | D20 text-size setting |
+
+## Test counts, before and after this round (all measured 22 Nov)
+
+| | Start of round (`main` `47f7da2`) | After PR #13 |
+|---|---|---|
+| Dashboard (Vitest) | 64 passed (24 failed at `11e1846`, the cause of U11) | **100 passed** |
+| Browser (Playwright) | none | **8 passed** (axe on 20 pages in normal, Calm, high contrast; ghost overlap) |
+| pytest | 319 passed | **357 passed** |
+| Keyboard walk (Chrome) | 19 pages, old URLs dead | **0 of 20 pages failing** |
+| Keyboard walker, 5 runs | broken 5/5, fixed 5/5 | broken 5/5, fixed 5/5 |
+| Voice agent, 5 runs | did not exist | **haunted 5/5, fixed 5/5** |
+| LLM agent | not run (no AWS credentials) | not run (no AWS credentials) |
+
+## QA and Reviewer per PR (Kiro CLI)
+
+| PR | QA agent | Reviewer agent |
+|---|---|---|
+| #10 | QA: PASS | No serious issue; 4 minor, 3 fixed |
+| #11 | QA: PASS | No serious issue; 4 minor, 2 fixed. Re-run with the skill loaded: no serious issue, 4 minor contrast items, all fixed in #12 |
+| #12 | QA: PASS | No serious issue (skill loaded); 2 minor, 1 fixed, 1 was the fix itself |
+| #13 | QA: FAIL on one obsolete emoji assertion, then QA: PASS after the owner-approved edit | No serious issue (skill loaded); 1 minor (that assertion) |
+
+Test edits this round, each approved by the owner: one link name in `routes.test.tsx` (Results to Reports, #10) and one assertion in `immersion.test.tsx` (emoji to SVG ghost, #13). No test was deleted, skipped or loosened.
+
+## Blocked, and by what
+
+| What | Blocked by |
+|---|---|
+| Exorcist (proposed fix), Verifier (fix verified), Regression test, gate checks 2 and 3 | The Exorcist spec: requirements only, no design or code; needs the owner's OK, then Shilpa's approval |
+| `exorcise_page` MCP tool, `exorcise-fix` and `journey-test-writer` skills | The same |
+| LLM agent pass rate (4 of 5) and an LLM voice mapping | AWS credentials and Bedrock access (Charvi) |
+| Staging (gate check 4) | Nothing deployed |
+| Text-size setting | Not built (`docs/ui-fidelity.md` D20) |
+
+## Only you can do these
+
+1. **Screen clips:** the voice agent failing on the haunted bank and paying on the fixed one (Agents page); the scan-on-save hook timing (target under 10 s; record the number in `docs/devlog.md`).
+2. **Screenshots:** `scan_page` in Kiro chat; the two skills being applied; the high-contrast mode.
+3. **Kiro Web:** issue #8 by `docs/kiro-web-runbook.md`, then record merged or rejected.
+4. **Power on a second laptop** from `power/README.md`.
+5. **Approvals:** Shilpa on the Exorcist requirements; Charvi for AWS IAM and Bedrock.
+6. **Decide:** `team-private/` is in `.gitignore` as "never commit", but commit `47f7da2` added it to this **public** repo. Keep it public, or remove it from the repo (history keeps it either way).
+7. **Rotate the Cursor API key.** It was visible in plain text on a running process's command line earlier today.
+
+---
+
+# Earlier status (22 Nov, before this round), kept for history
+
+
 Audit date: **Sun 22 Nov 2026** (gate day). Feature freeze: Tue 24 Nov evening. Handover: Wed 25 Nov.
 `main` is at the merge of PR #9 once it lands (see the PR list). Previous audit (20 Nov) is kept below the line for history.
 
