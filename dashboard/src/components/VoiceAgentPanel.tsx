@@ -237,7 +237,7 @@ export function VoiceAgentPanel({ result }: VoiceAgentPanelProps) {
           rows={3}
           value={transcript}
           onChange={(e) => onTranscriptChange(e.target.value)}
-          placeholder={'e.g. type "Alex Carter" in Recipient\ntype 50.00 in Amount\nclick Send Payment'}
+          placeholder={'e.g. type "<recipient>" in Recipient\ntype 50.00 in Amount\nclick Send Payment'}
           className={`w-full resize-y rounded-lg border border-base-line bg-base px-3 py-2
                       text-base font-ui text-ink placeholder:text-ink-faint ${FOCUS}`}
           aria-describedby={liveId}
