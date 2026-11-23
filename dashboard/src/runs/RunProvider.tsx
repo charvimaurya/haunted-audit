@@ -19,7 +19,7 @@ import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from '..
 import { RunContext, type ApiStatus, type RunValue } from './runContext';
 import { shownRun, type RunRecordLike } from './record';
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://127.0.0.1:8000';
+import { API_BASE } from './api';
 const HEALTH_EVERY_MS = 30_000;
 const HEALTH_TIMEOUT_MS = 3_000;
 

@@ -19,13 +19,13 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from agent.api.limits import LimitSettings, Refusal, RunLimiter, client_ip
 from agent.keyboard_agent.runner import build_journey_config, run_journey
@@ -71,6 +71,16 @@ class RunCreate(BaseModel):
     mode: Literal["llm", "scripted"] = "scripted"
     max_steps: int = Field(default=25, ge=1, le=80)
     timeout_seconds: float = Field(default=90, ge=0, le=300)
+
+
+class VoiceRunCreate(BaseModel):
+    """POST /voice-runs (voice-agent REQ-VA-07). Unknown fields are a 422, as for /runs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    variant: Literal["broken", "fixed"] = "broken"
+    commands: list[Annotated[str, StringConstraints(min_length=1, max_length=200)]] = Field(min_length=1, max_length=10)
+    input_source: Literal["typed", "speech"] = "typed"
 
 
 class RunStore:
@@ -358,6 +368,31 @@ def create_app(
         log_event(msg="run_started", run_id=run_id, variant=body.variant, mode=body.mode)
         return {"run_id": run_id, "status": "running"}
 
+    @app.post("/voice-runs", status_code=202)
+    def create_voice_run(body: VoiceRunCreate, request: Request) -> dict:
+        limiter: RunLimiter = app.state.limiter
+        try:
+            limiter.admit(client_ip(request), "scripted")
+        except Refusal as refusal:
+            headers = {"Retry-After": str(refusal.retry_after)} if refusal.retry_after else None
+            raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
+        run_id = str(uuid.uuid4())
+        try:
+            app.state.store.insert_running(run_id, body.variant, "scripted")
+            thread = threading.Thread(
+                target=_execute_voice_run,
+                args=(app.state.store, run_id, body, limiter),
+                daemon=True,
+                name=f"voice-{run_id[:8]}",
+            )
+            thread.start()
+        except Exception:
+            limiter.release()
+            raise
+        log_event(msg="voice_run_started", run_id=run_id, variant=body.variant,
+                  input_source=body.input_source, commands=len(body.commands))
+        return {"run_id": run_id, "status": "running"}
+
     @app.get("/runs/{run_id}")
     def get_run(run_id: str) -> dict:
         record = app.state.store.get_run(run_id)
@@ -432,6 +467,30 @@ def _execute_run(
             store.prune(artifacts_root=artifacts_root)
         except Exception:  # housekeeping must never fail a run
             pass
+
+
+def _execute_voice_run(store: RunStore, run_id: str, body: VoiceRunCreate, limiter: RunLimiter | None = None) -> None:
+    from agent.voice_agent.runner import run_voice_journey
+
+    started = time.perf_counter()
+    status = "error"
+    verdict = None
+    try:
+        result = run_voice_journey(
+            body.variant, body.commands, body.input_source,
+            on_event=lambda event: store.append_event(run_id, event.model_dump(mode="json")),
+            run_id=run_id,
+        )
+        status = "error" if result.error else "complete"
+        verdict = result.verdict
+        store.complete(run_id, result.model_dump(mode="json"), status=status)
+    except Exception as exc:
+        store.complete(run_id, {"run_id": run_id, "error": str(exc), "verdict": "BLOCKED"}, status="error")
+    finally:
+        if limiter is not None:
+            limiter.release()
+        log_event(msg="voice_run_finished", run_id=run_id, variant=body.variant, status=status, verdict=verdict,
+                  latency_ms=round((time.perf_counter() - started) * 1000, 1))
 
 
 async def _event_stream(

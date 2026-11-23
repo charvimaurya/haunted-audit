@@ -15,6 +15,7 @@ Rules:
 | `POST /runs` | `202 {"run_id": str, "status": "running"}` |
 | `GET /runs/{run_id}` | A Run record (below). `404 {"detail": "run not found"}` |
 | `GET /runs/{run_id}/events` | Server-Sent Events (below). `404` as above |
+| `POST /voice-runs` | `202 {"run_id": str, "status": "running"}`. Read back with `GET /runs/{run_id}` and the same events stream |
 
 There is no run list, no scan endpoint and no fix endpoint today.
 
@@ -30,6 +31,21 @@ Unknown fields are rejected with `422` (so a `url`, path or selector cannot be s
 | `timeout_seconds` | float, 0 to 300 | 90 |
 
 Refusals: `429` (rate limit, or too many runs at once; has `Retry-After`), `403` (LLM mode is off on the public demo). Both return `{"detail": "<plain sentence>"}`.
+
+## Request: `POST /voice-runs`
+
+Unknown fields are rejected with `422`. Same rate limits and refusals as `POST /runs`. Spec: `.kiro/specs/voice-agent/`.
+
+| Field | Type | Default |
+|---|---|---|
+| `variant` | `"broken"` or `"fixed"` | `"broken"` |
+| `commands` | list of str, 1 to 10 items, each 1 to 200 characters | required |
+| `input_source` | `"typed"` or `"speech"` | `"typed"` |
+
+A voice run's `JourneyResult` has `agent_kind: "voice"`, `agent_mode: "scripted"` (rules, no model), an empty `focus_trail`, and one `StepEvent` per command:
+- `tool` is `voice_click`, `voice_type`, `voice_go_to`, `voice_not_understood` or `voice_error`.
+- `args` holds `command`, `name`, `outcome` (`"done"`, `"failed"` or `"not_understood"`), a plain-English `message`, and, when measured, `element` `{tag, text, bounding_box}`.
+- `verdict` comes from the checker: `PASSED` when the confirmation is visible, otherwise `BLOCKED` with `NO_ACTIVATION` (or `TIMEOUT`).
 
 ## Run record: `GET /runs/{run_id}`
 
@@ -70,6 +86,8 @@ Refusals: `429` (rate limit, or too many runs at once; has `Retry-After`), `403`
 | `goal` | str |
 | `stop_reason` | `"completed"`, `"step_limit"`, `"timeout"` or `"error"` |
 | `error` | str or `null` |
+| `agent_kind` | `"keyboard"` or `"voice"` (default `"keyboard"`) |
+| `input_source` | `"keyboard"`, `"typed"` or `"speech"` (default `"keyboard"`) |
 
 **BlockedElement**: `selector` (str), `bounding_box` (BoundingBox or `null`), `tag`, `accessible_name`, `text` (each str or `null`).
 **BoundingBox**: `x`, `y`, `width`, `height` (floats, CSS pixels in the 1280 x 800 viewport). The ghost is placed only from this.

@@ -18,6 +18,8 @@ AgentMode = Literal["llm", "scripted"]
 ClaimOutcome = Literal["attempted_complete", "blocked"]
 StopReason = Literal["completed", "step_limit", "timeout", "error"]
 Variant = Literal["broken", "fixed"]
+AgentKind = Literal["keyboard", "voice"]
+InputSource = Literal["keyboard", "typed", "speech"]
 
 
 class BoundingBox(BaseModel):
@@ -146,3 +148,6 @@ class JourneyResult(BaseModel):
     goal: str
     stop_reason: StopReason = "completed"
     error: str | None = None
+    # Which agent ran and where its input came from (voice-agent REQ-VA-06). Additive, keyboard by default.
+    agent_kind: AgentKind = "keyboard"
+    input_source: InputSource = "keyboard"

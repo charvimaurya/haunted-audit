@@ -107,7 +107,7 @@ export function KiroIntegrationSection() {
                           !muted && !highlight ? 'text-ink-muted' : '',
                         ].filter(Boolean).join(' ')}
                       >
-                        <span className="w-6 text-right text-ink-faint/50 shrink-0 select-none" aria-hidden="true">{n}</span>
+                        <span className="w-6 text-right text-ink-faint shrink-0 select-none" aria-hidden="true">{n}</span>
                         <span>{text}</span>
                       </span>
                     ))}
