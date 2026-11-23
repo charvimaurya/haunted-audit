@@ -71,6 +71,10 @@ export interface JourneyResult {
   goal: string;
   stop_reason: 'completed' | 'step_limit' | 'timeout' | 'error';
   error: string | null;
+  /** Which agent ran (data-contract.md). Older records have none, which means keyboard. */
+  agent_kind?: 'keyboard' | 'voice';
+  /** Where the agent's input came from. */
+  input_source?: 'keyboard' | 'typed' | 'speech';
 }
 
 /** A run record as returned by GET /runs/{id} */

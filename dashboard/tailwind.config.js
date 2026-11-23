@@ -41,7 +41,7 @@ export default {
         ink: {
           DEFAULT: '#f0e8ff',   // primary text
           muted:   '#9d89b8',   // secondary / labels
-          faint:   '#6b5a8a',   // placeholder / disabled
+          faint:   '#9480b2',   // quieter text. Was #6b5a8a (3.27:1 / 3.0:1 / 2.76:1, fails 4.5:1); now 5.66 / 5.20 / 4.78 on base / panel / surface
         },
         // ── Possession panel (sampled from design/Haunted_Audit_Final_UI_v7.png, panel 2) ──
         // value  (x, y in the PNG, flat 7x7 median unless noted)

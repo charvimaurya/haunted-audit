@@ -109,3 +109,44 @@ def _claim_mismatch(claim: str | None, verdict: str) -> bool:
     if claim == "blocked" and verdict == "PASSED":
         return True
     return False
+
+
+# ── Voice journeys (voice-agent REQ-VA-05) ──────────────────────────────────
+# The voice runner acts by accessible name only and never sees these selectors.
+# The checker measures the page after the commands and decides; the runner does not.
+
+def observe_voice_page(page, config) -> CheckerInput:
+    """Measure the confirmation and the target on the page after a voice run. Checker-only selectors."""
+    from agent.keyboard_agent.tools import _JS_MEASURE_TARGET  # same measurement as the keyboard run
+    from agent.keyboard_agent.models import BoundingBox
+
+    try:
+        loc = page.locator(config.success_selector)
+        success = loc.count() > 0 and loc.first.is_visible()
+    except Exception:
+        success = False
+    payload = page.evaluate(_JS_MEASURE_TARGET, config.target_selector) or {}
+    box = payload.get("box") or {}
+    bounding = (
+        BoundingBox(x=float(box.get("x", 0)), y=float(box.get("y", 0)),
+                    width=float(box.get("width", 0)), height=float(box.get("height", 0)))
+        if payload.get("visible") else None
+    )
+    blocked = BlockedElement(
+        selector=config.target_selector, bounding_box=bounding, tag=payload.get("tag"),
+        accessible_name=payload.get("accessible_name") or None, text=payload.get("text") or None,
+    )
+    return CheckerInput(success_visible=success, blocked_element=blocked)
+
+
+def check_voice_journey(observation: CheckerInput, *, stop_reason: str = "completed") -> CheckerOutput:
+    """PASSED when the confirmation is visible. Otherwise BLOCKED: TIMEOUT if the run ran out of time,
+    else NO_ACTIVATION (the voice commands did not get the payment sent)."""
+    if observation.success_visible:
+        return CheckerOutput(verdict="PASSED", reason_code=None, target_ever_focused=False)
+    return CheckerOutput(
+        verdict="BLOCKED",
+        reason_code="TIMEOUT" if stop_reason == "timeout" else "NO_ACTIVATION",
+        blocked_element=observation.blocked_element,
+        target_ever_focused=False,
+    )
