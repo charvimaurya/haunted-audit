@@ -41,8 +41,8 @@ function rows(result: JourneyResult | null, apiStatus: ApiStatus, runError: stri
 }
 
 function RowIcon({ state }: { state: Row['state'] }) {
-  if (state === 'yes') return <CheckCircle2 size={16} className="shrink-0 mt-1" style={{ color: '#16a34a' }} aria-hidden="true" />;
-  if (state === 'no') return <XCircle size={16} className="shrink-0 mt-1" style={{ color: '#b91c1c' }} aria-hidden="true" />;
+  if (state === 'yes') return <CheckCircle2 size={16} className="shrink-0 mt-1" style={{ color: 'var(--color-parchment-yes)' }} aria-hidden="true" />;
+  if (state === 'no') return <XCircle size={16} className="shrink-0 mt-1" style={{ color: 'var(--color-parchment-no)' }} aria-hidden="true" />;
   if (state === 'info') return <Info size={16} className="shrink-0 mt-1" aria-hidden="true" />;
   return <CircleDashed size={16} className="shrink-0 mt-1" aria-hidden="true" />;
 }

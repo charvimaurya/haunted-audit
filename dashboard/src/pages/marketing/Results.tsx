@@ -10,11 +10,11 @@ export default function Results() {
         <ResultsSection
           result={result}
           agentMode={result?.agent_mode ?? mode}
-        apiStatus={apiStatus}
-        isRunning={isRunning}
+          apiStatus={apiStatus}
+          isRunning={isRunning}
           barriersDetected={result?.verdict === 'BLOCKED' && result.blocked_element ? 1 : null}
           /* No fix has been verified by a fix pipeline yet, so this stays unmeasured. */
-        fixesVerifiedPct={null}
+          fixesVerifiedPct={null}
           testScenarios={null}
           userSessions={null}
         />
