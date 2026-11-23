@@ -19,7 +19,7 @@ const blocked: JourneyResult = {
   blocked_element: { selector: 'div.pay-btn', bounding_box: null, tag: 'div', accessible_name: null, text: 'Send Payment' },
   focus_trail: [], screenshots: [], agent_mode: 'scripted',
   step_events: [
-    { step: 1, tool: 'type_text', args: { text: 'Alex Carter' }, timestamp: 't', screenshot_path: null, focused_after: null,
+    { step: 1, tool: 'type_text', args: { text: 'Test recipient' }, timestamp: 't', screenshot_path: null, focused_after: null,
       focused_before: { tag: 'input', role: 'textbox', accessible_name: 'Recipient', selector_hint: 'input#recipient', bounding_box: null, is_visible: true } },
     { step: 2, tool: 'type_text', args: { text: '50.00' }, timestamp: 't', screenshot_path: null, focused_after: null,
       focused_before: { tag: 'input', role: 'textbox', accessible_name: '', selector_hint: 'input#amount', bounding_box: null, is_visible: true } },
@@ -68,10 +68,10 @@ describe('Critical Ghost Detected', () => {
 });
 
 describe('Possession fields', () => {
-  it('show what the run typed', () => {
+  it('stay empty after a run; the owner types the name', () => {
     render(<PossessionMode result={blocked} />);
-    expect((screen.getByLabelText('Recipient') as HTMLInputElement).value).toBe('Alex Carter');
-    expect((screen.getByLabelText('Amount') as HTMLInputElement).value).toBe('€50.00');
+    expect((screen.getByLabelText('Recipient') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('Amount') as HTMLInputElement).value).toBe('');
   });
 });
 

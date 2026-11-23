@@ -21,7 +21,7 @@ Some v7 content is placeholder by the design's own note ("[x] and [n] are filled
 | D10 | Every page | Breadcrumbs | Only app pages had them | **fix**: breadcrumbs on public pages too (Home stays without, as in v7) |
 | D11 | Journey pages | Left sidebar | Present (app shell) | no change |
 | D12 | Agents (C) | Red "Critical Ghost Detected" card | Card shown only for BLOCKED, but its Barrier, Impact and WCAG lines were fixed text and its icon an emoji | **fix**: every line read from `reason_code` and `blocked_element` (mapping from `bank/PLANTED.md` and the `wcag-ghost-mapper` skill); SVG icons |
-| D13 | Possession (B) | Recipient and Amount show what was typed | Fields stay empty after a run | **fix**: show the values the run typed, from its `step_events` (real data) |
+| D13 | Possession (B) | Recipient and Amount show a name and amount | Fields stay empty after a run | **kept**: the owner enters the name |
 | D14 | Possession (B) | Red "Live Test" chip | Shown only while running since PR #11 | **kept** |
 | D15 | Fixes (D) | Arrows between the steps | No arrows | **fix**: decorative arrows |
 | D16 | Fixes (D) | Example diff, ticks, "Journey Verified", "caught" | "Not available yet" (PR #11) | **kept**: the Exorcist and Verifier do not exist |
@@ -50,7 +50,7 @@ Some v7 content is placeholder by the design's own note ("[x] and [n] are filled
 | D9 | plain panel borders | violet glowing borders | yes |
 | D10 | `how-it-works.png`: no breadcrumbs | `how-it-works.png`: Home / How it works | yes |
 | D12 | `run_agents.png`: fixed text, 🚫 emoji | `run_agents.png`: text from `reason_code` and `blocked_element`, mode and page stated | yes |
-| D13 | `run_possession.png`: empty fields | `run_possession.png`: "Alex Carter" and "€50.00" from the run's steps | yes |
+| D13 | `run_possession.png`: empty fields | **kept empty** (owner, 22 Nov: "stay empty, I will enter a name") | kept |
 | D15 | `app_fixes_find.png`: no arrows | `app_fixes_find.png`: arrows between steps | yes |
 | D19 | no high contrast | High contrast switch in the top bar (in the menu on a phone), saved, applied before first paint | yes |
 | — | phone 390 px: top bar overflowed once the third switch was added | `home-phone.png`: settings move into the menu; no horizontal overflow | yes |

@@ -70,18 +70,6 @@ function ghostStateFromResult(result: JourneyResult | null, isRunning: boolean):
   return 'blocked';
 }
 
-/** What the run typed into each bank field, read from its type_text steps (docs/ui-fidelity.md D13). */
-function typedValues(result: JourneyResult | null): { recipient: string; amount: string } {
-  const out = { recipient: '', amount: '' };
-  for (const e of result?.step_events ?? []) {
-    if (e.tool !== 'type_text' || typeof e.args.text !== 'string') continue;
-    const hint = e.focused_before?.selector_hint ?? e.focused_after?.selector_hint ?? '';
-    if (hint.includes('#recipient')) out.recipient = e.args.text;
-    if (hint.includes('#amount')) out.amount = e.args.text;
-  }
-  return out;
-}
-
 /** Build the checklist from the run's real focus trail and checker verdict. */
 function stepsFromResult(result: JourneyResult | null): TabStep[] {
   if (result === null) return DEFAULT_STEPS;
@@ -147,7 +135,6 @@ export function PossessionMode({
 }: PossessionModeProps) {
   const ghostState = ghostStateFromResult(result, isRunning);
   const steps = liveSteps ?? stepsFromResult(result);
-  const typed = typedValues(result);
   const isBlocked = result?.verdict === 'BLOCKED';
   // In fixed variant the demo button is a real <button>
   const isFixed = result?.variant === 'fixed';
@@ -250,16 +237,13 @@ export function PossessionMode({
             aria-label="Send Payment form demonstration"
           >
             <h3 className="m-0 mb-5 text-2xl font-bold text-ink font-ui">Send Payment</h3>
-            {/* After a run the fields show what the agent typed (real step data). You can still edit them;
-                they are not sent to the agent run. */}
+            {/* Empty fields you fill in yourself. They are not sent to the agent run. */}
             <div className="flex w-[86%] flex-col gap-4">
               <div>
                 <label className="mb-1 block text-base font-ui text-ink" htmlFor="pm-recipient">
                   Recipient
                 </label>
                 <input
-                  key={`r-${result?.run_id ?? 'none'}`}
-                  defaultValue={typed.recipient}
                   id="pm-recipient"
                   type="text"
                   autoComplete="off"
@@ -271,8 +255,6 @@ export function PossessionMode({
                   Amount
                 </label>
                 <input
-                  key={`a-${result?.run_id ?? 'none'}`}
-                  defaultValue={typed.amount ? `€${typed.amount}` : ''}
                   id="pm-amount"
                   type="text"
                   inputMode="decimal"

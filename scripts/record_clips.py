@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 BASE = 'http://localhost:5173'
 OUT = Path(__file__).resolve().parent.parent / 'docs' / 'evidence' / 'clips'
 OUT.mkdir(parents=True, exist_ok=True)
-CMDS = 'type "Alex Carter" in Recipient\ntype 50.00 in Amount\nclick Send Payment'
+CMDS = 'type "Test recipient" in Recipient\ntype 50.00 in Amount\nclick Send Payment'
 
 
 def clip(browser, name, steps):
