@@ -90,7 +90,10 @@ export function TopNav() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <SenseControls />
+          {/* On narrow screens the settings live in the menu, so the bar never overflows. */}
+          <div className="hidden lg:block">
+            <SenseControls />
+          </div>
           <Link
             to={to('kiro')}
             className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
@@ -127,6 +130,9 @@ export function TopNav() {
           role="region"
           aria-label="Navigation menu"
         >
+          <div className="px-3 pt-3">
+            <SenseControls />
+          </div>
           <ul className="flex flex-col p-3 gap-1 list-none m-0" role="list">
             {NAV.map((link) => (
               <li key={link.label}>

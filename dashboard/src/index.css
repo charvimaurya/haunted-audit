@@ -134,8 +134,10 @@ html[data-calm='true'] *::after {
 .ambient-ghost-alt {
   display: inline-block;
   transform: scaleX(-1);
-  filter: sepia(1) saturate(5) hue-rotate(230deg) brightness(1.15);
+  color: var(--color-ghost-ready);
 }
+/* Our SVG ghost (docs/ui-fidelity.md D1). Decorative: soft, behind content. */
+.ambient-ghost-svg { color: var(--scene-ghost); opacity: 0.55; display: block; }
 
 @keyframes ambient-drift {
   0%, 100% { transform: translateY(16vh); opacity: 0.25; }
@@ -155,11 +157,24 @@ html[data-calm='true'] *::after {
 .font-mono    { font-family: var(--font-mono); }
 
 /* ── Panel / card base ─────────────────────────────────────────────────── */
+/* Violet glowing border on every panel, as in v7 (docs/ui-fidelity.md D9). Static, so Calm mode needs no change. */
 .panel {
   background: var(--color-panel);
-  border: 1px solid var(--color-line);
+  border: 1px solid color-mix(in srgb, var(--color-violet-neon) 45%, var(--color-line));
   border-radius: 12px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-violet-neon) 12%, transparent),
+              0 0 18px color-mix(in srgb, var(--color-violet-neon) 22%, transparent);
 }
+/* Slim castle and fog band behind the breadcrumb row on every page (docs/ui-fidelity.md D7). */
+.site-band {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-violet-neon) 10%, transparent) 55%, transparent 100%);
+}
+.site-band * { pointer-events: none !important; }
 
 .panel-glow {
   background: var(--color-panel);
@@ -272,3 +287,34 @@ html, body {
   --scene-path: #2a1f4d;
   --scene-star: #e9e1ff;
 }
+
+/* ── High contrast (docs/ui-fidelity.md D19) ───────────────────────────────
+   Tailwind colours compile to fixed values, so the text and border utilities are overridden here too.
+   Text becomes near-white on black, borders and focus become bright, decoration fades out. */
+html[data-contrast='high'] {
+  --color-base: #000000;
+  --color-panel: #000000;
+  --color-surface: #000000;
+  --color-line: #ffffff;
+  --color-ink-muted: #ffffff;
+}
+html[data-contrast='high'] body,
+html[data-contrast='high'] .bg-base,
+html[data-contrast='high'] .bg-base-panel,
+html[data-contrast='high'] .bg-base-surface,
+html[data-contrast='high'] .bg-base-surface\/60,
+html[data-contrast='high'] .bg-base\/95,
+html[data-contrast='high'] .panel,
+html[data-contrast='high'] .panel-glow { background: #000000 !important; }
+html[data-contrast='high'] .text-ink,
+html[data-contrast='high'] .text-ink-muted,
+html[data-contrast='high'] .text-ink-faint { color: #ffffff !important; }
+html[data-contrast='high'] .text-violet-300 { color: #e9d5ff !important; }
+html[data-contrast='high'] .panel,
+html[data-contrast='high'] .panel-glow,
+html[data-contrast='high'] [class*='border-base-line'] { border-color: #ffffff !important; box-shadow: none !important; }
+html[data-contrast='high'] :focus-visible { outline: 3px solid #ffff00 !important; outline-offset: 3px; }
+html[data-contrast='high'] .ambient-layer,
+html[data-contrast='high'] .site-band,
+html[data-contrast='high'] .hero-scene,
+html[data-contrast='high'] .hero-castle { opacity: 0.25; }

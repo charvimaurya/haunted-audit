@@ -6,8 +6,9 @@ export default function Settings() {
     <Page id="app-settings">
       <UnavailablePanel>
         <p className="m-0">
-          Calm mode and sound are in the top bar on every page. High contrast and text size are not
-          built yet, so they are not shown here.
+          Calm mode, high contrast and sound are in the top bar on every page and are saved on this
+          device. A text-size setting is not built yet, so it is not shown here. Browser zoom works on
+          every page.
         </p>
       </UnavailablePanel>
     </Page>

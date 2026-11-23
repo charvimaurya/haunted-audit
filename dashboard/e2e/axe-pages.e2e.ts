@@ -16,17 +16,25 @@ const PAGES = [...new Set(
   [...BLOCK.matchAll(/:\s*[`']([^`']+)[`']|:\s*(APP)\s*,/g)].map((m) => (m[2] ? APP : m[1].replace('${APP}', APP))),
 )];
 
-for (const calm of [false, true]) {
-  test(`axe finds no WCAG 2.2 AA violation on any page${calm ? ' (Calm mode)' : ''}`, async ({ page }) => {
+const MODES = [
+  { name: '', calm: false, contrast: false },
+  { name: ' (Calm mode)', calm: true, contrast: false },
+  { name: ' (high contrast)', calm: false, contrast: true },
+];
+
+for (const mode of MODES) {
+  test(`axe finds no WCAG 2.2 AA violation on any page${mode.name}`, async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 1440, height: 900 });
-    if (calm) await page.addInitScript(() => localStorage.setItem('haunted-audit.calm', 'on'));
+    if (mode.calm) await page.addInitScript(() => localStorage.setItem('haunted-audit.calm', 'on'));
+    if (mode.contrast) await page.addInitScript(() => localStorage.setItem('haunted-audit.contrast', 'on'));
     const problems: string[] = [];
     expect(PAGES.length).toBeGreaterThanOrEqual(20);
     for (const path of PAGES) {
       await page.goto(path);
       await page.getByRole('heading', { level: 1 }).waitFor();
       await page.waitForLoadState('networkidle');
+      if (mode.contrast) await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
       await page.addScriptTag({ content: AXE });
       const result = await page.evaluate(async () => {
         // @ts-expect-error axe is injected above

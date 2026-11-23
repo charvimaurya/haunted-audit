@@ -5,11 +5,12 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Ghost } from 'lucide-react';
+import { Keyboard, Ghost, Ban } from 'lucide-react';
 import { ResultState } from './ResultState';
 import type { ApiStatus } from '../runs/runContext';
 import { AgentCard, type AgentOutcome } from './AgentCard';
 import { GhostMascot } from './GhostMascot';
+import { findingText } from '../lib/finding';
 import { VoiceAgentPanel } from './VoiceAgentPanel';
 import type { JourneyResult, StepEvent } from '../types';
 
@@ -59,7 +60,7 @@ export function GhostHuntSection({
   liveEvents = [],
   apiStatus = 'online',
 }: GhostHuntSectionProps) {
-  const isBlocked = result?.verdict === 'BLOCKED';
+  const finding = result ? findingText(result) : null;
   const displayEvents: StepEvent[] = result?.step_events?.length
     ? result.step_events.slice(-8) // show last 8
     : liveEvents.slice(-8);
@@ -128,39 +129,33 @@ export function GhostHuntSection({
         </div>
       </div>
 
-      {/* ── Critical Ghost Detected alert ───────────────────────────── */}
-      {isBlocked && result?.blocked_element && (
+      {/* ── Critical Ghost Detected: only for a BLOCKED finding, every line from the run ── */}
+      {finding && result?.blocked_element && (
         <div
           className="mx-4 mb-4 flex items-start gap-3 px-4 py-3 rounded-xl
                      bg-ghost-blocked/10 border border-ghost-blocked/50"
           role="alert"
           aria-live="assertive"
         >
-          <GhostMascot state="blocked" size={28} animate className="mt-0.5 shrink-0" />
+          <GhostMascot state="blocked" size={36} animate className="mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold font-ui text-ghost-blocked mb-0.5">
-              Critical Ghost Detected
-            </p>
-            <p className="text-base font-ui text-ink-muted">
-              Barrier: Payment button inaccessible to keyboard navigation
-            </p>
-            <p className="text-base font-ui text-ink-muted">
-              Impact: Customer cannot complete payment
-            </p>
-            <p className="text-base font-mono text-ink-faint mt-1">
-              WCAG: 2.1.1 Keyboard, 4.1.2 Name, Role, Value
+            <p className="text-base font-bold font-ui text-ghost-blocked mb-0.5">Critical Ghost Detected</p>
+            <p className="text-base font-ui text-ink-muted">Barrier: {finding.barrier}</p>
+            <p className="text-base font-ui text-ink-muted">Impact: {finding.impact}</p>
+            <p className="text-base font-mono text-ink-muted mt-1">WCAG: {finding.wcag}</p>
+            <p className="text-base font-ui text-ink-faint mt-1">
+              From the checker, {result.agent_mode} mode, {result.variant} page.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {/* The blocked element name — shown as a chip, never a real button */}
             <span
               className="px-3 py-1 rounded-full text-base font-ui font-medium
                          bg-ghost-blocked/20 border border-ghost-blocked/50 text-ghost-blocked"
-              aria-label={`Blocked element: ${result.blocked_element.text ?? result.blocked_element.selector}`}
             >
-              {result.blocked_element.text ?? 'Send Payment'}
+              <span className="sr-only">Blocked element: </span>
+              {finding.element}
             </span>
-            <span className="text-ghost-blocked text-base" aria-hidden="true">🚫</span>
+            <Ban size={20} className="text-ghost-blocked" aria-hidden="true" />
           </div>
         </div>
       )}

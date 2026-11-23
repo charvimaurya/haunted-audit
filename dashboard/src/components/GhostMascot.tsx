@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from 'react';
 import type { GhostState } from '../types';
+import { GhostGlyph } from './GhostGlyph';
 
 interface GhostMascotProps {
   state: GhostState;
@@ -24,10 +25,11 @@ interface GhostMascotProps {
   className?: string;
 }
 
+/** Colours from the tokens in index.css (purple Ready, red Blocked, green Verified). The SVG takes currentColor. */
 const STATE_COLOR: Record<GhostState, string> = {
-  ready:    'text-[#c9b6ff] drop-shadow-[0_0_8px_#c9b6ff88]',
-  blocked:  'text-[#ef4444] drop-shadow-[0_0_8px_#ef444488]',
-  verified: 'text-[#22c55e] drop-shadow-[0_0_8px_#22c55e88]',
+  ready:    'text-ghost-ready',
+  blocked:  'text-ghost-blocked',
+  verified: 'text-ghost-verified',
 };
 
 /** Returns true when the user has requested reduced motion. */
@@ -72,9 +74,9 @@ export function GhostMascot({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{ fontSize: size }}
+      style={{ filter: 'drop-shadow(0 0 6px currentColor)' }}
     >
-      👻
+      <GhostGlyph size={size} mood={state === 'blocked' ? 'angry' : 'calm'} />
     </span>
   );
 }

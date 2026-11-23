@@ -5,6 +5,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { RunStateBadge } from '../components/RunStateBadge';
+import { SiteBand } from '../components/SiteBand';
 import { APP_NAV, NOT_FOUND_TITLE, pageFor, to, trailFor } from '../routes';
 
 export function AppLayout() {
@@ -97,10 +99,9 @@ export function AppLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <nav
-          aria-label="Breadcrumb"
-          className="border-b border-base-line px-4 py-2 text-base font-ui text-ink-muted sm:px-6"
-        >
+        <div className="relative flex flex-wrap items-center gap-3 border-b border-base-line px-4 py-2 sm:px-6">
+        <SiteBand />
+        <nav aria-label="Breadcrumb" className="relative z-[1] text-base font-ui text-ink-muted">
           <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
             <li>
               <Link
@@ -129,6 +130,8 @@ export function AppLayout() {
             ))}
           </ol>
         </nav>
+        <RunStateBadge />
+        </div>
         <main
           id="main-content"
           tabIndex={-1}

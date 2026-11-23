@@ -104,7 +104,8 @@ describe('motion rules', () => {
       }
       expect(Number.parseFloat(ltr!.style.animationDuration)).toBe(ROAM_MS);
       expect(Number.parseFloat(rtl!.style.animationDuration)).toBe(ROAM_REVERSE_MS);
-      expect(ltr).toHaveTextContent('👻');
+      // Our SVG ghost replaced the emoji (owner-approved edit, docs/ui-fidelity.md D1)
+      expect(ltr!.querySelector('svg[data-ghost-glyph]')).not.toBeNull();
       expect(rtl?.querySelector('.ambient-ghost-alt')).not.toBeNull();
     }
   });

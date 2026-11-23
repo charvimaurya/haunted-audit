@@ -1,6 +1,5 @@
 import { HeroSection } from '../components/HeroSection';
-import { to } from '../routes';
-import { pageFor } from '../routes';
+import { pageFor, to } from '../routes';
 
 /**
  * Home: marketing hero only. Other product panels live on their own routes —
@@ -11,11 +10,8 @@ export default function Home() {
   return (
     <>
       <HeroSection to={to('try')} />
-      {page && (
-        <p className="mx-auto max-w-2xl px-4 pb-10 pt-2 text-center text-base font-ui text-ink-muted">
-          {page.shows}
-        </p>
-      )}
+      {/* The page description is for screen readers; v7 shows no caption (docs/ui-fidelity.md D3). */}
+      {page && <p className="sr-only">{page.shows}</p>}
     </>
   );
 }
