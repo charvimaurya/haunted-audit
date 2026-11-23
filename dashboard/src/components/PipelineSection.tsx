@@ -15,7 +15,7 @@
  * - tabpanel has id + aria-labelledby pointing to the active tab.
  * - Status is icon plus text, never colour alone.
  */
-import { CircleSlash, XCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CircleSlash, XCircle, CheckCircle2 } from 'lucide-react';
 import { ResultState } from './ResultState';
 import type { ApiStatus } from '../runs/runContext';
 import type { JourneyResult } from '../types';
@@ -137,7 +137,10 @@ export function PipelineSection({
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Audit pipeline steps">
         {([1, 2, 3, 4] as PipelineStep[]).map((s) => (
-          <StepTab key={s} step={s} active={s === activeStep} onSelect={onSelectStep} />
+          <span key={s} className="flex items-center gap-2">
+            {s > 1 && <ArrowRight size={18} className="text-ink-faint" aria-hidden="true" />}
+            <StepTab step={s} active={s === activeStep} onSelect={onSelectStep} />
+          </span>
         ))}
       </div>
 

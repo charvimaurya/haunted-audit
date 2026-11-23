@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { GhostGlyph } from '../components/GhostGlyph';
 import { PARTICLE_MS, ROAM_MS, ROAM_REVERSE_MS, type Quality } from './motion';
 
 const PARTICLES = [8, 22, 41, 63, 78, 90];
@@ -37,7 +38,7 @@ export default function AmbientScene({ quality }: { quality: Quality }) {
         className="ambient-roam ambient-roam-ltr absolute select-none"
         style={{ animationDuration: `${ROAM_MS}ms` }}
       >
-        👻
+        <GhostGlyph size={44} className="ambient-ghost-svg" />
       </span>
       <span
         data-testid="ambient-ghost"
@@ -47,7 +48,7 @@ export default function AmbientScene({ quality }: { quality: Quality }) {
         className="ambient-roam ambient-roam-rtl absolute select-none"
         style={{ animationDuration: `${ROAM_REVERSE_MS}ms` }}
       >
-        <span className="ambient-ghost-alt">👻</span>
+        <span className="ambient-ghost-alt"><GhostGlyph size={40} className="ambient-ghost-svg" /></span>
       </span>
       {allowParticles &&
         PARTICLES.map((left) => (

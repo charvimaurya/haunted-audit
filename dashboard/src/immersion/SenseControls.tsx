@@ -4,6 +4,7 @@
  */
 
 import { useImmersion } from './ImmersionContext';
+import { useHighContrast } from './useHighContrast';
 
 const buttonClass = [
   'inline-flex items-center gap-1 rounded-full border px-2.5 py-1',
@@ -13,9 +14,10 @@ const buttonClass = [
 
 export function SenseControls() {
   const { calm, systemReduce, soundOn, toggleCalm, toggleSound } = useImmersion();
+  const contrast = useHighContrast();
 
   return (
-    <div className="flex items-center gap-1.5" role="group" aria-label="Motion and sound">
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Display, motion and sound">
       <button
         type="button"
         className={`${buttonClass} ${calm ? 'border-violet-neon bg-violet-600/40' : 'border-base-line bg-base-surface/60'}`}
@@ -30,6 +32,14 @@ export function SenseControls() {
           On because the system prefers reduced motion.
         </span>
       )}
+      <button
+        type="button"
+        className={`${buttonClass} ${contrast.high ? 'border-violet-neon bg-violet-600/40' : 'border-base-line bg-base-surface/60'}`}
+        aria-pressed={contrast.high}
+        onClick={contrast.toggle}
+      >
+        High contrast {contrast.high ? 'on' : 'off'}
+      </button>
       <button
         type="button"
         className={`${buttonClass} ${soundOn ? 'border-violet-neon bg-violet-600/40' : 'border-base-line bg-base-surface/60'}`}

@@ -6,7 +6,7 @@
  * [x] and [n] placeholders from the design become real numbers once measured.
  */
 
-import { Target, Wrench, FlaskConical, Users } from 'lucide-react';
+import { BarChart3, Target, Wrench, FlaskConical, Users } from 'lucide-react';
 import { MetricValueDisplay } from './MetricValue';
 import { OutcomeCard } from './OutcomeCard';
 import { ResultState } from './ResultState';
@@ -46,7 +46,7 @@ export function ResultsSection({
       className="flex flex-col gap-4"
     >
       <h2 id="results-heading" className="flex items-center gap-2 text-base font-semibold font-ui text-ink">
-        <span aria-hidden="true">📊</span>
+        <BarChart3 size={18} className="text-violet-neon" aria-hidden="true" />
         Results
       </h2>
 

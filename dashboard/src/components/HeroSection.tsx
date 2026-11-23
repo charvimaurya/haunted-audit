@@ -26,10 +26,10 @@ interface HeroSectionProps {
 }
 
 const PILL_STEPS = [
-  { icon: Search,       label: 'Detect',  tone: '' },
-  { icon: Code2,        label: 'Fix',     tone: '' },
-  { icon: CheckCircle2, label: 'Verify',  tone: 'text-green-500' },
-  { icon: ShieldCheck,  label: 'Prevent', tone: '' },
+  { icon: Search,       label: 'Detect',  tone: 'text-[color:var(--scene-gold)]' },
+  { icon: Code2,        label: 'Fix',     tone: 'text-ghost-ready' },
+  { icon: CheckCircle2, label: 'Verify',  tone: 'text-ghost-verified' },
+  { icon: ShieldCheck,  label: 'Prevent', tone: 'text-violet-neon' },
 ];
 
 function usePrefersReducedMotion(): boolean {
@@ -121,8 +121,8 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         {PILL_STEPS.map(({ icon: Icon, label, tone }) => (
           <li
             key={label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-base font-ui
-                       bg-base-surface/80 border border-base-line text-ink-muted"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-base font-ui font-semibold
+                       bg-base-surface border border-violet-neon/60 text-ink shadow-glow"
           >
             <Icon size={16} className={tone} aria-hidden="true" data-icon-role="step" />
             {label}
