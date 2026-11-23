@@ -1,3 +1,3 @@
-# Voice agent (DRAFT / empty)
+# Voice agent
 
-Placeholder for activity 1.2. No requirements, design, or tasks yet — branch only.
+Spec for plan item 24: requirements.md, design.md, tasks.md. Code: agent/voice_agent/, POST /voice-runs, dashboard/src/components/VoiceAgentPanel.tsx.
