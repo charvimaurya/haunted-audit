@@ -63,6 +63,7 @@ Rules:
 - `target_selector` and `success_selector` live in `JourneyConfig` and are **checker-only**.
 - They must never appear in any agent prompt (enforced by `_reject_leaked_selectors` in `agent.py`).
 - The scripted walker must not read `config.target_selector` or `config.success_selector` at any point.
+- The barrier covers agents that run before the verdict. Post-verdict agents (Exorcist, Verifier) may see the checker's result and the page source, never `JourneyConfig.target_selector` or `success_selector` as config. (Owner approved, 22 Nov 2026, Exorcist Q1.)
 
 ---
 

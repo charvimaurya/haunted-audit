@@ -83,6 +83,27 @@ class VoiceRunCreate(BaseModel):
     input_source: Literal["typed", "speech"] = "typed"
 
 
+class FixCreate(BaseModel):
+    """POST /runs/{run_id}/fixes (exorcist REQ-X-02, 13, 14)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    exorcist_mode: Literal["scripted", "llm"] = "scripted"
+
+
+class FixApprove(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    diff_sha256: Annotated[str, StringConstraints(min_length=64, max_length=64)]
+    note: Annotated[str, StringConstraints(max_length=300)] | None = None
+
+
+class FixReject(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    note: Annotated[str, StringConstraints(max_length=300)] | None = None
+
+
 class RunStore:
     """One SQLite file. Writes happen on the journey thread; reads on the API."""
 
@@ -327,6 +348,8 @@ def create_app(
     )
     app.add_middleware(RequestLogMiddleware)
     app.state.store = RunStore(path)
+    from agent.fixes.store import FixStore
+    app.state.fixes = FixStore(path)
     app.state.limiter = RunLimiter(settings or LimitSettings.from_env(), clock)
     app.state.artifacts_root = artifacts_root
 
@@ -393,6 +416,136 @@ def create_app(
                   input_source=body.input_source, commands=len(body.commands))
         return {"run_id": run_id, "status": "running"}
 
+    # ── Fixes: Exorcist, human decision, Verifier, regression check (.kiro/specs/exorcist/) ──
+    def _fix_view(fix_id: str) -> dict:
+        fix = app.state.fixes.get(fix_id)
+        if fix is None:
+            raise HTTPException(status_code=404, detail="fix not found")
+
+        def run_summary(run_id):
+            if not run_id:
+                return None
+            rec = app.state.store.get_run(run_id)
+            if rec is None:
+                return None
+            res = rec.get("result") or {}
+            return {"run_id": run_id, "status": rec["status"], "verdict": rec["verdict"] if rec["status"] == "complete" else None,
+                    "reason_code": rec["reason_code"] if rec["status"] == "complete" else None,
+                    "agent_mode": res.get("agent_mode"), "error": res.get("error")}
+
+        verify = run_summary(fix.pop("verify_run_id"))
+        regression = run_summary(fix.pop("regression_run_id"))
+        return {**fix, "verify": verify, "regression": regression}
+
+    @app.post("/runs/{run_id}/fixes", status_code=201)
+    def create_fix(run_id: str, body: FixCreate) -> dict:
+        from agent.fixes.exorcist import Refused, propose
+
+        rec = app.state.store.get_run(run_id)
+        if rec is None:
+            raise HTTPException(status_code=404, detail="run not found")
+        if rec["status"] != "complete":
+            raise HTTPException(status_code=409, detail={"code": "RUN_NOT_FINISHED", "message": "The run has not finished."})
+        result = rec.get("result") or {}
+        if rec["verdict"] != "BLOCKED" or result.get("agent_kind", "keyboard") != "keyboard":
+            raise HTTPException(status_code=409, detail={"code": "NOTHING_TO_FIX",
+                                                        "message": "Only a finished, BLOCKED keyboard run has a finding to fix."})
+        finding = {"reason_code": result.get("reason_code"), "blocked_element": result.get("blocked_element")}
+        try:
+            prop = propose(finding, body.exorcist_mode)
+        except Refused as exc:
+            raise HTTPException(status_code=409, detail={"code": exc.code, "message": str(exc)})
+        fix_id = app.state.fixes.create({
+            "run_id": run_id, "variant": rec["variant"], "reason_code": finding["reason_code"],
+            "blocked_element": finding["blocked_element"], "reason": prop.reason,
+            "diff": prop.checked.diff if prop.checked else None,
+            "diff_sha256": prop.checked.sha256 if prop.checked else None,
+            "changed_lines": prop.checked.changed_lines if prop.checked else None,
+            "exorcist_mode": prop.exorcist_mode, "exorcist_model_id": prop.model_id,
+            "input_tokens": prop.input_tokens, "output_tokens": prop.output_tokens, "cost_usd": prop.cost_usd,
+            "latency_ms": round(prop.latency_ms, 1), "status": prop.status, "error": prop.error,
+            "agent_mode": result.get("agent_mode"),
+        })
+        log_event(msg="fix_proposed", fix_id=fix_id, run_id=run_id, status=prop.status, mode=prop.exorcist_mode)
+        return _fix_view(fix_id)
+
+    @app.get("/fixes/{fix_id}")
+    def get_fix(fix_id: str) -> dict:
+        return _fix_view(fix_id)
+
+    def _decidable(fix_id: str) -> dict:
+        fix = app.state.fixes.get(fix_id)
+        if fix is None:
+            raise HTTPException(status_code=404, detail="fix not found")
+        if fix["status"] != "proposed":
+            raise HTTPException(status_code=409, detail={"code": "ALREADY_DECIDED",
+                                                        "message": f"This fix is {fix['status']}; it can no longer be decided."})
+        return fix
+
+    @app.post("/fixes/{fix_id}/approve")
+    def approve_fix(fix_id: str, body: FixApprove) -> dict:
+        fix = _decidable(fix_id)
+        if body.diff_sha256 != fix["diff_sha256"]:
+            raise HTTPException(status_code=422, detail={"code": "DIFF_CHANGED",
+                                                        "message": "The diff you saw is not the stored diff."})
+        app.state.fixes.decide(fix_id, "approved", os.getenv("HAUNTED_AUDIT_ACTOR", "demo user"), body.note)
+        log_event(msg="fix_approved", fix_id=fix_id)
+        return _fix_view(fix_id)
+
+    @app.post("/fixes/{fix_id}/reject")
+    def reject_fix(fix_id: str, body: FixReject) -> dict:
+        _decidable(fix_id)
+        app.state.fixes.decide(fix_id, "rejected", os.getenv("HAUNTED_AUDIT_ACTOR", "demo user"), body.note)
+        log_event(msg="fix_rejected", fix_id=fix_id)
+        return _fix_view(fix_id)
+
+    def _start_copy_run(fix: dict, kind: str, request: Request) -> dict:
+        from agent.fixes import verifier
+
+        limiter: RunLimiter = app.state.limiter
+        try:
+            limiter.admit(client_ip(request), "scripted")
+        except Refusal as refusal:
+            headers = {"Retry-After": str(refusal.retry_after)} if refusal.retry_after else None
+            raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
+        try:
+            copy = (verifier.patched_copy if kind == "verify" else verifier.reintroduced_copy)(fix["fix_id"], fix["diff"])
+        except Exception as exc:
+            limiter.release()
+            raise HTTPException(status_code=409, detail={"code": "DIFF_NO_LONGER_APPLIES", "message": str(exc)})
+        run_id = str(uuid.uuid4())
+        app.state.store.insert_running(run_id, "broken", "scripted")
+        app.state.fixes.link_run(fix["fix_id"], kind, run_id)
+        body = RunCreate(variant="broken", mode="scripted")
+        thread = threading.Thread(
+            target=_execute_run,
+            args=(app.state.store, run_id, body, limiter, app.state.artifacts_root),
+            kwargs={"start_url": verifier.start_url(copy)},
+            daemon=True, name=f"{kind}-{run_id[:8]}",
+        )
+        thread.start()
+        log_event(msg=f"fix_{kind}_started", fix_id=fix["fix_id"], run_id=run_id)
+        return {"run_id": run_id, "status": "running"}
+
+    @app.post("/fixes/{fix_id}/verify", status_code=202)
+    def verify_fix(fix_id: str, request: Request) -> dict:
+        fix = app.state.fixes.get(fix_id)
+        if fix is None:
+            raise HTTPException(status_code=404, detail="fix not found")
+        if fix["status"] != "approved":
+            raise HTTPException(status_code=409, detail={"code": "NOT_APPROVED",
+                                                        "message": "A person must approve the fix before it is verified."})
+        return _start_copy_run(fix, "verify", request)
+
+    @app.post("/fixes/{fix_id}/regression", status_code=202)
+    def regression_fix(fix_id: str, request: Request) -> dict:
+        view = _fix_view(fix_id)
+        if not view["verify"] or view["verify"]["verdict"] != "PASSED":
+            raise HTTPException(status_code=409, detail={"code": "NOT_VERIFIED",
+                                                        "message": "The regression check runs only after the fix has been verified PASSED."})
+        fix = app.state.fixes.get(fix_id)
+        return _start_copy_run(fix, "regression", request)
+
     @app.get("/runs/{run_id}")
     def get_run(run_id: str) -> dict:
         record = app.state.store.get_run(run_id)
@@ -426,6 +579,7 @@ def _execute_run(
     body: RunCreate,
     limiter: RunLimiter | None = None,
     artifacts_root: Path | None = ARTIFACTS_ROOT,
+    start_url: str | None = None,
 ) -> None:
     def on_event(event) -> None:
         store.append_event(run_id, event.model_dump(mode="json"))
@@ -440,6 +594,7 @@ def _execute_run(
             max_steps=body.max_steps,
             timeout_seconds=body.timeout_seconds,
             artifacts_dir="artifacts/api",
+            **({"start_url": start_url} if start_url else {}),
         )
         result = run_journey(config, on_event=on_event, run_id=run_id)
         status = "error" if result.error else "complete"

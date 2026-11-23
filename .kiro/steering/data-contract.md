@@ -15,9 +15,15 @@ Rules:
 | `POST /runs` | `202 {"run_id": str, "status": "running"}` |
 | `GET /runs/{run_id}` | A Run record (below). `404 {"detail": "run not found"}` |
 | `GET /runs/{run_id}/events` | Server-Sent Events (below). `404` as above |
+| `POST /runs/{run_id}/fixes` | `201` Fix. `404`; `409 {detail: {code: RUN_NOT_FINISHED | NOTHING_TO_FIX | UNKNOWN_BARRIER, message}}` |
+| `GET /fixes/{fix_id}` | Fix. `404` |
+| `POST /fixes/{fix_id}/approve` | Fix. Body `{diff_sha256, note?}`. `422 DIFF_CHANGED`, `409 ALREADY_DECIDED` |
+| `POST /fixes/{fix_id}/reject` | Fix. Body `{note?}`. `409 ALREADY_DECIDED` |
+| `POST /fixes/{fix_id}/verify` | `202 {run_id, status}`: a keyboard run on the patched copy. `409 NOT_APPROVED` |
+| `POST /fixes/{fix_id}/regression` | `202 {run_id, status}`: a keyboard run on the copy with the bug put back. `409 NOT_VERIFIED` |
 | `POST /voice-runs` | `202 {"run_id": str, "status": "running"}`. Read back with `GET /runs/{run_id}` and the same events stream |
 
-There is no run list, no scan endpoint and no fix endpoint today.
+There is no run list and no scan endpoint today. Fix endpoints are below ("Fix").
 
 ## Request: `POST /runs`
 
@@ -119,18 +125,27 @@ Printed by `python3 backend/scan_file.py <path>` and by the scan-on-save hook as
 
 A file finding is a static check. It never sets `verdict` or `reason_code`; only the checker does.
 
-## Fix: PLANNED, not returned by the API today
+## Fix: `GET /fixes/{fix_id}`
 
-No fix endpoint exists. The draft is in `.kiro/specs/fix-verify-prevent/requirements.md` (REQ-LOG-01) and is not approved. Do not build a screen on these fields until an endpoint returns them and this section is updated.
+Spec: `.kiro/specs/exorcist/`. Approve changes no tracked file; the Verifier and the regression check run on copies under `artifacts/verify/<fix_id>/`. The checker decides both.
 
 | Field | Type |
 |---|---|
-| `fix_id`, `run_id` | str |
-| `finding` | the run's `reason_code` and `blocked_element` |
-| `cause` | str |
-| `diff` | str (unified diff) |
-| `diff_sha256` | str |
-| `changed_lines` | int |
+| `fix_id`, `run_id`, `variant` | str |
+| `reason_code`, `blocked_element` | the run's finding (blocked_element as in JourneyResult) |
+| `reason` | str (one line) or `null` |
+| `diff` | str (canonical unified diff for `fixtures/haunted_bank/index.html`) or `null` |
+| `diff_sha256` | str or `null` |
+| `changed_lines` | int or `null` |
+| `exorcist_mode` | `"scripted"` or `"llm"` |
+| `exorcist_model_id` | str or `null` |
+| `input_tokens`, `output_tokens` | int; `0` in scripted mode; `null` when not measured |
+| `cost_usd` | float; `0.0` in scripted mode; `null` when not measured |
+| `latency_ms` | float, measured |
 | `status` | `"proposed"`, `"approved"`, `"rejected"` or `"exorcist_failed"` |
+| `error` | str or `null` (why it failed) |
 | `decided_by`, `decided_at`, `decision_note` | str or `null` |
 | `agent_mode` | the original run's mode |
+| `created_at` | str (UTC) |
+| `verify`, `regression` | `null`, or `{run_id, status, verdict, reason_code, agent_mode, error}`; `verdict` is `null` until the run is `complete` |
+| `history` | list of `{at, event, detail}`, append-only |

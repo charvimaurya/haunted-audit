@@ -36,11 +36,16 @@ def _launch_args() -> list[str]:
     return []
 
 
+# The Verifier's patched copies of the bank (exorcist design). Git-ignored; written only by agent/fixes/verifier.py.
+VERIFY_ROOT = Path(__file__).resolve().parents[2] / "artifacts" / "verify"
+
+
 def _is_bundled_url(url: str) -> bool:
     return (
         url == "about:blank"
         or url.startswith("data:")
         or url.startswith(FIXTURE_PATH.parent.as_uri() + "/")
+        or url.startswith(VERIFY_ROOT.as_uri() + "/")
     )
 
 

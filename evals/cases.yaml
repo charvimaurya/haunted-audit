@@ -91,3 +91,19 @@ cases:
     status: resolved
     note: The workflow file is deleted in the same branch; Vercel is the planned host.
     recorded: 2026-11-20
+  - id: fail-005
+    kind: failure
+    target: Exorcist, exorcist_mode llm (scripts/qa_exorcist.py)
+    agent_mode: llm
+    expected: a valid diff in at least 4 of 5 runs
+    observed: >-
+      0 of 5 runs executed. Every fix ended as exorcist_failed: "AWS credentials could not be read: The config
+      profile (haunted-audit) could not be found". No tokens were recorded (null). The scripted Exorcist gave 5 of 5
+      valid diffs, 5 of 5 verified, 5 of 5 caught in the same script.
+    evidence:
+      - scripts/qa_exorcist.py output in docs/devlog.md (2026-11-22)
+    label_source: .kiro/specs/exorcist/requirements.md REQ-X-18
+    status: open
+    next: Configure AWS credentials and Bedrock access, build the Bedrock call, then run scripts/qa_exorcist.py.
+    recorded: 2026-11-22
+

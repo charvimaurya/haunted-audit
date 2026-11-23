@@ -1,9 +1,9 @@
 # Exorcist (plan activity 2.1) - Requirements
 
-**Status: DRAFT, waiting for your OK. No design, tasks or code exist yet.**
+**Status: APPROVED by the owner on 22 Nov 2026 ("do all that mentioned, I give permission"), Q1 to Q6 as recommended. Q7: Shilpa's approval not received; the plan's default (start from my own reading) applies. Design and tasks: `design.md`, `tasks.md`.**
 **Plan activity:** 2.1 "Exorcist: propose a fix, human approves". Done when: a 3 to 5 line fix; Reject leaves code unchanged; every decision logged.
-**Branch:** `feature/exorcist`.
-**Scope:** only the Exorcist, the Approve/Reject decision, and their evidence rows. Not in scope: the Verifier (2.2), the journey test writer (2.3), impact severity (1.3), skills (2.4), the loop screens beyond the Fix panel (2.5).
+**Branch:** `main` (owner's instruction, 22 Nov: no feature branches).
+**Scope (widened by the owner, 22 Nov):** the Exorcist, the Approve/Reject decision, their evidence rows, **plus** the Verifier (2.2, patched copy + checker) and a regression check (bug put back on a copy, checker must block). Not in scope: a written journey test file (2.3), impact severity (1.3), skills (2.4), the loop screens beyond the Fix panel (2.5).
 **Builds on:** `agent/keyboard_agent/*` (the checker result), `agent/api/main.py` (run store), `dashboard/src/components/PipelineSection.tsx` (the Fix panel with dead Approve/Reject buttons).
 **Umbrella spec:** `.kiro/specs/fix-verify-prevent/` already holds a larger draft. This spec takes only the parts that 2.1 needs (its REQ-EXO, REQ-APR, REQ-LOG) and tightens them to the plan. Where they differ, this spec wins for 2.1.
 **Steering followed:** `product-rules.md` (verdict authority, a human approves anything that changes code, no invented numbers, `agent_mode` shown beside results, information barrier, Dashboard rules) and `product-ux.md`.
