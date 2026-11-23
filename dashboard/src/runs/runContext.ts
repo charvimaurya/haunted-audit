@@ -8,6 +8,8 @@ export type ApiStatus = 'checking' | 'online' | 'offline';
 export interface RunValue {
   variant: Variant;
   mode: AgentMode;
+  /** The recipient name the tester typed (recipient-input REQ-RI-01). Starts empty. */
+  recipient: string;
   runStatus: RunStatus | null;
   result: JourneyResult | null;
   liveEvents: StepEvent[];
@@ -18,6 +20,7 @@ export interface RunValue {
   runError: string | null;
   setVariant: (v: Variant) => void;
   setMode: (m: AgentMode) => void;
+  setRecipient: (r: string) => void;
   run: () => Promise<void>;
 }
 

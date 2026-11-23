@@ -35,6 +35,7 @@ with sync_playwright() as p:
         pg.screenshot(path=str(OUT / f'{name(path)}.png'), full_page=True)
     # After a real haunted run: Possession, then the same app session on Agents and Find
     pg.goto(BASE + f'{APP}/journeys/send-payment/possession'); pg.wait_for_selector('h1')
+    pg.get_by_label('Recipient name').fill('Test recipient')  # the tester types the name (recipient-input)
     pg.get_by_role('button', name='Run Journey').click()
     pg.wait_for_function("() => /Complete|Error|failed/.test(document.getElementById('run-status').textContent)", timeout=90000)
     pg.wait_for_timeout(900)

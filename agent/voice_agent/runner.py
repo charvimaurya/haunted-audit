@@ -17,7 +17,7 @@ from playwright.sync_api import Page, sync_playwright
 from agent.keyboard_agent.checker import check_voice_journey, observe_voice_page
 from agent.keyboard_agent.models import JourneyResult, StepEvent
 from agent.keyboard_agent.runner import _launch_args, _only_bundled_fixture, build_journey_config
-from agent.voice_agent.grammar import Command, describe, parse
+from agent.voice_agent.grammar import Command, describe, parse_natural as parse
 
 STEP_TIMEOUT_MS = 5_000
 RUN_TIMEOUT_S = 60.0
@@ -84,7 +84,7 @@ class VoiceSession:
         if cmd is None:
             return self._emit("voice_not_understood", {
                 "command": text, "outcome": "not_understood",
-                "message": f'Not understood: "{text.strip()[:80]}". Say click <name>, type <text> in <field>, or go to <name>.',
+                "message": f'Not understood: "{text.strip()[:80]}". Say click <name>, type <text> in <field>, or go to <name>. Phrases such as "send payment" or "enter 50 in Amount" also work.',
             })
         if cmd.kind == "click":
             return self._click(cmd)

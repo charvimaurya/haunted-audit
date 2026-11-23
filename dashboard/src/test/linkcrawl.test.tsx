@@ -3,7 +3,7 @@
  * Link crawl (REQ-SH-01, 04 to 07): render every page, follow every internal link in the top menu,
  * footer, sidebar, breadcrumbs and page body, and fail on any "Page not found".
  */
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { AppRoutes } from '../AppRoutes';
@@ -60,10 +60,13 @@ describe('link crawl', () => {
       const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
       const labels = within(nav).getAllByRole('link').map((a) => a.getAttribute('aria-label') ?? a.textContent);
       expect(labels, page.path).toEqual([
-        'Haunted Audit — home', 'Home', 'Scans', 'Journeys', 'Fixes', 'Kiro', 'Reports', 'Built with Kiro',
+        'Haunted Audit — home', 'Home', 'Scans', 'Journeys', 'Fixes', 'Kiro', 'Reports', 'Voice agent', 'Built with Kiro',
       ]);
-      expect(within(nav).getByRole('button', { name: /calm mode/i })).toBeTruthy();
-      expect(within(nav).getByRole('button', { name: /sound/i })).toBeTruthy();
+      // The four settings sit behind one Settings button in the bar (owner approved, 22 Nov 2026).
+      fireEvent.click(within(nav).getByRole('button', { name: 'Settings' }));
+      for (const name of [/calm mode/i, /high contrast/i, /text size/i, /sound/i]) {
+        expect(within(nav).getByRole('button', { name }), page.path).toBeVisible();
+      }
       cleanup();
     }
   }, 60_000);

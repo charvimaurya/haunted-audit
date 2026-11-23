@@ -39,6 +39,7 @@ async function checkHealth(): Promise<ApiStatus> {
 export function RunProvider({ children }: { children: ReactNode }) {
   const [variant, setVariant]       = useState<Variant>('broken');
   const [mode, setMode]             = useState<AgentMode>('scripted');
+  const [recipient, setRecipient]   = useState('');
   const [runStatus, setRunStatus]   = useState<RunStatus | null>(null);
   const [result, setResult]         = useState<JourneyResult | null>(null);
   const [liveEvents, setLiveEvents] = useState<StepEvent[]>([]);
@@ -80,7 +81,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
       const res = await fetch(`${API_BASE}/runs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variant, mode }),
+        // The tester's own name; no name is ever filled in for them (recipient-input REQ-RI-01).
+        body: JSON.stringify(recipient.trim() ? { variant, mode, recipient: recipient.trim() } : { variant, mode }),
       });
       if (!res.ok) {
         // 429 = rate limit or busy, 403 = LLM mode paused. The API sends the plain-English text.
@@ -142,12 +144,12 @@ export function RunProvider({ children }: { children: ReactNode }) {
       setApiStatus('offline');
       setRunStatus('error');
     }
-  }, [variant, mode]);
+  }, [variant, mode, recipient]);
 
   const isRunning = runStatus === 'running';
   const value = useMemo<RunValue>(
-    () => ({ variant, mode, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
-    [variant, mode, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
+    () => ({ variant, mode, recipient, setRecipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
+    [variant, mode, recipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

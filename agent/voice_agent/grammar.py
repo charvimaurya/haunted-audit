@@ -67,3 +67,51 @@ def describe(cmd: Command) -> str:
     if cmd.kind == "go_to":
         return f"Go to {cmd.name}"
     return f'Type "{cmd.text}" in {cmd.name}'
+
+
+# ── Natural phrases (voice-agent REQ-VA-11) ─────────────────────────────────
+# A fixed list of rewrite rules. Each phrase becomes one of the three commands above, and parse() still decides.
+# No model is used. Anything not on the list returns None, as before.
+PAYMENT_BUTTON = "Send Payment"  # the accessible name of the bank's payment button
+_POLITE = re.compile(r"^(?:please\s+|(?:can|could|would)\s+you\s+(?:please\s+)?|i(?:'d|\s+would)?\s+(?:want|like)\s+to\s+)+", re.IGNORECASE)
+_ARTICLE = r"(?:(?:the|a|an|my)\s+)?"
+_PAYMENT = re.compile(rf"^(?:(?:send|make|submit|do|pay)\s+{_ARTICLE}(?:payment|it)|pay(?:\s+now)?)$", re.IGNORECASE)
+_CLICK_WORDS = re.compile(rf"^(?:press|tap|hit|push|select|choose|activate|submit)\s+(?:on\s+)?{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
+_CLICK_ON = re.compile(rf"^click\s+on\s+{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
+_GO_WORDS = re.compile(rf"^(?:open|visit|navigate\s+to|take\s+me\s+to|show\s+me)\s+{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
+_VALUE = r"(?P<text>\"[^\"]*\"|'[^']*'|\S+)"
+_TYPE_WORDS = re.compile(rf"^(?:enter|write|put|fill\s+in)\s+{_VALUE}\s+(?:in|into)\s+(?:the\s+)?(?P<field>.+)$", re.IGNORECASE)
+_SET_WORDS = re.compile(rf"^(?:set|fill)\s+(?:the\s+)?(?P<field>.+?)\s+(?:to|with)\s+{_VALUE}$", re.IGNORECASE)
+
+
+_SUFFIX = re.compile(r"\s+(?:button|link|field|box)$", re.IGNORECASE)
+
+
+def _name(raw: str) -> str:
+    return _SUFFIX.sub("", raw.strip())
+
+
+def _rewrite(text: str) -> str | None:
+    t = _POLITE.sub("", _clean(text)).strip()
+    if _PAYMENT.match(t):
+        return f"click {PAYMENT_BUTTON}"
+    if m := _CLICK_WORDS.match(t) or _CLICK_ON.match(t):
+        return f"click {_name(m['name'])}"
+    if m := _GO_WORDS.match(t):
+        return f"go to {_name(m['name'])}"
+    if m := _TYPE_WORDS.match(t) or _SET_WORDS.match(t):
+        return f"type {m['text']} in {_name(m['field'])}"
+    return None
+
+
+def parse_natural(text: str) -> Command | None:
+    """The three strict commands first, then the fixed natural phrases. Returns None for anything else."""
+    if not isinstance(text, str) or len(text) > MAX_COMMAND_CHARS or "\n" in text.strip():
+        return None
+    if (cmd := parse(text)) is not None:
+        return cmd
+    rewritten = _rewrite(text)
+    if rewritten is None:
+        return None
+    cmd = parse(rewritten)
+    return None if cmd is None else Command(cmd.kind, cmd.name, cmd.text, text)

@@ -62,7 +62,7 @@ class RecordingPage:
         return record
 
 
-_COMMAND_START = re.compile(r"^\s*(click|type|go\s+to)\b", re.IGNORECASE)
+_COMMAND_START = re.compile(r"^\s*(click|type|go\s+to|please|can|could|would|i|send|make|submit|do|pay|press|tap|hit|push|select|choose|activate|open|visit|navigate|take|show|enter|write|put|fill|set)\b", re.IGNORECASE)
 
 
 @settings(max_examples=300, deadline=None)
@@ -165,3 +165,37 @@ def test_keyboard_results_say_keyboard():
     from agent.keyboard_agent.models import JourneyResult
     r = JourneyResult(run_id="r", verdict="PASSED", agent_mode="scripted", variant="fixed", goal="g")
     assert r.agent_kind == "keyboard" and r.input_source == "keyboard"
+
+
+# ── REQ-VA-11: natural phrases ──────────────────────────────────────────────
+from agent.voice_agent.grammar import parse_natural  # noqa: E402
+
+
+@pytest.mark.parametrize("text,kind,name,value", [
+    ("send payment", "click", "Send Payment", None),
+    ("Please send the payment.", "click", "Send Payment", None),
+    ("pay", "click", "Send Payment", None),
+    ("tap Send Payment", "click", "Send Payment", None),
+    ("press the Cancel button", "click", "Cancel", None),
+    ("open Accounts", "go_to", "Accounts", None),
+    ("enter 50 in Amount", "type", "Amount", "50"),
+    ('enter "Alex Carter" into Recipient', "type", "Recipient", "Alex Carter"),
+    ("set Amount to 50.00", "type", "Amount", "50.00"),
+])
+def test_natural_phrases_become_one_of_the_three(text, kind, name, value):
+    cmd = parse_natural(text)
+    assert cmd is not None and (cmd.kind, cmd.name, cmd.text) == (kind, name, value)
+
+
+@pytest.mark.parametrize("text", ["Send hundred dollars", "hello", "", "enter in Amount", "send payment\nclick Cancel"])
+def test_natural_layer_still_rejects_the_rest(text):
+    assert parse_natural(text) is None
+
+
+@settings(max_examples=300, deadline=None)
+@given(st.text(max_size=120))
+def test_natural_parse_is_always_one_of_the_three(text):
+    cmd = parse_natural(text)
+    if cmd is not None:
+        assert cmd.kind in {"click", "type", "go_to"} and cmd.name
+        assert (cmd.text is not None) == (cmd.kind == "type")

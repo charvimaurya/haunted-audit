@@ -71,6 +71,11 @@ class RunCreate(BaseModel):
     mode: Literal["llm", "scripted"] = "scripted"
     max_steps: int = Field(default=25, ge=1, le=80)
     timeout_seconds: float = Field(default=90, ge=0, le=300)
+    # The tester's own recipient name (recipient-input REQ-RI-02). It reaches the agent's goal text,
+    # so only letters, spaces, . ' and - are allowed, starting with a letter, 60 at most (the bank's limit).
+    recipient: Annotated[
+        str, StringConstraints(min_length=1, max_length=60, pattern=r"^\p{L}[\p{L} .'\-]*$")
+    ] | None = None
 
 
 class VoiceRunCreate(BaseModel):
@@ -594,6 +599,7 @@ def _execute_run(
             max_steps=body.max_steps,
             timeout_seconds=body.timeout_seconds,
             artifacts_dir="artifacts/api",
+            **({"recipient": body.recipient.strip()} if body.recipient else {}),
             **({"start_url": start_url} if start_url else {}),
         )
         result = run_journey(config, on_event=on_event, run_id=run_id)

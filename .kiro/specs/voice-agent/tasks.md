@@ -6,3 +6,6 @@
 - [x] TASK-04 `POST /voice-runs`, with steps on the same SSE stream (REQ-VA-07)
 - [x] TASK-05 5-run eval on the haunted and fixed pages (REQ-VA-04, 10)
 - [x] TASK-06 Panel: real run, live steps, offline fallback, axe (REQ-VA-08, 10)
+- [x] TASK-07 Top-bar "Voice agent" link to `/app/agents` (the panel from TASK-06). Secondary style, not primary; icon plus text; no new route, no new data. Owner asked for it on 2026 request "voice agent button on the ui".
+- [x] TASK-08 Natural phrases (REQ-VA-11): `parse_natural`, runner uses it, tests added
+- [x] TASK-09 Possession Mode: Agent toggle (Keyboard / Voice), "Run voice journey", Voice commands card with Push to talk and Edit commands (`AgentToggle`, `VoiceCommandsCard`, `useSpeechInput`). Owner supplied the layout as a screenshot.

@@ -35,6 +35,7 @@ Unknown fields are rejected with `422` (so a `url`, path or selector cannot be s
 | `mode` | `"llm"` or `"scripted"` | `"scripted"` |
 | `max_steps` | int, 1 to 80 | 25 |
 | `timeout_seconds` | float, 0 to 300 | 90 |
+| `recipient` | str or omitted. 1 to 60 characters: starts with a letter, then letters, spaces, `.`, `'`, `-`. Anything else is `422`. It reaches the agent's goal text. Spec: `.kiro/specs/recipient-input/` | omitted (the API's own default, used by evals and tests; no screen fills it in) |
 
 Refusals: `429` (rate limit, or too many runs at once; has `Retry-After`), `403` (LLM mode is off on the public demo). Both return `{"detail": "<plain sentence>"}`.
 

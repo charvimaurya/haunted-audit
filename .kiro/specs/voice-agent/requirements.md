@@ -67,3 +67,12 @@ A spoken or typed command acts on the real Haunted Bank in a browser, by accessi
 - 5 runs each on the haunted and fixed pages, each at least 4 of 5 correct.
 - Axe on the panel.
 - No existing test is loosened.
+
+**REQ-VA-11: Natural phrases (owner asked for it).**
+- A fixed list of phrases is rewritten into one of the three commands in REQ-VA-01. Rules decide, never a model. `agent/voice_agent/grammar.py`, `parse_natural`.
+- A leading "please", "can you", "could you" or "I want to" is ignored. "the", "a", "an" and "my" before a name are ignored, and so is a trailing "button", "link", "field" or "box".
+- `click`: also `press`, `tap`, `hit`, `push`, `select`, `choose`, `activate`, `submit`, `click on`. The phrases `send payment`, `make a payment`, `pay` and `pay now` click the control named "Send Payment".
+- `go to`: also `open`, `visit`, `navigate to`, `take me to`, `show me`.
+- `type`: also `enter <text> in <field>`, `write`, `put`, `fill in`, and `set <field> to <text>`. Two-word text still needs quotes.
+- Not covered, still "not understood": amounts in words ("a hundred dollars"), one phrase that does several steps, and anything off the list.
+- `parse` (REQ-VA-01) is unchanged. The runner calls `parse_natural`, which tries `parse` first. The Hypothesis test for non-commands now also skips the new leading verbs, because those are commands now. No assertion was loosened.
