@@ -5,7 +5,8 @@
  */
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { CheckCircle2, CircleDashed, Info, Mic, MicOff, XCircle } from 'lucide-react';
+import { CircleDashed, Info, Mic, MicOff } from 'lucide-react';
+import { ExampleLabel } from './ExampleLabel';
 import type { JourneyResult } from '../types';
 import {
   interpretVoiceCommand,
@@ -28,8 +29,8 @@ const FOCUS =
 
 function StatusChip({ status }: { status: VoiceRunStatus }) {
   const text =
-    status === 'ran' ? 'Ran' : status === 'simulated' ? 'Simulated' : 'Not run yet';
-  const Icon = status === 'not-run' ? CircleDashed : status === 'simulated' ? Info : CheckCircle2;
+    status === 'ran' ? 'Heard (simulation)' : status === 'simulated' ? 'Simulated' : 'Not run yet';
+  const Icon = status === 'not-run' ? CircleDashed : Info;
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-md border border-base-line bg-base/40 px-2 py-1 text-base font-ui text-ink"
@@ -41,24 +42,12 @@ function StatusChip({ status }: { status: VoiceRunStatus }) {
   );
 }
 
-function OutcomeIcon({ status }: { status: VoiceOutcomeRow['status'] }) {
-  if (status === 'ok') {
-    return (
-      <CheckCircle2
-        size={16}
-        className="mt-0.5 shrink-0 text-ghost-verified"
-        aria-label="ok"
-      />
-    );
-  }
-  if (status === 'fail') {
-    return (
-      <XCircle size={16} className="mt-0.5 shrink-0 text-ghost-blocked" aria-label="failed" />
-    );
-  }
-  return (
-    <Info size={16} className="mt-0.5 shrink-0 text-ink-muted" aria-label="info" />
-  );
+/**
+ * Until the voice runner exists (Phase 3), every outcome is a simulation against the keyboard run,
+ * so it gets a neutral icon only: never a tick or a cross (no-mock-results REQ-NM-07).
+ */
+function OutcomeIcon() {
+  return <Info size={16} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />;
 }
 
 export function VoiceAgentPanel({ result }: VoiceAgentPanelProps) {
@@ -260,11 +249,12 @@ export function VoiceAgentPanel({ result }: VoiceAgentPanelProps) {
           {result === null ? ' (and a journey has been measured).' : '.'}
         </p>
       ) : (
+        <ExampleLabel>
         <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Voice Agent outcomes">
           {outcomes.map((o, i) => (
             <li key={i} className="flex items-start gap-2 text-base font-ui">
-              <OutcomeIcon status={o.status} />
-              <span className={o.status === 'fail' ? 'text-ghost-blocked' : 'text-ink-muted'}>
+              <OutcomeIcon />
+              <span className="text-ink-muted">
                 {o.label}
                 {o.detail && (
                   <span className="mt-0.5 block text-base text-ink-faint">{o.detail}</span>
@@ -273,6 +263,10 @@ export function VoiceAgentPanel({ result }: VoiceAgentPanelProps) {
             </li>
           ))}
         </ul>
+        <p className="m-0 text-base font-ui text-ink-faint">
+          No voice agent ran. These lines compare your command with the last keyboard run.
+        </p>
+        </ExampleLabel>
       )}
     </article>
   );

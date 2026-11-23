@@ -3,129 +3,97 @@
  *
  * "Kiro Integration — Accessibility in Your Workflow" panel (annotation E in v7).
  *
+ * Real content only (no-mock-results REQ-NM-06):
+ * - The file tree lists the folders that really exist in .kiro/.
+ * - The code is the real hook, .kiro/hooks/scan-on-save.json (trigger, matcher, command).
+ * - The browser cannot see the hook run, so there is no "live" list. One finding recorded on
+ *   22 Nov 2026 is shown with its source file. It is a record, not a live result.
+ *
  * Accessibility:
- * - File tree is a decorative illustration — no interactive tree widget needed.
- *   Using a plain <ul> with role="list" and aria-label.
- * - Code editor "tab bar" is a visual decoration of a single active file — no
- *   interactive tablist. Rendered as a <div> with a visible file-name label.
- *   axe-core requires tablist children to be focusable; since these are not
- *   interactive, role="tablist" is removed to avoid the ARIA pattern mismatch.
- * - Hook event list has aria-live="polite" for live updates.
- * - All text uses rem-based sizes so 200% zoom works without horizontal scroll.
- * - "Built with Kiro" is plain text (not a link, not a logo).
+ * - The file tree is a plain list, not an interactive tree widget.
+ * - The code listing is a figure with a caption.
+ * - Status is icon plus text. "Built with Kiro" is plain text.
  */
+import { FileSearch } from 'lucide-react';
 
-import { CheckCircle2, XCircle, Zap } from 'lucide-react';
-
+/** The real hook, as in .kiro/hooks/scan-on-save.json (description and matcher shortened). */
 const HOOK_CODE_LINES = [
-  { n: 1, text: '// Kiro hook: run Haunted Audit on save', muted: true },
-  { n: 2, text: 'onSave(async (file) => {' },
-  { n: 3, text: '  await hauntedAudit.scanJourney(file,' },
-  { n: 4, text: '    "send-payment");', highlight: true },
-  { n: 5, text: '});' },
+  { n: 1, text: '{', muted: true },
+  { n: 2, text: '  "name": "Form label check on save",' },
+  { n: 3, text: '  "trigger": "PostFileSave",' },
+  { n: 4, text: '  "matcher": "… bank | fixtures/haunted_bank | dashboard/src … .(html|tsx)",' },
+  { n: 5, text: '  "action": {' },
+  { n: 6, text: '    "type": "command",' },
+  { n: 7, text: '    "command": "python3 backend/scan_file.py --hook",', highlight: true },
+  { n: 8, text: '    "timeout": 10' },
+  { n: 9, text: '  }' },
+  { n: 10, text: '}', muted: true },
 ];
 
+/** Folders that exist in .kiro/ in this repo. */
 const FILE_TREE = [
-  { name: 'Kiro',       depth: 0, icon: '🦇' },
-  { name: '.kiro/',     depth: 1 },
-  { name: 'agents/',    depth: 2 },
-  { name: 'specs/',     depth: 2 },
-  { name: 'hooks/',     depth: 2, active: true },
-  { name: 'powers/',    depth: 2 },
-  { name: 'steering/',  depth: 2 },
+  { name: '.kiro/', depth: 0 },
+  { name: 'agents/', depth: 1 },
+  { name: 'hooks/', depth: 1, active: true },
+  { name: 'scripts/', depth: 1 },
+  { name: 'settings/', depth: 1 },
+  { name: 'skills/', depth: 1 },
+  { name: 'specs/', depth: 1 },
+  { name: 'steering/', depth: 1 },
 ];
 
-interface HookEvent {
-  type: 'success' | 'trigger' | 'error';
-  message: string;
-}
-
-const DEFAULT_EVENTS: HookEvent[] = [
-  { type: 'success', message: 'File saved: SendPayment.tsx' },
-  { type: 'trigger', message: 'Haunted Audit scan triggered' },
-  { type: 'error',   message: 'Accessibility issue found: Missing accessible label' },
-];
-
-const EVENT_ICON_LABEL: Record<HookEvent['type'], string> = {
-  success: 'Success',
-  trigger: 'Triggered',
-  error:   'Error',
+/** Recorded by scan_page on 22 Nov 2026 (docs/evidence/mcp-scan-page-2026-11-22.md). */
+const RECORDED_FINDING = {
+  file: 'fixtures/haunted_bank/index.html',
+  line: 188,
+  element: 'input#amount',
+  findingId: 'label-594db4fb701f',
+  message: 'This input has no accessible name.',
+  source: 'docs/evidence/mcp-scan-page-2026-11-22.md',
+  recorded: '22 Nov 2026',
 };
 
 export function KiroIntegrationSection() {
   return (
-    <section
-      id="kiro"
-      aria-labelledby="kiro-integration-heading"
-      className="panel overflow-hidden"
-    >
-      {/* ── Header ──────────────────────────────────────────────────── */}
+    <section id="kiro" aria-labelledby="kiro-integration-heading" className="panel overflow-hidden">
       <div className="px-5 py-3 border-b border-base-line flex items-center gap-2">
-        <span className="text-base" aria-hidden="true">🦇</span>
-        <h2
-          id="kiro-integration-heading"
-          className="text-base font-semibold font-ui text-ink"
-        >
+        <h2 id="kiro-integration-heading" className="text-base font-semibold font-ui text-ink">
           Kiro Integration —{' '}
           <span className="text-ink-muted font-normal">Accessibility in Your Workflow</span>
         </h2>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-0 divide-y xl:divide-y-0 xl:divide-x divide-base-line">
-
-        {/* ── Left: IDE illustration ───────────────────────────────── */}
+        {/* ── Left: the real hook file ─────────────────────────────── */}
         <div className="p-4 flex flex-col gap-3">
           <div className="flex gap-3">
-
-            {/* File tree — decorative, not interactive */}
-            <nav
-              aria-label="Kiro workspace file tree (illustration)"
-              className="w-28 shrink-0"
-            >
+            <nav aria-label="Kiro workspace folders" className="w-28 shrink-0">
               <ul className="flex flex-col gap-0.5 list-none p-0 m-0" role="list">
-                {FILE_TREE.map(({ name, depth, icon, active }) => (
+                {FILE_TREE.map(({ name, depth, active }) => (
                   <li
                     key={name}
                     className={[
                       'text-base font-mono rounded px-1 py-0.5',
-                      active
-                        ? 'bg-violet-600/20 text-violet-300'
-                        : 'text-ink-faint',
+                      active ? 'bg-violet-600/20 text-violet-300' : 'text-ink-faint',
                     ].join(' ')}
                     style={{ paddingLeft: `${depth * 10 + 4}px` }}
                     aria-current={active ? 'true' : undefined}
                   >
-                    {icon && <span aria-hidden="true" className="mr-1">{icon}</span>}
                     {name}
                   </li>
                 ))}
               </ul>
             </nav>
-
-            {/* Code editor illustration */}
             <div className="flex-1 min-w-0">
-              {/* Active file tab — decorative, not interactive */}
-              <div
-                className="flex items-center gap-1 mb-2"
-                aria-label="Active editor file"
-              >
-                <div
-                  className="flex items-center gap-1 px-2 py-1 rounded-t-md text-base font-mono
-                             bg-base border-t border-l border-r border-base-line text-ink-muted"
-                >
+              <div className="flex items-center gap-1 mb-2">
+                <div className="flex items-center gap-1 px-2 py-1 rounded-t-md text-base font-mono bg-base border-t border-l border-r border-base-line text-ink-muted">
                   <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true" />
-                  <span>accessibility-hook.ts</span>
+                  <span>scan-on-save.json</span>
                 </div>
               </div>
-
-              {/* Code listing */}
-              <figure
-                className="code-block m-0"
-                aria-label="accessibility-hook.ts source code"
-                role="figure"
-              >
+              <figure className="code-block m-0" aria-label="scan-on-save.json, the real Kiro hook">
                 <figcaption className="sr-only">
-                  accessibility-hook.ts — Kiro hook that triggers Haunted Audit on save
+                  .kiro/hooks/scan-on-save.json: on save, Kiro runs python3 backend/scan_file.py --hook
                 </figcaption>
                 <pre className="m-0 whitespace-pre-wrap break-words">
                   <code>
@@ -137,17 +105,9 @@ export function KiroIntegrationSection() {
                           muted ? 'text-ink-faint' : '',
                           highlight ? 'text-amber-300' : '',
                           !muted && !highlight ? 'text-ink-muted' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
+                        ].filter(Boolean).join(' ')}
                       >
-                        {/* Line number — decorative */}
-                        <span
-                          className="w-4 text-right text-ink-faint/50 shrink-0 select-none"
-                          aria-hidden="true"
-                        >
-                          {n}
-                        </span>
+                        <span className="w-6 text-right text-ink-faint/50 shrink-0 select-none" aria-hidden="true">{n}</span>
                         <span>{text}</span>
                       </span>
                     ))}
@@ -158,60 +118,28 @@ export function KiroIntegrationSection() {
           </div>
         </div>
 
-        {/* ── Right: Live hook events ──────────────────────────────── */}
+        {/* ── Right: one recorded finding, with its source ─────────── */}
         <div className="p-4 flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <Zap size={13} className="text-amber-400" aria-hidden="true" />
-            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook (Live)</h3>
+            <FileSearch size={16} className="text-amber-400" aria-hidden="true" />
+            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook: recorded finding</h3>
           </div>
-
-          <ul
-            className="flex flex-col gap-2 list-none p-0 m-0"
-            aria-label="Live Kiro hook events"
-            aria-live="polite"
-            aria-atomic="false"
-          >
-            {DEFAULT_EVENTS.map(({ type, message }, i) => (
-              <li key={i} className="flex items-start gap-2 text-base font-ui">
-                {type === 'success' && (
-                  <CheckCircle2
-                    size={13}
-                    className="text-ghost-verified shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                )}
-                {type === 'trigger' && (
-                  <span
-                    className="w-[13px] h-[13px] shrink-0 mt-0.5 flex items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-violet-500" />
-                  </span>
-                )}
-                {type === 'error' && (
-                  <XCircle
-                    size={13}
-                    className="text-ghost-blocked shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                )}
-                {/* sr-only event type so colour is not the sole status carrier */}
-                <span className="sr-only">{EVENT_ICON_LABEL[type]}:</span>
-                <span
-                  className={
-                    type === 'error' ? 'text-ghost-blocked' : 'text-ink-muted'
-                  }
-                >
-                  {message}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {/* Attribution — plain text, not a link, not a logo */}
-          <p className="mt-auto text-base font-ui text-ink-faint pt-2 border-t border-base-line">
-            Built with Kiro
+          <p className="m-0 text-base font-ui text-ink-muted">
+            This page cannot see the hook run in your editor. Below is one real finding, recorded on{' '}
+            {RECORDED_FINDING.recorded}. It is not live.
           </p>
+          <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-base font-ui">
+            <dt className="text-ink-faint">File</dt>
+            <dd className="m-0 font-mono text-ink break-all">{RECORDED_FINDING.file}, line {RECORDED_FINDING.line}</dd>
+            <dt className="text-ink-faint">Element</dt>
+            <dd className="m-0 font-mono text-ink">{RECORDED_FINDING.element}</dd>
+            <dt className="text-ink-faint">Finding</dt>
+            <dd className="m-0 text-ink">{RECORDED_FINDING.message} WCAG 1.3.1, 3.3.2, 4.1.2.</dd>
+            <dt className="text-ink-faint">ID</dt>
+            <dd className="m-0 font-mono text-ink-muted">{RECORDED_FINDING.findingId}</dd>
+          </dl>
+          <p className="m-0 text-base font-ui text-ink-faint">Source: {RECORDED_FINDING.source}</p>
+          <p className="mt-auto text-base font-ui text-ink-faint pt-2 border-t border-base-line">Built with Kiro</p>
         </div>
       </div>
     </section>

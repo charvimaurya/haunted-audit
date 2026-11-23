@@ -15,7 +15,7 @@ const linkClass =
 /** One page per fix step: Find, Fix, Verify, Regression. Every link comes from the route table. */
 export default function Fixes() {
   const { step } = useParams();
-  const { result } = useRun();
+  const { result, apiStatus, isRunning } = useRun();
   const navigate = useNavigate();
   if (!isStep(step)) return <Navigate to={to('app-fixes-find')} replace />;
   const index = FIX_STEPS.indexOf(step);
@@ -25,6 +25,8 @@ export default function Fixes() {
     <Page id={fixStepId(step)}>
       <PipelineSection
         result={result}
+        apiStatus={apiStatus}
+        isRunning={isRunning}
         activeStep={(index + 1) as 1 | 2 | 3 | 4}
         onSelectStep={(s) => navigate(to(fixStepId(FIX_STEPS[s - 1])))}
       />

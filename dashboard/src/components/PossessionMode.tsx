@@ -168,17 +168,25 @@ export function PossessionMode({
             </li>
           </ol>
         </nav>
-        {/* Live badge */}
-        <span
-          className="flex items-center gap-2 rounded-full border border-ghost-blocked/50 bg-ghost-blocked/15 px-3 py-1 text-base font-ui text-ghost-blocked"
-          role="status"
-          aria-live="polite"
-          aria-label={isRunning ? 'Live test running' : 'Live test ready'}
-        >
-          {isRunning && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
-          <span className="h-2 w-2 rounded-full bg-ghost-blocked animate-pulse" aria-hidden="true" />
-          Live Test
-        </span>
+        {/* Live badge: only while a run is going; otherwise say plainly that nothing is running */}
+        {isRunning ? (
+          <span
+            className="flex items-center gap-2 rounded-full border border-ghost-blocked/50 bg-ghost-blocked/15 px-3 py-1 text-base font-ui text-ghost-blocked"
+            role="status"
+            aria-live="polite"
+          >
+            <Loader2 size={14} className="motion-safe:animate-spin" aria-hidden="true" />
+            Live Test
+          </span>
+        ) : (
+          <span
+            className="flex items-center gap-2 rounded-full border border-base-line px-3 py-1 text-base font-ui text-ink-muted"
+            role="status"
+            aria-live="polite"
+          >
+            {result ? 'Last run finished' : 'Not run yet'}
+          </span>
+        )}
       </div>
 
       {/* ── Body: bank (sidebar + form) on the left, checklist on the right ─ */}

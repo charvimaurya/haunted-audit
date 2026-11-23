@@ -45,6 +45,15 @@ Date: Sun 22 Nov 2026. Branch: `feature/no-mock-results`, from `main` at `e10bdd
 | API offline | Shown only after pressing Run ("The audit service did not answer"). Before that, pages show "not yet measured" as if the API were up |
 | Fix endpoint | Does not exist (`.kiro/steering/data-contract.md`, "Fix: PLANNED"). Nothing on the Fix pages says "Not available yet" for the Exorcist or the Verifier as a whole |
 
+## Found while fixing (22 Nov, same branch)
+
+| # | Where | Problem | Fix |
+|---|---|---|---|
+| M10 | `runs/RunProvider.tsx` | A crashed run (`status: "error"`, result `{run_id, error, verdict: "BLOCKED"}`) was shown as a real finding ("No, in the last run: BLOCKED", "Blocked: no reason code"). Seen in Chrome: the API on port 8000 was started from Cursor's sandbox and cannot find its Playwright browser, so every run crashed | `runs/record.ts` drops the result of a crashed run. Pages say "The run failed, so no result is shown." plus the first line of the error |
+| M11 | `components/PipelineSection.tsx` step tabs | Steps before the current one were green and announced "completed" with no run | Tabs show position only ("step 2 of 4") |
+| M12 | `components/ResultsSection.tsx` "Approved fixes verified" tile | Green tick next to `--` | Neutral wrench icon. This differs from v7, so it goes in the Phase 4 fidelity list |
+| M13 | `components/MetricValue.tsx` counter | Counting up to 1 showed `0.6736666666865351 / 6` | Whole numbers count in whole steps |
+
 ## Plan
 
 1. **Immediate:** one `ExampleLabel` component, an icon plus the text "Example only, not a real run". Every sample value that stays is wrapped in it and has no PASS, FAIL, Verified or caught state.

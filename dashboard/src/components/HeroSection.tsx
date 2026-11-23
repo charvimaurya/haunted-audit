@@ -124,7 +124,7 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-base font-ui
                        bg-base-surface/80 border border-base-line text-ink-muted"
           >
-            <Icon size={16} className={tone} aria-hidden="true" />
+            <Icon size={16} className={tone} aria-hidden="true" data-icon-role="step" />
             {label}
           </li>
         ))}

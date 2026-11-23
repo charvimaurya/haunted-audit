@@ -115,7 +115,9 @@ function useMeasuredCount(value: number | null): number | null {
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / 600);
-      setShown(t >= 1 ? value : value * t);
+      // Whole numbers count in whole steps, so a count never shows a fraction like 0.67.
+      const step = Number.isInteger(value) ? Math.round(value * t) : value * t;
+      setShown(t >= 1 ? value : step);
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);

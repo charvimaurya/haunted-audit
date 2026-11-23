@@ -8,14 +8,33 @@
  *   2. GET /runs/{id}/events (SSE) -> StepEvents
  *   3. On "done" -> GET /runs/{id} -> final JourneyResult
  *
+ * API status: GET /health on load and every 30 s. While it does not answer, result areas show an offline
+ * state instead of "Not run yet" (no-mock-results REQ-NM-03).
+ *
  * API base URL: VITE_API_URL, default http://127.0.0.1:8000
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { RunNoticeProps } from '../components/RunNotice';
 import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from '../types';
-import { RunContext, type RunValue } from './runContext';
+import { RunContext, type ApiStatus, type RunValue } from './runContext';
+import { shownRun, type RunRecordLike } from './record';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://127.0.0.1:8000';
+const HEALTH_EVERY_MS = 30_000;
+const HEALTH_TIMEOUT_MS = 3_000;
+
+async function checkHealth(): Promise<ApiStatus> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), HEALTH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE}/health`, { signal: ctrl.signal });
+    return res.ok ? 'online' : 'offline';
+  } catch {
+    return 'offline';
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export function RunProvider({ children }: { children: ReactNode }) {
   const [variant, setVariant]       = useState<Variant>('broken');
@@ -24,14 +43,33 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const [result, setResult]         = useState<JourneyResult | null>(null);
   const [liveEvents, setLiveEvents] = useState<StepEvent[]>([]);
   const [notice, setNotice]         = useState<RunNoticeProps | null>(null);
+  const [apiStatus, setApiStatus]   = useState<ApiStatus>('checking');
+  const [runError, setRunError]     = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
   // Close the stream only when the whole app goes away, not on page changes
   useEffect(() => () => sseRef.current?.close(), []);
 
+  // Is the API there? Checked on load and every 30 seconds.
+  useEffect(() => {
+    let live = true;
+    const probe = () => {
+      void checkHealth().then((s) => {
+        if (live) setApiStatus(s);
+      });
+    };
+    probe();
+    const timer = setInterval(probe, HEALTH_EVERY_MS);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, []);
+
   const run = useCallback(async () => {
     // Reset state
     setResult(null);
+    setRunError(null);
     setLiveEvents([]);
     setNotice(null);
     setRunStatus('running');
@@ -80,9 +118,10 @@ export function RunProvider({ children }: { children: ReactNode }) {
         try {
           const r = await fetch(`${API_BASE}/runs/${run_id}`);
           if (r.ok) {
-            const record = await r.json();
-            setResult(record.result ?? null);
-            setRunStatus(record.status === 'error' ? 'error' : 'complete');
+            const shown = shownRun((await r.json()) as RunRecordLike);
+            setResult(shown.result);
+            setRunError(shown.error);
+            setRunStatus(shown.error ? 'error' : 'complete');
           } else {
             setRunStatus('error');
           }
@@ -100,14 +139,15 @@ export function RunProvider({ children }: { children: ReactNode }) {
         kind: 'offline',
         message: 'The audit service did not answer. No result is shown. Try again later.',
       });
+      setApiStatus('offline');
       setRunStatus('error');
     }
   }, [variant, mode]);
 
   const isRunning = runStatus === 'running';
   const value = useMemo<RunValue>(
-    () => ({ variant, mode, runStatus, result, liveEvents, notice, isRunning, setVariant, setMode, run }),
-    [variant, mode, runStatus, result, liveEvents, notice, isRunning, run],
+    () => ({ variant, mode, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
+    [variant, mode, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }
