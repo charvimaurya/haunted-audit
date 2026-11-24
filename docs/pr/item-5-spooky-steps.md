@@ -1,8 +1,8 @@
 # Item 5: spooky moments as loop steps, plus items 1 and 2 paperwork (committed on main, no PR)
 
 Owner rule: everything on `main`, no branches, so there is no pull request. Spec `.kiro/specs/spooky-steps/`.
-Commits: `990b469` (Exorcist TASK-07 and Verifier outcomes), `319966c` (spec), `d5e2a7d` SS-01, `1de776a` SS-02,
-then SS-03 (docs and review fixes).
+Commits: `616a79a` (Exorcist TASK-07 and Verifier outcomes), `efcc2e1` (spec), `39d4b50` SS-01, `b425e3a` SS-02,
+`bfa8a1c` SS-03 (docs and review fixes).
 
 ## What changed
 - Items 1 and 2: `scripts/qa_exorcist.py --runs 5` (scripted 5/5 valid, verified, caught; llm not run, no AWS) and
