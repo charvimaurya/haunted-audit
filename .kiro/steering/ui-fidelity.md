@@ -28,7 +28,7 @@ Source of truth: `design/Haunted_Audit_Final_UI_v7.png` ("Final UI design v7"). 
 ## Assets
 
 - Self-host fonts and assets. No external CDNs.
-- Build art as inline SVG.
+- Build art as inline SVG, with one exception: the Home hero background is the self-hosted image `dashboard/src/assets/hero-bg.jpg` (the v7 artwork with the text removed, from `design/v9/assets/`). Title, tagline, buttons and chips stay live HTML on top of it.
 
 ## What the image says is already applied (keep it)
 

@@ -17,3 +17,7 @@ Asked for by the owner on 22 Nov 2026: "i want to enter the name myself for test
 
 **REQ-RI-04: Same checks as before.**
 - The checker alone decides the verdict. The new field has a visible label, a visible focus ring, 16px text and a 44px target, and passes axe.
+
+**REQ-RI-05: No recipient field on the screens (owner, 22 Nov 2026).**
+- The owner asked to remove the "Recipient name" field beside Run Journey. Possession Mode and the Try page no longer show it, and Run Journey starts without asking for a name.
+- This replaces the screen part of REQ-RI-01. With no name sent, the API keeps its earlier default (REQ-RI-02); the `recipient` request field and the `RunControls` option stay for later use.

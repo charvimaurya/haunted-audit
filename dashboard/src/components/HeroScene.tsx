@@ -5,6 +5,7 @@
 function Pumpkin({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <circle cx="0" cy="0" r="74" fill="var(--scene-pumpkin)" fillOpacity="0.18" />
       <ellipse cx="0" cy="0" rx="46" ry="38" fill="var(--scene-pumpkin)" />
       <path d="M-18 -34 Q-24 0 -18 34 M18 -34 Q24 0 18 34" stroke="var(--scene-face)" strokeOpacity="0.35" strokeWidth="3" fill="none" />
       <rect x="-4" y="-48" width="8" height="14" rx="2" fill="var(--scene-face)" />
@@ -34,12 +35,15 @@ export function HeroScene() {
         {[[120,60],[260,30],[420,90],[560,40],[700,20],[860,70],[980,36],[1120,80],[1260,40],[1360,110],[330,150],[1040,150],[640,110]].map(([x, y]) => (
           <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" fill="var(--scene-star)" fillOpacity="0.7" />
         ))}
-        {/* Bare trees, a graveyard fence and tombstones along the ground (v7 hero) */}
-        <g stroke="var(--scene-tree)" strokeLinecap="round" fill="none">
-          <path strokeWidth="9" d="M330 420 V250 M330 340 L290 290 L270 250 M330 310 L372 262 L392 224 M330 280 L312 236 M372 262 L398 270" />
-          <path strokeWidth="7" d="M1090 420 V270 M1090 350 L1056 306 L1040 270 M1090 320 L1126 282 L1140 246 M1090 292 L1076 252" />
-          <path strokeWidth="6" d="M1380 420 V290 M1380 350 L1352 316 M1380 330 L1408 300 M1380 306 L1368 276" />
-          <path strokeWidth="6" d="M470 420 V330 M470 370 L448 340 M470 356 L494 330" />
+        {/* Twisted bare trees at both edges, a graveyard fence and tombstones (v7 hero) */}
+        <g stroke="var(--scene-tree)" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <path transform="translate(250 0)" strokeWidth="26" d="M40 420 C60 340 20 280 50 200 C70 150 40 110 60 40" />
+          <path transform="translate(250 0)" strokeWidth="12" d="M52 250 C90 230 130 200 170 170 M60 190 C20 170 -10 150 -20 110 M48 130 C90 110 120 80 150 40 M170 170 C190 160 205 140 215 120 M150 40 C165 30 175 20 180 0" />
+          <path transform="translate(250 0)" strokeWidth="6" d="M100 220 C120 215 135 225 150 215 M90 120 C100 100 110 95 118 80" />
+          <path transform="translate(-215 0)" strokeWidth="24" d="M1400 420 C1380 350 1410 290 1385 220 C1370 170 1395 120 1380 50" />
+          <path transform="translate(-215 0)" strokeWidth="11" d="M1390 260 C1350 240 1310 215 1270 180 M1385 190 C1420 170 1450 150 1470 110 M1380 120 C1340 100 1310 70 1290 30 M1270 180 C1250 170 1240 150 1232 130" />
+          <path transform="translate(-215 0)" strokeWidth="6" d="M1340 230 C1320 228 1305 240 1290 232" />
+          <path strokeWidth="9" d="M330 420 V300 M330 340 L300 300 M330 320 L362 280 M330 300 L318 270" />
           <path strokeWidth="3" d="M560 400 H900 M560 384 H900" strokeOpacity="0.55" />
         </g>
         <g fill="var(--scene-tree)" fillOpacity="0.9">
@@ -70,22 +74,22 @@ export function HeroScene() {
         <Grave x={96} y={400} w={30} h={60} />
         <Bat x={190} y={44} s={1.1} />
         <Bat x={262} y={78} s={0.7} />
-        <g className="scene-ghost-bob">
+        <g className="scene-ghost-bob" style={{ filter: 'drop-shadow(0 0 14px var(--color-violet-neon))' }}>
           {/* body with tail and wavy hem */}
-          <path d="M60 330 C40 250 50 170 120 150 C190 140 215 210 200 290 C196 320 220 330 232 318 C222 352 190 356 176 336 C168 352 148 354 140 338 C128 354 104 352 98 336 C86 350 66 346 60 330 Z" fill="var(--scene-ghost)" />
-          {/* hat */}
+          <path d="M60 330 C40 250 50 170 120 150 C190 140 215 210 200 290 C196 320 220 330 232 318 C222 352 190 356 176 336 C168 352 148 354 140 338 C128 354 104 352 98 336 C86 350 66 346 60 330 Z" fill="var(--scene-ghost)" fillOpacity="0.93" />
+          {/* hat, tilted */}
+          <g transform="rotate(-9 128 120)">
           <path d="M70 160 Q130 140 190 158 L152 56 Q132 14 112 54 Z" fill="var(--scene-hat)" />
           <ellipse cx="128" cy="160" rx="82" ry="16" fill="var(--scene-hat)" />
           <path d="M92 142 Q130 134 168 142 L170 156 Q130 148 90 156 Z" fill="var(--scene-band)" />
           <rect x="120" y="138" width="20" height="18" rx="3" fill="none" stroke="var(--scene-gold)" strokeWidth="4" />
+          </g>
           {/* face */}
-          <ellipse cx="108" cy="200" rx="9" ry="12" fill="var(--scene-eye)" />
-          <ellipse cx="150" cy="200" rx="9" ry="12" fill="var(--scene-eye)" />
-          <circle cx="111" cy="196" r="3" fill="var(--scene-ghost)" />
-          <circle cx="153" cy="196" r="3" fill="var(--scene-ghost)" />
+          <ellipse cx="108" cy="204" rx="9" ry="14" fill="var(--scene-eye)" />
+          <ellipse cx="150" cy="204" rx="9" ry="14" fill="var(--scene-eye)" />
           <ellipse cx="92" cy="220" rx="9" ry="5" fill="var(--scene-blush)" fillOpacity="0.7" />
           <ellipse cx="166" cy="220" rx="9" ry="5" fill="var(--scene-blush)" fillOpacity="0.7" />
-          <path d="M118 224 Q129 236 140 224" stroke="var(--scene-eye)" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M122 226 Q129 231 136 226" stroke="var(--scene-eye)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
           {/* laptop with access symbol */}
           <rect x="84" y="262" width="92" height="60" rx="6" fill="var(--scene-lens)" stroke="var(--scene-glyph)" strokeWidth="3" />
           <circle cx="130" cy="290" r="15" fill="none" stroke="var(--scene-glyph)" strokeWidth="3" />

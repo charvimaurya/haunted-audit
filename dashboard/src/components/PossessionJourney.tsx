@@ -1,0 +1,110 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Page } from './Page';
+import { PossessionMode } from './PossessionMode';
+import { RunControls } from './RunControls';
+import { RunNotice } from './RunNotice';
+import { AutoLoopCard } from './AutoLoopCard';
+import { VoiceCommandsCard } from './VoiceCommandsCard';
+import type { AgentKind } from './AgentToggle';
+import { useRun } from '../runs/runContext';
+import type { RunStatus } from '../types';
+import type { VoiceInputSource } from '../voice/interpretVoiceCommand';
+import { commandsFrom, useVoiceRun } from '../voice/useVoiceRun';
+import { useSpeechInput } from '../voice/useSpeechInput';
+
+/** Starts empty: the tester types the recipient's name themselves (recipient-input REQ-RI-03). */
+const DEFAULT_COMMANDS = '';
+const VOICE_LEAD =
+  'A voice-command run of one user journey (sending a payment) on the Haunted Bank test site. A ghost is an accessibility barrier.';
+
+/**
+ * PossessionJourney: the run controls (Variant, Agent mode, Agent: Keyboard or Voice, Run) and the panel below them.
+ * Used by Possession Mode and by the Try page, so both offer the same Keyboard / Voice choice.
+ * No recipient field: the owner asked for it to be removed (22 Nov 2026); the API keeps its own default name.
+ */
+export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) {
+  const { variant, mode, setVoiceResult, runStatus, result, isRunning, notice, setVariant, setMode, run } =
+    useRun();
+  const [params] = useSearchParams();
+  const [agent, setAgent] = useState<AgentKind>(params.get('agent') === 'voice' ? 'voice' : 'keyboard');
+  const [commandText, setCommandText] = useState(DEFAULT_COMMANDS);
+  const [source, setSource] = useState<VoiceInputSource>('typed');
+  const [emptyNotice, setEmptyNotice] = useState<string | null>(null);
+  const voice = useVoiceRun();
+  const speech = useSpeechInput((text) => {
+    // Listen, then act: what was heard replaces the commands and runs at once (voice-agent REQ-VA-12).
+    setCommandText(text);
+    setSource('speech');
+    setEmptyNotice(null);
+    void voice.start(variant, commandsFrom(text), 'speech');
+  });
+
+  const voiceStatus: RunStatus | null =
+    voice.state.phase === 'idle' ? null
+    : voice.state.phase === 'running' ? 'running'
+    : voice.state.phase === 'finished' && voice.state.result?.verdict === 'PASSED' ? 'complete'
+    : 'error';
+  const voiceLabel =
+    voice.state.phase === 'finished' && voice.state.result
+      ? voice.state.result.verdict === 'PASSED' ? 'Passed' : 'Blocked'
+      : voice.state.phase === 'failed' || voice.state.phase === 'refused' || voice.state.phase === 'offline'
+        ? 'Could not run'
+        : undefined;
+  const isVoice = agent === 'voice';
+
+  // A finished voice run feeds the status badge in the app bar.
+  useEffect(() => {
+    if (voice.state.phase === 'finished' && voice.state.result) setVoiceResult(voice.state.result);
+  }, [voice.state.phase, voice.state.result, setVoiceResult]);
+
+  function runKeyboard() {
+    setVoiceResult(null);
+    return run();
+  }
+
+  function runVoice() {
+    const commands = commandsFrom(commandText);
+    if (commands.length === 0) {
+      setEmptyNotice('There are no commands yet. Use Push to talk or Edit commands to add one, for example: type "Sam Lee" in Recipient.');
+      return;
+    }
+    setEmptyNotice(null);
+    void voice.start(variant, commands, source);
+  }
+
+  return (
+    <Page
+      id={pageId}
+      lead={isVoice ? VOICE_LEAD : undefined}
+    >
+      <RunControls
+        variant={variant}
+        mode={mode}
+        status={isVoice ? voiceStatus : runStatus}
+        onVariantChange={setVariant}
+        onModeChange={setMode}
+        onRun={isVoice ? runVoice : runKeyboard}
+        agent={agent}
+        onAgentChange={setAgent}
+        statusLabel={isVoice ? voiceLabel : undefined}
+      />
+      {!isVoice && notice && <RunNotice {...notice} />}
+      <div className="mt-6">
+        {isVoice ? (
+          <VoiceCommandsCard
+            commandText={commandText}
+            onCommandTextChange={(text, src) => { setCommandText(text); setSource(src); }}
+            source={source}
+            run={voice.state}
+            speech={speech}
+            notice={emptyNotice}
+          />
+        ) : (
+          <PossessionMode result={result} isRunning={isRunning} />
+        )}
+      </div>
+      {pageId === 'possession' && <AutoLoopCard recipient="" />}
+    </Page>
+  );
+}

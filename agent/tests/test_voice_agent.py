@@ -199,3 +199,28 @@ def test_natural_parse_is_always_one_of_the_three(text):
     if cmd is not None:
         assert cmd.kind in {"click", "type", "go_to"} and cmd.name
         assert (cmd.text is not None) == (cmd.kind == "type")
+
+
+# ── REQ-VA-12: one phrase, several steps ────────────────────────────────────
+from agent.voice_agent.grammar import expand_payment  # noqa: E402
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("send money to xyz and ex 100 dollars", ['type "xyz" in Recipient', "type 100.00 in Amount", "click Send Payment"]),
+    ("Please send $100 to Sam Lee", ['type "Sam Lee" in Recipient', "type 100.00 in Amount", "click Send Payment"]),
+    ("pay 50.5 euros to Ann", ['type "Ann" in Recipient', "type 50.50 in Amount", "click Send Payment"]),
+    ("send money to Sam", ['type "Sam" in Recipient']),
+])
+def test_expand_payment(text, expected):
+    assert expand_payment(text) == expected
+
+
+@pytest.mark.parametrize("text", ["send payment", "pay now", "send 0 to Bob", "send 100 to 200", "click Send Payment", "send money"])
+def test_expand_payment_leaves_other_text(text):
+    assert expand_payment(text) == [text]
+
+
+def test_spoken_payment_completes_on_fixed_page():
+    result = run_voice_journey("fixed", ["send money to Alex Carter and 50 dollars"], "speech")
+    assert result.verdict == "PASSED"
+    assert [e.args["outcome"] for e in result.step_events] == ["done", "done", "done"]

@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Ghost, Menu, X } from 'lucide-react';
+import { GhostShieldIcon } from './GhostShieldIcon';
 import { SenseControls } from '../immersion/SenseControls';
 import { SettingsMenu } from './SettingsMenu';
 import { NAV, to } from '../routes';
@@ -98,12 +99,12 @@ export function TopNav() {
           <Link
             to={to('kiro')}
             className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
-                       bg-violet-600 text-white border border-violet-neon/50
-                       hover:bg-violet-500 transition-colors duration-150 shrink-0
+                       bg-[var(--hero-pill)] text-ink border-2 border-violet-neon
+                       hover:bg-violet-600/40 transition-colors duration-150 shrink-0
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
             aria-label="Built with Kiro"
           >
-            <Ghost size={16} aria-hidden="true" />
+            <GhostShieldIcon size={18} />
             <span>Kiro</span>
           </Link>
           <button

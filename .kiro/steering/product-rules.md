@@ -91,7 +91,7 @@ The React/Tailwind dashboard at `dashboard/` implements the v7 frozen design. Ru
 
 - **Do not redesign.** Match layout, palette, copy, and components from `design/Haunted_Audit_Final_UI_v7.png`.
 - Colors are extracted into Tailwind tokens (`tailwind.config.js`) and CSS variables (`src/index.css`). Do not hardcode hex values outside those two files.
-- Spooky display font (`MedievalSharp`, chosen to match the v7 wordmark) is used **for the wordmark only**. All other UI text uses `Inter`. Code uses `JetBrains Mono`.
+- Spooky display font (`Rubik Wet Paint`, the dripping lettering in the v7 wordmark) is used **for the wordmark only**. All other UI text uses `Inter`. Code uses `JetBrains Mono`.
 - One component per file in `src/components/`. All component props are typed (TypeScript interfaces).
 - Unmeasured metrics render as `--` (never a fabricated number). `agent_mode` is shown beside every metric.
 - Ghost mascot: `GhostMascot` component, `state` prop drives colour — purple (`#c9b6ff`) = Ready, red (`#ef4444`) = Blocked, green (`#22c55e`) = Verified.

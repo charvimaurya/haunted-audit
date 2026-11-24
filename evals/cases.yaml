@@ -144,6 +144,20 @@ cases:
       - scripts/keyboard_loop_walk.py output in docs/pr/item-4-loop-evidence.md
       - docs/evidence/loop-evidence-verify.png
     label_source: bank/PLANTED.md (barrier 2) and .kiro/specs/loop-evidence/requirements.md
-    status: open
+    status: resolved
     next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
     recorded: 2026-11-24
+    resolution:
+      decided: >-
+        Owner asked for the loop to run through on 2026-11-24 (voice-agent REQ-VA-13). The scripted Exorcist now
+        proposes both changes in one diff for one approval: Send Payment becomes a button and the Amount caption
+        becomes a label (4 changed lines, agent/fixes/exorcist.py). Not a second finding and not a second approval.
+      agent_mode: scripted
+      observed_after: >-
+        scripts/qa_exorcist.py, 5 runs: 5 of 5 valid diffs, 5 of 5 PASSED on the patched copy, 5 of 5 BLOCKED with the
+        bug put back. scripts/keyboard_loop_walk.py: keyboard PASSED and voice-command simulation PASSED on the patched
+        copy, screen says "Keyboard and voice". scripts/keyboard_autoloop_walk.py: both PASSED. The regression copy
+        still fails for voice (NO_ACTIVATION), as expected with the bug put back.
+      evidence:
+        - docs/pr/item-2-1-exorcist-closure.md (QA agent, keyboard loop walk, autoloop walk)
+      resolved: 2026-11-24

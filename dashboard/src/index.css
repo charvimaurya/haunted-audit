@@ -28,7 +28,7 @@
   --color-ink:           #f0e8ff;
   --color-ink-muted:     #9d89b8;
 
-  --font-display: "MedievalSharp", fantasy;
+  --font-display: "Rubik Wet Paint", fantasy;
   --font-ui:      "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
@@ -282,15 +282,36 @@ html, body {
 @keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 .scene-ghost-bob { animation: scene-bob 4s ease-in-out infinite; }
 .hero-scene, .hero-scene * { pointer-events: none !important; }
+/* Home hero: the painted v7 artwork. Wide screens centre it; phones show the ghost side. */
+.hero-art {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url('./assets/hero-bg.jpg') 50% 50% / cover no-repeat;
+}
+/* Phones and tablets: the text sits on top, the ghost scene fills the lower part. */
+@media (max-width: 1023px) {
+  /* The text and chips come first; the artwork gets its own band below them (the section reserves 460px),
+     so the chips can never cover the hat. The top 15% of the band fades in. */
+  .hero-art {
+    top: auto; bottom: 0; height: 450px; background-size: cover; background-position: 16% 100%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 15%); mask-image: linear-gradient(to bottom, transparent 0, #000 15%);
+  }
+}
 
 /* Wordmark colours: "Haunted" lavender-white, "Audit" violet (v7 hero wordmark). */
-.wordmark-haunted { color: var(--color-ink); }
-.wordmark-audit { color: var(--color-ink); }
+.wordmark-haunted { background: linear-gradient(#ffffff, #cbb6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wordmark-audit { background: linear-gradient(#d9c2ff, #9b5cf0); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .wordmark-glow { text-shadow: none; filter: drop-shadow(0 0 10px var(--color-violet-neon)); }
 
 /* Hero night scene: flat patches from v7 hero crop (design/Haunted_Audit_Final_UI_v7.png, x0-660,y0-320). */
 :root {
-  --scene-tree: #2a1a52;
+  --scene-tree: #0b0620;
+  --hero-sky-top: #3a2a7c;
+  --hero-sky-mid: #231651;
+  --hero-sky-low: #150c33;
+  --hero-cta-top: #7c3aed;
+  --hero-cta-bottom: #5b21b6;
+  --hero-pill: #1a1233;
+  --hero-pill-edge: #3b2d66;
   --scene-path: #2a1f4d;
   --scene-star: #e9e1ff;
 }
@@ -324,8 +345,18 @@ html[data-contrast='high'] :focus-visible { outline: 3px solid #ffff00 !importan
 html[data-contrast='high'] .ambient-layer,
 html[data-contrast='high'] .site-band,
 html[data-contrast='high'] .hero-scene,
-html[data-contrast='high'] .hero-castle { opacity: 0.25; }
+html[data-contrast='high'] .hero-castle,
+html[data-contrast='high'] .hero-art { opacity: 0.25; }
 
 /* Text size setting (docs/ui-fidelity.md D20): every size is in rem, so the root size scales them all. */
 html[data-text-size='125'] { font-size: 125%; }
 html[data-text-size='150'] { font-size: 150%; }
+
+/* Ghost figure colours: the v9 gradients (design/v9) for the red, green and white ghosts. */
+:root {
+  --gf-red-0: #ffb4b4; --gf-red-1: #ff5a5a; --gf-red-2: #b3122b;
+  --gf-green-0: #d4ffe3; --gf-green-1: #5ef08f; --gf-green-2: #138a42;
+  --gf-white-0: #ffffff; --gf-white-1: #efe8ff; --gf-white-2: #b79cf5;
+  --gf-face: #1b0710; --gf-shine: #ffffff;
+  --gf-glow-red: #ff3b3b; --gf-glow-green: #22c55e; --gf-glow-white: rgba(255, 255, 255, 0.55);
+}

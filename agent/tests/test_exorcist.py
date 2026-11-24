@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
 import sqlite3
 import subprocess
 import time
@@ -30,7 +31,7 @@ def good_diff() -> str:
 def test_scripted_diff_is_valid_small_and_reversible():
     p = propose(FINDING)
     assert p.status == "proposed" and p.exorcist_mode == "scripted"
-    assert p.checked.changed_lines == 2
+    assert p.checked.changed_lines == 4  # the Send Payment button (2) and the Amount label (2)
     assert (p.input_tokens, p.output_tokens, p.cost_usd) == (0, 0, 0.0)
     assert '<button type="submit" class="btn-primary" id="send-payment">' in p.checked.patched
     assert dc.apply_reverse(p.checked.diff, p.checked.patched) == SRC
@@ -155,7 +156,7 @@ def test_full_flow_propose_approve_verify_regression(client, caplog):
     caplog.set_level(logging.INFO)
     run_id = _blocked_run(client)
     fix = client.post(f"/runs/{run_id}/fixes", json={}).json()
-    assert fix["status"] == "proposed" and fix["exorcist_mode"] == "scripted" and fix["changed_lines"] == 2
+    assert fix["status"] == "proposed" and fix["exorcist_mode"] == "scripted" and fix["changed_lines"] == 4
     assert fix["agent_mode"] == "scripted" and fix["verify"] is None
     fid = fix["fix_id"]
     # verify before approval is refused; wrong hash is refused
@@ -221,3 +222,17 @@ def test_rows_are_never_deleted_and_history_is_append_only(tmp_path):
         conn.execute("UPDATE fix_events SET event = 'x'")
     with pytest.raises(sqlite3.DatabaseError):
         conn.execute("DELETE FROM fix_events")
+
+
+def test_fix_record_matches_the_data_contract(client):
+    """REQ-X-17: GET /fixes/{id} returns exactly the fields documented under "Fix" in data-contract.md."""
+    text = (REPO / ".kiro" / "steering" / "data-contract.md").read_text(encoding="utf-8")
+    rows = text.split("## Fix: `GET /fixes/{fix_id}`", 1)[1].splitlines()
+    documented: set[str] = set()
+    for line in rows:
+        if line.startswith("|") and not line.startswith("| Field") and not line.startswith("|---"):
+            documented |= set(re.findall(r"`([a-z0-9_]+)`", line.split("|")[1]))
+        elif documented and not line.startswith("|"):
+            break
+    fix = client.post(f"/runs/{_blocked_run(client)}/fixes", json={}).json()
+    assert set(fix) == documented

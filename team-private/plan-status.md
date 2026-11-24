@@ -15,6 +15,7 @@ Audit date: **Sun 22 Nov 2026, evening** (gate day). Feature freeze: Tue 24 Nov 
 | **24 Voice agent drives the bank** | **Done** | [PR #12](https://github.com/charvimaurya/haunted-audit/pull/12): `POST /voice-runs`, accessible names only. Haunted: "Could not activate Send Payment: no accessible role or name", 5 of 5. Fixed: payment confirmed, 5 of 5. Steps on the same SSE; `agent_kind` and `input_source` in every result | optional LLM mapping (needs AWS) |
 | **U2 UI fidelity** | **Done** when PR #13 merges | [PR #13](https://github.com/charvimaurya/haunted-audit/pull/13): `docs/ui-fidelity.md` (D1 to D20), before/after screenshots at 1440 px, SVG mascot in Ready/Blocked/Verified, Critical Ghost card from data, high contrast mode, axe 0 in three modes | D20 text-size setting |
 | **3 Journey test, regression guard** | **Done on main** (no PR: owner chose main only) | Spec `journey-guard`, commits `0499cdb`..`b29a37b`. GUARD_WORKS 5 of 5 (`docs/kiro-writeup/returning-ghost.txt`); journey test fails on the haunted bank with 'Send Payment is not keyboard focusable'. pytest 414, dashboard 117. qa PASS, reviewer no serious issue (`docs/pr/item-3-journey-guard.md`) | CI run on GitHub after push |
+| **2.1 Exorcist (TASK-01 to 07)** | **Built on main; not Done** | Spec `.kiro/specs/exorcist/` (tasks 01 to 07 ticked). `scripts/qa_exorcist.py`, 5 runs made 24 Nov, **scripted** mode: valid diffs 5 of 5 (4 changed lines each), fix verified (checker PASSED on the patched copy) 5 of 5, regression caught (checker BLOCKED with the bug put back) 5 of 5, cost $0.00 (0 tokens), average latency 1.0 ms. Data contract: `test_fix_record_matches_the_data_contract` (REQ-X-17). Full pytest 428 passed, dashboard 132 passed (24 Nov). Devlog line 24 Nov. **LLM mode: NOT RUN** (AWS profile `haunted-audit` is not configured); no LLM result is claimed. The scripted Exorcist also labels Amount (barrier 2), so the voice replay passes on the patched copy | PR with the template filled in (none opened; work is on main); reviewer agent pass; keyboard walk of the Fix pages; LLM-mode QA once AWS access exists |
 
 ## Test counts, before and after this round (all measured 22 Nov)
 
@@ -43,7 +44,7 @@ Test edits this round, each approved by the owner: one link name in `routes.test
 
 | What | Blocked by |
 |---|---|
-| Exorcist (proposed fix), Verifier (fix verified), Regression test, gate checks 2 and 3 | The Exorcist spec: requirements only, no design or code; needs the owner's OK, then Shilpa's approval |
+| Exorcist (proposed fix), Verifier (fix verified), Regression test, gate checks 2 and 3 | The Exorcist spec: requirements only, no design or code; needs the owner's OK, then Shilpa's approval. *(22 Nov text. Built since: see the 2.1 row under "This round".)* |
 | `exorcise_page` MCP tool, `exorcise-fix` and `journey-test-writer` skills | The same |
 | LLM agent pass rate (4 of 5) and an LLM voice mapping | AWS credentials and Bedrock access (Charvi) |
 | Staging (gate check 4) | Nothing deployed |

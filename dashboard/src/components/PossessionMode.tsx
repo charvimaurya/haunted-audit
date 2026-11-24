@@ -36,7 +36,6 @@ import {
   TriangleAlert,
   X,
 } from 'lucide-react';
-import { GhostMascot } from './GhostMascot';
 import { PossessionGhost } from './PossessionGhost';
 import type { GhostState, JourneyResult } from '../types';
 
@@ -299,12 +298,12 @@ export function PossessionMode({
               )}
               {ghostState === 'blocked' && (
                 <span className="-mt-10 ml-4 shrink-0">
-                  <PossessionGhost size={72} />
+                  <PossessionGhost size={96} />
                 </span>
               )}
-              {ghostState !== 'ready' && ghostState !== 'blocked' && (
-                <span className="ml-4 shrink-0">
-                  <GhostMascot state={ghostState} size={48} animate={false} />
+              {ghostState === 'verified' && (
+                <span className="-mt-10 ml-4 shrink-0">
+                  <PossessionGhost size={96} state="verified" />
                 </span>
               )}
             </div>

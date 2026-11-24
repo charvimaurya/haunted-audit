@@ -13,6 +13,8 @@ interface VoiceCommandsCardProps {
   onCommandTextChange: (text: string, source: VoiceInputSource) => void;
   source: VoiceInputSource;
   run: VoiceRunState;
+  /** A plain sentence shown when the run could not start (for example, no commands). */
+  notice?: string | null;
   speech: { supported: boolean; listening: boolean; heard: string; error: string | null; start: () => void; stop: () => void };
 }
 
@@ -24,7 +26,7 @@ const SOURCE_LABEL: Record<VoiceInputSource, string> = {
 const BTN =
   'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 text-base font-ui';
 
-export function VoiceCommandsCard({ commandText, onCommandTextChange, source, run, speech }: VoiceCommandsCardProps) {
+export function VoiceCommandsCard({ commandText, onCommandTextChange, source, run, speech, notice }: VoiceCommandsCardProps) {
   const [editing, setEditing] = useState(false);
   const areaId = useId();
   const commands = commandsFrom(commandText);
@@ -61,12 +63,13 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
                 <span>{c}</span>
               </li>
             ))}
-            {commands.length === 0 && <li className="font-ui text-ink-muted">No commands yet. Use Push to talk or Edit commands, for example: type "&lt;name&gt;" in Recipient, type 50.00 in Amount, click Send Payment.</li>}
+            {commands.length === 0 && <li className="font-ui text-ink-muted">No commands yet. Use Push to talk or Edit commands, for example: send 100 dollars to Sam Lee.</li>}
           </ol>
         )}
         {speech.listening && (
           <p className="m-0 text-base font-ui text-ink" role="status">Listening… {speech.heard || '(speak now)'}</p>
         )}
+        {notice && <p className="m-0 text-base font-ui text-ghost-blocked" role="alert">{notice}</p>}
         {speech.error && <p className="m-0 text-base font-ui text-ghost-blocked" role="alert">{speech.error}</p>}
         <div aria-live="polite" className="flex flex-col gap-2">
           {run.phase === 'running' && run.steps.length === 0 && (
@@ -125,7 +128,7 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
           {editing ? 'Done editing' : 'Edit commands'}
         </button>
         <p className="m-0 text-base font-ui text-ink-muted">
-          Chrome may send microphone audio to its speech service. Audio is never stored or played.
+          Say, for example, "send money to Sam Lee, 100 dollars". It runs as soon as you stop talking. Chrome may send microphone audio to its speech service. Audio is never stored or played.
         </p>
       </div>
     </section>

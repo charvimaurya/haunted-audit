@@ -115,3 +115,51 @@ def parse_natural(text: str) -> Command | None:
         return None
     cmd = parse(rewritten)
     return None if cmd is None else Command(cmd.kind, cmd.name, cmd.text, text)
+
+
+# ── One phrase, several steps (voice-agent REQ-VA-12) ───────────────────────
+# "send 100 dollars to Sam Lee" becomes three ordinary commands. A fixed pattern decides, never a model.
+RECIPIENT_FIELD = "Recipient"
+AMOUNT_FIELD = "Amount"
+_MONEY_WORD = r"(?:dollars?|euros?|bucks|usd|eur)"
+_AMOUNT = rf"(?:[$\u20ac]\s*)?(?P<{{n}}>\d[\d,]*(?:\.\d{{{{1,2}}}})?)(?:\s*{_MONEY_WORD}|\s*[$\u20ac])?"
+_NAME_CHARS = r"[A-Za-z][A-Za-z .'\-]*?"
+_TAIL = r"(?:\s+(?:please|now))?"
+_SEND = re.compile(
+    rf"^(?:send|pay|transfer|wire)\s+(?:(?:some\s+)?money\s+)?(?:{_AMOUNT.format(n='lead')}\s+)?(?:to\s+)?"
+    rf"(?P<name>{_NAME_CHARS})"
+    rf"(?:\s*,?\s*(?:and\s+|with\s+|for\s+|of\s+|amount\s+(?:of\s+)?)*(?:(?:ex|eg|e\.g\.)\s+)?{_AMOUNT.format(n='tail')})?{_TAIL}$",
+    re.IGNORECASE,
+)
+
+def _normal_amount(raw: str) -> str | None:
+    """'1,000' -> '1000.00', '5.5' -> '5.50'. The bank wants two decimals. Zero is refused."""
+    t = raw.replace(",", "")
+    whole, _, frac = t.partition(".")
+    if not whole.isdigit() or len(frac) > 2:
+        return None
+    value = f"{int(whole)}.{frac.ljust(2, '0')}"
+    return None if int(whole) == 0 and int(frac or 0) == 0 else value
+
+def expand_payment(text: str) -> list[str]:
+    """Return the ordinary commands for a send-money phrase, or [text] when it is not one.
+    With a recipient and an amount: type both, then click Send Payment. With a recipient only: type it and stop."""
+    if not isinstance(text, str) or len(text) > MAX_COMMAND_CHARS or "\n" in text.strip():
+        return [text]
+    t = _POLITE.sub("", _clean(text)).strip()
+    m = _SEND.match(t)
+    if not m:
+        return [text]
+    name = re.sub(r"\s+(?:and|with|for|of|to)$", "", m["name"].strip(), flags=re.IGNORECASE).strip(" ,.-")
+    if not name or len(name) > 60 or name.lower() in {"money", "payment", "it", "now"}:
+        return [text]
+    raw = m["lead"] or m["tail"]
+    if m["lead"] and m["tail"]:
+        return [text]
+    steps = [f'type "{name}" in {RECIPIENT_FIELD}']
+    if raw:
+        amount = _normal_amount(raw)
+        if amount is None:
+            return [text]
+        steps += [f"type {amount} in {AMOUNT_FIELD}", f"click {PAYMENT_BUTTON}"]
+    return steps
