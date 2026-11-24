@@ -17,6 +17,9 @@ jobs:
         run: pip install -r requirements.txt
       - name: Install Chromium for Playwright
         run: python -m playwright install --with-deps chromium
+      - name: Install the journey test (regression guard)
+        working-directory: tests/journeys
+        run: npm ci
       - name: Run pytest
         run: python -m pytest
 

@@ -1,0 +1,37 @@
+$ .venv/bin/python -m agent.fixes.regression_guard --runs 5
+# Run 2026-11-24T07:41Z on macOS, Chromium from Playwright 1.64.1, commit e75dbf4
+Regression guard. Fix: Scripted repair demonstration (Send Payment div -> <button type="submit">).
+Journey test: tests/journeys/send-payment.spec.ts
+
+Run 1 of 5  (copies in artifacts/regression/20261124T074125Z-1/)
+  fix applied   PASS
+  fix removed   FAIL   Error: Send Payment is not keyboard focusable: 30 presses of Tab never reached it
+  fix restored  PASS
+  GUARD_WORKS
+
+Run 2 of 5  (copies in artifacts/regression/20261124T074125Z-2/)
+  fix applied   PASS
+  fix removed   FAIL   Error: Send Payment is not keyboard focusable: 30 presses of Tab never reached it
+  fix restored  PASS
+  GUARD_WORKS
+
+Run 3 of 5  (copies in artifacts/regression/20261124T074125Z-3/)
+  fix applied   PASS
+  fix removed   FAIL   Error: Send Payment is not keyboard focusable: 30 presses of Tab never reached it
+  fix restored  PASS
+  GUARD_WORKS
+
+Run 4 of 5  (copies in artifacts/regression/20261124T074125Z-4/)
+  fix applied   PASS
+  fix removed   FAIL   Error: Send Payment is not keyboard focusable: 30 presses of Tab never reached it
+  fix restored  PASS
+  GUARD_WORKS
+
+Run 5 of 5  (copies in artifacts/regression/20261124T074125Z-5/)
+  fix applied   PASS
+  fix removed   FAIL   Error: Send Payment is not keyboard focusable: 30 presses of Tab never reached it
+  fix restored  PASS
+  GUARD_WORKS
+
+GUARD_WORKS 5 of 5 (counted from the runs above; the test catches the bug when it comes back)
+# exit code 0

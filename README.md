@@ -60,16 +60,16 @@ The dashboard has its own optional file, `dashboard/.env.example`. Leave `VITE_A
 
 `.env` is listed in `.gitignore`. Do not commit it.
 
-## Option A: Quick Start with AI IDEs (Kiro / Cursor)
+## Option A: Quick Start in Kiro
 
-1. Clone the repository and open that folder in Kiro or Cursor:
+1. Clone the repository and open that folder in Kiro:
 
    ```bash
    git clone https://github.com/charvimaurya/haunted-audit.git
    cd haunted-audit
    ```
 
-2. Open the chat in that IDE and paste this prompt as one message:
+2. Open the Kiro chat and paste this prompt as one message:
 
 ```text
 Set up and launch Haunted Audit from this folder. Do not invent credentials and do not commit anything.
@@ -192,6 +192,29 @@ API routes, once the first terminal is running:
 - `GET /runs/{id}`
 - `GET /runs/{id}/events` as Server-Sent Events
 - `GET /health` and `GET /ping`
+
+## Fix, verify, prevent
+
+After a `broken` run ends `BLOCKED`, the fix loop runs on copies of the bank. No tracked file changes.
+
+1. **Fix.** The Exorcist proposes a diff. A person approves or rejects it. Without AWS the fix is a **Scripted repair demonstration** (one rule for the planted Send Payment barrier, 0 tokens). Only `exorcist_mode: "llm"` needs Amazon Bedrock.
+2. **Verify.** The keyboard agent runs on the patched copy and the checker decides.
+3. **Prevent.** The journey test `tests/journeys/send-payment.spec.ts` presses Tab until Send Payment has focus, then Enter. It catches the barrier when it comes back.
+
+API routes for the loop:
+
+- `POST /runs/{id}/fixes`, `GET /fixes/{id}`
+- `POST /fixes/{id}/approve` (with the `diff_sha256` you reviewed) and `POST /fixes/{id}/reject`
+- `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy)
+
+The regression guard, from the repo root. Node.js is needed once for the journey test:
+
+```bash
+cd tests/journeys && npm install && npx playwright install chromium && cd ../..
+python -m agent.fixes.regression_guard --runs 5
+```
+
+Each run writes three copies under `artifacts/regression/` and runs the test on each: fix applied PASS, fix removed FAIL ("Send Payment is not keyboard focusable"), fix restored PASS. Only that order prints `GUARD_WORKS`. A recorded 5-run output is in `docs/kiro-writeup/returning-ghost.txt`. The guard result is not a checker verdict.
 
 ## Eval
 

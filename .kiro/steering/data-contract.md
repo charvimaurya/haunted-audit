@@ -126,6 +126,14 @@ Printed by `python3 backend/scan_file.py <path>` and by the scan-on-save hook as
 
 A file finding is a static check. It never sets `verdict` or `reason_code`; only the checker does.
 
+## Regression guard: `agent/fixes/regression_guard.py` (not an API endpoint)
+
+Printed by `python -m agent.fixes.regression_guard [--runs N]`. Spec: `.kiro/specs/journey-guard/`. Per run, three
+steps (`fix applied`, `fix removed`, `fix restored`), each `PASS` or `FAIL` from the journey test
+`tests/journeys/send-payment.spec.ts`, then `GUARD_WORKS` (only PASS, FAIL, PASS with the focus message) or
+`GUARD_BROKEN`. Last line: `GUARD_WORKS k of N`, counted from those runs. Exit 0 all work, 1 any broken, 2 not run
+(Node or packages missing). The guard result is not a checker verdict and never sets `verdict` or `reason_code`.
+
 ## Fix: `GET /fixes/{fix_id}`
 
 Spec: `.kiro/specs/exorcist/`. Approve changes no tracked file; the Verifier and the regression check run on copies under `artifacts/verify/<fix_id>/`. The checker decides both.
