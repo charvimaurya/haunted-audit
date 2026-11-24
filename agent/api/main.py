@@ -676,9 +676,9 @@ def _execute_run(
             max_steps=body.max_steps,
             timeout_seconds=body.timeout_seconds,
             artifacts_dir="artifacts/api",
-            recipient=body.recipient,
-            amount=body.amount,
-            reference=body.reference,
+            # Typed details go through as typed (a missing Reference stays empty). An old request with no
+            # details gets the whole internal default instead (user-typed-test-details REQ-TD-06).
+            **(body.test_details() or {}),
             **({"start_url": start_url} if start_url else {}),
         )
         result = run_journey(config, on_event=on_event, run_id=run_id)

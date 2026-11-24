@@ -24,7 +24,7 @@ Variant = Literal["broken", "fixed"]
 # Test details for direct API callers only (tests, eval scripts, the CLI, Night Watch) when a request
 # carries none. Never put in a run's test_details, never sent to the dashboard as a value, never used
 # to fill in a field (user-typed-test-details REQ-TD-06). The dashboard always sends what the tester typed.
-INTERNAL_DEFAULT_DETAILS: dict[str, str | None] = {"recipient": "Alex Carter", "amount": "50.00", "reference": None}
+INTERNAL_DEFAULT_DETAILS: dict[str, str | None] = {"recipient": "Alex Carter", "amount": "50.00", "reference": "Electricity bill"}
 
 DETAIL_MAX_CHARS = 40
 
@@ -150,7 +150,8 @@ class JourneyConfig(BaseModel):
     success_selector: str = "[data-testid='payment-confirmation']"
     recipient: str = INTERNAL_DEFAULT_DETAILS["recipient"]  # type: ignore[assignment]
     amount: str = INTERNAL_DEFAULT_DETAILS["amount"]  # type: ignore[assignment]
-    reference: str | None = None
+    # reference-field REQ-RF-04: direct callers type the default reference; a tester's run types only what they typed.
+    reference: str | None = INTERNAL_DEFAULT_DETAILS["reference"]
     max_steps: int = Field(default=25, ge=1)
     timeout_seconds: float = Field(default=90.0, ge=0)
     agent_mode: AgentMode = "scripted"

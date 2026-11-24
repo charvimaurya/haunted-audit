@@ -44,7 +44,9 @@ def test_an_old_request_without_details_still_works(client) -> None:
     assert record["status"] == "complete"
     assert (record["verdict"], record["reason_code"]) == ("BLOCKED", "TARGET_NOT_FOCUSABLE")
     assert record["test_details"] is None  # the internal default is never reported as typed
-    assert _typed(record) == [INTERNAL_DEFAULT_DETAILS["recipient"], INTERNAL_DEFAULT_DETAILS["amount"]]
+    # The whole internal default, including the reference-field default "Electricity bill" (REQ-RF-04)
+    assert _typed(record) == [INTERNAL_DEFAULT_DETAILS["recipient"], INTERNAL_DEFAULT_DETAILS["amount"],
+                              INTERNAL_DEFAULT_DETAILS["reference"]]
 
 
 def test_typed_details_are_exactly_what_the_agent_types(client) -> None:
@@ -151,7 +153,9 @@ def test_the_llm_prompt_quotes_each_typed_value() -> None:
     prompt = build_user_prompt(cfg)
     assert 'Recipient to enter: "Test \\"Q\\""' in prompt
     assert 'Reference to enter: "Ref"' in prompt
-    assert "Reference" not in build_user_prompt(build_journey_config("fixed", "scripted"))
+    # A tester who leaves Reference empty: no Reference line (the key is given as None)
+    assert "Reference" not in build_user_prompt(
+        build_journey_config("fixed", "scripted", recipient="Test", amount="1.00", reference=None))
 
 
 # ── Amount follows the bank's own rule (fixed page ended BLOCKED / NO_ACTIVATION with "100") ──

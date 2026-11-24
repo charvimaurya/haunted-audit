@@ -73,7 +73,9 @@ def build_journey_config(
     _load_env()
     recipient = clean_detail(overrides.pop("recipient", None) or INTERNAL_DEFAULT_DETAILS["recipient"], required=True)
     amount = clean_amount(overrides.pop("amount", None) or INTERNAL_DEFAULT_DETAILS["amount"], required=True)
-    reference = clean_detail(overrides.pop("reference", None), required=False)
+    # No "reference" key: the internal default (reference-field REQ-RF-04). Key given as None: no reference
+    # (a tester who left Reference empty; user-typed-test-details REQ-TD-03).
+    reference = clean_detail(overrides.pop("reference", INTERNAL_DEFAULT_DETAILS["reference"]), required=False)
     if variant not in {"broken", "fixed"}:
         raise ValueError("variant must be broken or fixed")
     if mode not in {"llm", "scripted"}:

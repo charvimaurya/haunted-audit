@@ -147,8 +147,8 @@
         </div>
         <div class="field" id="amount-slot"></div>
         <div class="field">
-          <label for="reference">Reference (optional)</label>
-          <input id="reference" name="reference" type="text" maxlength="40" autocomplete="off" />
+          <label for="reference">Reference</label>
+          <input id="reference" name="reference" type="text" maxlength="60" autocomplete="off" />
         </div>
         <div class="actions">
           <div id="pay-slot"></div>
@@ -222,7 +222,6 @@
       else if (cents === null || cents <= 0) errors.amount = "Enter the amount as a positive number with two decimals, for example 50.00.";
       else if (cents > balance) errors.amount = "The amount is more than your balance (EUR " + fmt(balance) + ").";
       const ref = (referenceText || "").trim();
-      if (ref.length > 40) errors.reference = "Reference must be 40 characters or fewer.";
       return { errors: errors, cents: cents, recipient: r, amount: a, reference: ref };
     }
 
@@ -262,8 +261,9 @@
       balance -= result.cents;
       $("balance").textContent = "Demo balance: EUR " + fmt(balance) + " (not real money)";
       confirmation.hidden = false;
-      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + "." +
-        (result.reference ? " Reference: " + result.reference + "." : "") + " New balance: EUR " + fmt(balance) + ".";
+      const reference = result.reference;
+      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + ". New balance: EUR " + fmt(balance) + "." +
+        (reference ? " Reference: " + reference + "." : "");
       $("recipient").value = "";
       $("amount").value = "";
       $("reference").value = "";

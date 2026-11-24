@@ -29,18 +29,18 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 - Nothing else is typed.
 
 **REQ-TD-04: The bank page.**
-- The bank (`fixtures/haunted_bank/`) has a labelled Reference field after Amount on both variants. It is optional and holds at most 40 characters. It is not a planted barrier, and the planted barriers do not change.
+- The bank (`fixtures/haunted_bank/`) has a labelled Reference field after Amount on both variants (merged with spec `reference-field`: label "Reference", `maxlength` 60; the API still caps typed values at 40). It is optional. It is not a planted barrier, and the planted barriers do not change.
 - Every field on the bank, and on the bank drawing in Possession Mode, loads empty. A judge who tabs through it types their own details.
 
 **REQ-TD-05: Replay from the run record.**
 - The run record has `test_details` (`{recipient, amount, reference}`) when the tester typed them, and `null` otherwise.
 - After a run, each Possession checklist row for a field says what the agent typed there, read from the run's `type_text` steps. The value is shown only when `test_details` is not `null`, so an internal default never shows.
-- A Reference row appears only when the run had a reference.
+- The checklist always has a "Tab to Reference" row (spec `reference-field` REQ-RF-06); its typed value shows only for a run whose details the tester typed.
 - Every other screen shows only values from the real run.
 
 **REQ-TD-06: API compatibility (plan item 20, NW-S1).**
 - `POST /runs` without the new fields works as before and uses the internal default. `GET /runs/{id}` keeps every existing field; `test_details` is added.
-- The internal default lives in one constant, `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py`. It is never put in `test_details`, never sent to the dashboard as a value, and never used to fill in a field.
+- The internal default lives in one constant, `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py`. Its reference is "Electricity bill" (spec `reference-field` REQ-RF-04); a tester's run with an empty Reference types no reference. It is never put in `test_details`, never sent to the dashboard as a value, and never used to fill in a field.
 
 **REQ-TD-07: Safety.**
 - Each value is trimmed and must be 1 to 40 characters (Reference may be left out or empty). A value with a control or format character (Unicode category C, or a line or paragraph separator) is a `422`.

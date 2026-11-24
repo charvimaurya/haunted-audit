@@ -62,6 +62,7 @@ interface PossessionModeProps {
 const DEFAULT_STEPS: TabStep[] = [
   { label: 'Tab to Recipient',    status: 'pending' },
   { label: 'Tab to Amount',       status: 'pending' },
+  { label: 'Tab to Reference',    status: 'pending' },
   { label: 'Tab to Send Payment', status: 'pending' },
 ];
 
@@ -104,9 +105,7 @@ function stepsFromResult(result: JourneyResult | null, runDetails: RecordedDetai
   return [
     { label: 'Tab to Recipient', status: reached('#recipient') ? 'pass' : 'pending', typed: typed('#recipient') },
     { label: 'Tab to Amount',    status: reached('#amount') ? 'pass' : 'pending', typed: typed('#amount') },
-    ...(runDetails?.reference
-      ? [{ label: 'Tab to Reference', status: reached('#reference') ? 'pass' : 'pending', typed: typed('#reference') } as TabStep]
-      : []),
+    { label: 'Tab to Reference', status: reached('#reference') ? 'pass' : 'pending', typed: typed('#reference') },
     last,
   ];
 }
@@ -291,13 +290,13 @@ export function PossessionMode({
               </div>
               <div>
                 <label className="mb-1 block text-base font-ui text-ink" htmlFor="pm-reference">
-                  Reference (optional)
+                  Reference
                 </label>
                 <input
                   id="pm-reference"
                   type="text"
                   autoComplete="off"
-                  maxLength={40}
+                  maxLength={60}
                   className={`h-11 w-full rounded-lg border border-bank-line bg-bank-input px-3 text-base font-ui text-ink ${FOCUS}`}
                 />
               </div>

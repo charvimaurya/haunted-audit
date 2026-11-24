@@ -154,7 +154,6 @@ describe('Possession checklist replay (REQ-TD-05)', () => {
   it('shows no typed value for a run without test_details (internal default)', () => {
     const { container } = render(<PossessionMode result={run} runDetails={null} />);
     expect(container.textContent).not.toContain('Typed:');
-    expect(container.textContent).not.toContain('Tab to Reference');
   });
   it('the bank drawing fields always start empty', () => {
     render(<PossessionMode result={run} runDetails={{ recipient: 'Test Ghost Q', amount: '10.00', reference: 'Ref 1' }} />);

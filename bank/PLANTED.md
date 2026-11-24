@@ -29,6 +29,9 @@ On the haunted page axe-core (rules tagged `wcag2a`, `wcag2aa`, `wcag21a`, `wcag
 
 Barriers 1, 4 and 6 cannot be found by axe. They are found by the keyboard agent (1), a computed-style check (4) and a DOM check (6). The same three axe rules appear on a copy of the haunted page in which only barrier 1 is repaired. The reference fixed page has no axe violations.
 
+## Not planted: the Reference field
+The page also has an optional Reference field (`#reference`, spec `.kiro/specs/reference-field/`). It has a visible label tied to the input in both variants, a visible focus ring and no validation message, so it is not a barrier. It sits between Amount and Send Payment in the tab order. The axe table above is unchanged (the same three rules on the same three elements), and `agent/tests/test_bank_barriers.py` still passes.
+
 ## Rules for changing this file or the page
 
 - Never change a measured number here without re-running the tests that produce it.

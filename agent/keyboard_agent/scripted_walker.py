@@ -35,7 +35,7 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
 
     filled_recipient = False
     filled_amount = False
-    filled_reference = not config.reference  # nothing to type when no reference was given
+    filled_reference = False  # becomes True only when a reference was actually typed
     activated_submit = False
     cycle_start: str | None = None
     tabs = 0
@@ -46,7 +46,8 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
         focus = _current(session)
         if focus is None:
             break
-        if _is_submit(focus) and filled_recipient and filled_amount and filled_reference:
+        # Send does not wait for Reference: a page without the field still works (reference-field REQ-RF-04).
+        if _is_submit(focus) and filled_recipient and filled_amount:
             session.press_enter()
             activated_submit = True
             break
@@ -60,8 +61,8 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
             filled_amount = True
             if _halt(session, "Stopped while entering the amount."):
                 return
-        elif _is_editable(focus) and filled_amount and not filled_reference:
-            session.type_text(config.reference or "")
+        elif _is_editable(focus) and filled_amount and config.reference and not filled_reference:
+            session.type_text(config.reference)
             filled_reference = True
             if _halt(session, "Stopped while entering the reference."):
                 return
@@ -85,9 +86,10 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
         return
 
     if activated_submit:
+        filled = "the recipient, the amount and the reference" if filled_reference else "the recipient and the amount"
         session.declare_done(
             "attempted_complete",
-            "Filled the recipient and the amount in tab order and pressed Enter on the send control.",
+            f"Filled {filled} in tab order and pressed Enter on the send control.",
         )
         return
 
