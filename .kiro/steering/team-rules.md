@@ -14,4 +14,3 @@ inclusion: always
 - When you use a default, add one line to docs/decision-log.md:
   "<date>: <what>, default from <v9 or team rules>; open for Shilpa's review".
 - Night Watch API: you may add fields to POST /runs and GET /runs/{id}. Never rename or remove a field without telling Shilpa first.
-- Shilpa must say yes only before: (1) the video is recorded (claims), (2) the submission tag. If there is no reply by the agreed time, Charvi decides.
