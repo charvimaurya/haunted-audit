@@ -85,9 +85,10 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
         return
 
     if activated_submit:
+        filled = "the recipient, the amount and the reference" if filled_reference else "the recipient and the amount"
         session.declare_done(
             "attempted_complete",
-            "Filled the recipient, the amount and the reference in tab order and pressed Enter on the send control.",
+            f"Filled {filled} in tab order and pressed Enter on the send control.",
         )
         return
 
