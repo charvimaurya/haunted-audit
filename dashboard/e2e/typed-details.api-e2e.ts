@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 const require = createRequire(import.meta.url);
 const AXE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const API = 'http://127.0.0.1:8099';
+// Built from parts so this test file does not itself contain the name the scans look for.
 const NAME = ['Alex', 'Carter'].join(' ');
 const POSSESSION = '/app/journeys/send-payment/possession';
 
