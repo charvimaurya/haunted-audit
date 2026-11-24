@@ -31,7 +31,7 @@ def good_diff() -> str:
 def test_scripted_diff_is_valid_small_and_reversible():
     p = propose(FINDING)
     assert p.status == "proposed" and p.exorcist_mode == "scripted"
-    assert p.checked.changed_lines == 2
+    assert p.checked.changed_lines == 4  # the Send Payment button (2) and the Amount label (2)
     assert (p.input_tokens, p.output_tokens, p.cost_usd) == (0, 0, 0.0)
     assert '<button type="submit" class="btn-primary" id="send-payment">' in p.checked.patched
     assert dc.apply_reverse(p.checked.diff, p.checked.patched) == SRC
@@ -156,7 +156,7 @@ def test_full_flow_propose_approve_verify_regression(client, caplog):
     caplog.set_level(logging.INFO)
     run_id = _blocked_run(client)
     fix = client.post(f"/runs/{run_id}/fixes", json={}).json()
-    assert fix["status"] == "proposed" and fix["exorcist_mode"] == "scripted" and fix["changed_lines"] == 2
+    assert fix["status"] == "proposed" and fix["exorcist_mode"] == "scripted" and fix["changed_lines"] == 4
     assert fix["agent_mode"] == "scripted" and fix["verify"] is None
     fid = fix["fix_id"]
     # verify before approval is refused; wrong hash is refused

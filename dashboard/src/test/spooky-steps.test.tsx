@@ -74,8 +74,10 @@ describe('exorcism on Approve', () => {
     const approved = { ...baseFix, status: 'approved' as const, decided_by: 'demo user', decided_at: 'x' };
     const flow = { fix: approved, verifyResult: null, busy: false, error: null,
       propose: async () => {}, approve: async () => {}, reject: async () => {}, verify: async () => {}, regression: async () => {} };
+    // GhostFigure gives each SVG gradient a React useId (gf-r1, gf-r2, ...), which differs per render tree,
+    // not per motion setting; that one generated id is normalised so the rest of the DOM is compared as is.
     const html = () => render(<PipelineSection result={result} apiStatus="online" activeStep={2} flow={flow} />).container
-      .querySelector('[data-moment="exorcism"]')?.parentElement?.outerHTML;
+      .querySelector('[data-moment="exorcism"]')?.parentElement?.outerHTML.replace(/gf-r\d+/g, 'gf-id');
     const moving = html();
     document.documentElement.dataset.calm = 'true';
     const calm = html();

@@ -23,6 +23,10 @@ _BROKEN_SEND = """'<div class="pay-btn" id="send-payment" onclick="window.submit
 _FIXED_SEND = """'<button type="submit" class="btn-primary" id="send-payment">Send Payment</button>'"""
 
 
+_BROKEN_AMOUNT = """'<span class="field-title">Amount (EUR)</span>'"""
+_FIXED_AMOUNT = """'<label class="field-title" for="amount">Amount (EUR)</label>'"""
+
+
 class Refused(Exception):
     """The Exorcist will not propose a fix for this finding. code is an API error code."""
 
@@ -63,13 +67,16 @@ def _scripted_diff(source: str, finding: dict) -> tuple[str, str]:
     i = hits[0]
     old = lines[i]
     new = old.replace(_BROKEN_SEND, _FIXED_SEND)
-    ctx_before, ctx_after = lines[i - 1], lines[i + 1]
-    diff = "\n".join([
-        f"--- a/{TARGET}", f"+++ b/{TARGET}",
-        f"@@ -{i},3 +{i},3 @@",
-        " " + ctx_before, "-" + old, "+" + new, " " + ctx_after,
-    ]) + "\n"
+    body = [f"--- a/{TARGET}", f"+++ b/{TARGET}",
+            f"@@ -{i},3 +{i},3 @@", " " + lines[i - 1], "-" + old, "+" + new, " " + lines[i + 1]]
     reason = "Send Payment is a div with a click handler, so Tab never reaches it; a real submit button can be reached and pressed."
+    # Second barrier (bank/PLANTED.md): the Amount field has a visible caption but no label, so a voice user cannot name it.
+    amount = [j for j, l in enumerate(lines) if _BROKEN_AMOUNT in l]
+    if len(amount) == 1:
+        j = amount[0]
+        body += [f"@@ -{j},3 +{j},3 @@", " " + lines[j - 1], "-" + lines[j], "+" + lines[j].replace(_BROKEN_AMOUNT, _FIXED_AMOUNT), " " + lines[j + 1]]
+        reason += " The Amount caption becomes a real label, so a voice command can find the field."
+    diff = "\n".join(body) + "\n"
     return diff, reason
 
 

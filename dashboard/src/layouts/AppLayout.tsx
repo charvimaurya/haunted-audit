@@ -4,10 +4,22 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { ChartColumn, Ghost, LayoutGrid, Menu, Send, ShieldCheck, Shield, TriangleAlert, Users, Wrench, X, type LucideIcon } from 'lucide-react';
 import { RunStateBadge } from '../components/RunStateBadge';
 import { SiteBand } from '../components/SiteBand';
 import { APP_NAV, NOT_FOUND_TITLE, pageFor, to, trailFor } from '../routes';
+
+const ICONS: Record<string, LucideIcon> = {
+  Overview: LayoutGrid,
+  Journeys: Send,
+  Agents: Users,
+  Findings: TriangleAlert,
+  Fixes: Wrench,
+  Verification: ShieldCheck,
+  Regression: Shield,
+  Kiro: Ghost,
+  Reports: ChartColumn,
+};
 
 export function AppLayout() {
   const { pathname } = useLocation();
@@ -37,7 +49,7 @@ export function AppLayout() {
       'flex min-h-11 w-full items-center rounded-lg px-3 text-base font-ui transition-colors',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
       isActive
-        ? 'bg-violet-600/25 font-bold text-ink underline underline-offset-4'
+        ? 'bg-violet-600/25 font-bold text-ink'
         : 'text-ink-muted hover:bg-base-surface/60 hover:text-ink',
     ].join(' ');
 
@@ -51,6 +63,10 @@ export function AppLayout() {
             aria-current={item.isCurrent(pathname) ? 'page' : undefined}
             onClick={() => setMenuOpen(false)}
           >
+            {(() => {
+              const Icon = ICONS[item.label];
+              return Icon ? <Icon size={18} className="mr-3 shrink-0" aria-hidden="true" /> : null;
+            })()}
             {item.label}
           </Link>
         </li>

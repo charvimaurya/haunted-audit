@@ -16,8 +16,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Code2, CheckCircle2, ShieldCheck, Ghost } from 'lucide-react';
 import { AmbientLayer } from '../immersion/AmbientLayer';
-import { HeroCastle } from './HeroCastle';
-import { HeroScene } from './HeroScene';
 import { to as routeTo } from '../routes';
 
 interface HeroSectionProps {
@@ -54,22 +52,24 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
   const hostRef = useRef<HTMLElement>(null);
 
   return (
+    <div className="mx-auto max-w-[1360px] px-3 pt-4 sm:px-6">
     <section
       ref={hostRef}
       id="home"
       aria-labelledby="hero-heading"
-      className="relative flex flex-col items-center justify-center text-center
-                 min-h-[420px] px-4 py-16 lg:px-[26%] overflow-hidden"
+      className="relative flex flex-col items-center justify-start lg:justify-center text-center
+                 lg:min-h-[580px] px-4 pt-12 pb-[460px] lg:py-16 lg:pl-[34%] lg:pr-[18%] overflow-hidden
+                 rounded-2xl border-2 border-violet-neon/70 shadow-glow"
       style={{
         background:
-          'radial-gradient(ellipse 900px 420px at 50% 0%, #3a1a6e 0%, transparent 70%), #0d0714',
+          'radial-gradient(ellipse 80% 60% at 50% 25%, var(--hero-sky-top) 0%, transparent 70%), linear-gradient(var(--hero-sky-mid), var(--hero-sky-low))',
       }}
     >
+      {/* The painted v7 artwork (text removed). Decorative: aria-hidden, no pointer events, never focusable. */}
+      <div className="hero-art" aria-hidden="true" data-testid="hero-castle" />
       {/* Roaming ghosts cross the hero. They are not the semantic mascot. */}
       <AmbientLayer />
-      <HeroCastle hostRef={hostRef} />
 
-      <HeroScene />
 
       <div className="relative z-[1] flex flex-col items-center">
       {/* Wordmark — display (spooky) font; sole <h1> on the page */}
@@ -77,17 +77,17 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         id="hero-heading"
         data-page-title
         tabIndex={-1}
-        className="mb-3 leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
-        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.75rem, 6vw, 4.5rem)', letterSpacing: '0.02em' }}
+        className="mb-3 whitespace-nowrap leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
+        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.25rem, 6vw, 4.75rem)', letterSpacing: '0.02em' }}
       >
         <span className="wordmark-haunted">Haunted</span>{' '}<span className="wordmark-audit">Audit</span>
       </h1>
 
       {/* Tagline */}
-      <p className="text-base text-ink-muted max-w-md mb-1 font-ui">
+      <p className="text-xl font-semibold text-ink max-w-xl mb-2 font-ui">
         The accessibility guardrail for AI-built applications.
       </p>
-      <p className="text-base text-ghost-ready mb-8 font-ui">
+      <p className="text-base text-ink mb-8 font-ui">
         Feel the barrier. Fix the cause. Prove the journey.
       </p>
 
@@ -97,9 +97,9 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
       <Link
         to={to}
         className={[
-          'flex items-center gap-2 px-8 py-3 rounded-full font-ui font-bold text-base',
-          'bg-violet-600 text-white border border-violet-neon/60',
-          'hover:bg-violet-500 active:scale-95 transition-all duration-150 shadow-glow',
+          'flex items-center gap-3 px-12 py-4 rounded-full font-ui font-bold text-xl text-white',
+          'bg-[linear-gradient(var(--hero-cta-top),var(--hero-cta-bottom))] border-2 border-violet-neon',
+          'hover:brightness-110 active:scale-95 transition-all duration-150 shadow-glow',
           // Only add the pulse class when motion is allowed
           reducedMotion ? '' : 'animate-glow-pulse',
           'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-neon',
@@ -108,7 +108,7 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
           .join(' ')}
         aria-label="Possess This App — run an accessibility journey"
       >
-        <Ghost size={20} aria-hidden="true" />
+        <Ghost size={26} aria-hidden="true" />
         Possess This App
       </Link>
 
@@ -121,8 +121,8 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         {PILL_STEPS.map(({ icon: Icon, label, tone }) => (
           <li
             key={label}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-base font-ui font-semibold
-                       bg-base-surface border border-violet-neon/60 text-ink shadow-glow"
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-ui font-semibold
+                       bg-[var(--hero-pill)] border text-ink ${label === 'Prevent' ? 'border-violet-neon shadow-glow' : 'border-[var(--hero-pill-edge)]'}`}
           >
             <Icon size={16} className={tone} aria-hidden="true" data-icon-role="step" />
             {label}
@@ -131,5 +131,6 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
       </ul>
       </div>
     </section>
+    </div>
   );
 }

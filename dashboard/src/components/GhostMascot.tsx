@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from 'react';
 import type { GhostState } from '../types';
-import { GhostGlyph } from './GhostGlyph';
+import { GhostFigure } from './GhostFigure';
 
 interface GhostMascotProps {
   state: GhostState;
@@ -74,9 +74,12 @@ export function GhostMascot({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{ filter: 'drop-shadow(0 0 6px currentColor)' }}
     >
-      <GhostGlyph size={size} mood={state === 'blocked' ? 'angry' : 'calm'} />
+      <GhostFigure
+        tone={state === 'blocked' ? 'red' : state === 'verified' ? 'green' : 'white'}
+        face={state === 'blocked' ? 'angry' : state === 'verified' ? 'happy' : 'worried'}
+        size={size}
+      />
     </span>
   );
 }

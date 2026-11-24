@@ -17,11 +17,12 @@ from playwright.sync_api import Page, sync_playwright
 from agent.keyboard_agent.checker import check_voice_journey, observe_voice_page
 from agent.keyboard_agent.models import JourneyResult, StepEvent
 from agent.keyboard_agent.runner import _launch_args, _only_bundled_fixture, build_journey_config
-from agent.voice_agent.grammar import Command, describe, parse_natural as parse
+from agent.voice_agent.grammar import Command, describe, expand_payment, parse_natural as parse
 
 STEP_TIMEOUT_MS = 5_000
 RUN_TIMEOUT_S = 60.0
 MAX_COMMANDS = 10
+MAX_STEPS = 30  # after a phrase such as "send 100 to Sam" is split into its steps
 
 _ELEMENT_INFO = """(el) => { const b = el.getBoundingClientRect();
   return {tag: el.tagName.toLowerCase(), text: (el.innerText || el.textContent || '').trim().slice(0, 80),
@@ -151,7 +152,7 @@ def run_voice_journey(
     start_url is set only by the Verifier, for a copy of the bank under artifacts/verify/."""
     run_id = run_id or str(uuid.uuid4())
     config = build_journey_config(variant, "scripted", **({"start_url": start_url} if start_url else {}))
-    commands = list(commands)[:MAX_COMMANDS]
+    commands = [step for text in list(commands)[:MAX_COMMANDS] for step in expand_payment(text)][:MAX_STEPS]
     goal = "Voice commands: " + " / ".join(c.strip() for c in commands)
     started = time.perf_counter()
     browser = None

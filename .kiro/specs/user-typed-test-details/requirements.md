@@ -14,7 +14,7 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 - Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 10.00", "Optional, e.g. Test payment". No placeholder looks like a real person.
 - No field is ever filled in by the app.
 - Reference is optional. Recipient and Amount are required.
-- Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-007: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
+- Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-008: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
 
 **REQ-TD-02: Missing details stop the run.**
 - Run Journey (keyboard) and Run voice journey (voice, when its commands come from the form) check Recipient, then Amount.

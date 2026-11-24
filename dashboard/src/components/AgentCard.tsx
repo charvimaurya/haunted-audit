@@ -21,13 +21,15 @@ interface AgentCardProps {
   icon: ReactNode;
   outcomes: AgentOutcome[];
   isRunning?: boolean;
+  /** Overrides the card's accessible name (default: "<name> results"). */
+  ariaLabel?: string;
 }
 
-export function AgentCard({ name, icon, outcomes, isRunning = false }: AgentCardProps) {
+export function AgentCard({ name, icon, outcomes, isRunning = false, ariaLabel }: AgentCardProps) {
   return (
     <article
       className="panel flex flex-col gap-3 p-4"
-      aria-label={`${name} results`}
+      aria-label={ariaLabel ?? `${name} results`}
     >
       {/* Header */}
       <div className="flex items-center gap-2">

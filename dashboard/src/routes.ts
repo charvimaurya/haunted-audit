@@ -198,9 +198,10 @@ export const FOOTER_NAV: NavItem[] = [
 ];
 
 /** App sidebar. */
-/** App sidebar, exactly the v7 labels (panel C). Scans and Journeys are in the top menu; display settings in the top bar. */
+/** App sidebar: the v7 labels (panel C) plus Journeys, as on the owner's Possession Mode page. */
 export const APP_NAV: NavItem[] = [
   { ...item('Overview', 'app-home'), isCurrent: (p) => p === APP },
+  { ...item('Journeys', 'app-journeys'), isCurrent: (p) => p.startsWith(`${APP}/journeys`) },
   item('Agents', 'app-agents'),
   item('Findings', 'app-fixes-find'),
   item('Fixes', 'app-fixes-fix'),

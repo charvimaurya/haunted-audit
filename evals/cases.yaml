@@ -107,6 +107,29 @@ cases:
     next: Configure AWS credentials and Bedrock access, build the Bedrock call, then run scripts/qa_exorcist.py.
     recorded: 2026-11-22
 
+  - id: fail-007
+    kind: failure
+    target: dashboard/src/test/voice-agent.test.tsx > GhostHuntSection voice honesty > does not show hardcoded Voice Found/activate rows before a command runs
+    agent_mode: scripted
+    expected: >-
+      GhostHuntSection renders an article element with accessible name "Voice Agent" (from VoiceAgentPanel)
+      when result is null and no command has run.
+    observed: >-
+      1 of 1 test run failed. Vitest could not find getByRole('article', { name: 'Voice Agent' }) because
+      uncommitted WIP in dashboard/src/components/GhostHuntSection.tsx removed the VoiceAgentPanel import
+      and replaced it with an AgentCard that does not carry the same ARIA role. The committed HEAD version
+      (16fbe46) passes this test; the uncommitted modification breaks it. The loop-evidence commits are not
+      the cause.
+    evidence:
+      - npx vitest run output: 1 failed | 128 passed (dashboard/src/test/voice-agent.test.tsx line 149)
+      - git diff HEAD -- dashboard/src/components/GhostHuntSection.tsx (removes VoiceAgentPanel, adds AgentCard)
+    label_source: dashboard/src/test/voice-agent.test.tsx (committed at 16fbe46)
+    status: open
+    next: >-
+      The WIP author must ensure that the replacement AgentCard renders with role="article"
+      and aria-label="Voice Agent", matching what the test expects, before merging.
+    recorded: 2026-11-24
+
   - id: fail-006
     kind: failure
     target: Verifier voice replay on the patched copy (POST /fixes/{id}/verify, voice_run_id)
@@ -121,10 +144,24 @@ cases:
       - scripts/keyboard_loop_walk.py output in docs/pr/item-4-loop-evidence.md
       - docs/evidence/loop-evidence-verify.png
     label_source: bank/PLANTED.md (barrier 2) and .kiro/specs/loop-evidence/requirements.md
-    status: open
+    status: resolved
     next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
     recorded: 2026-11-24
-  - id: fail-007
+    resolution:
+      decided: >-
+        Owner asked for the loop to run through on 2026-11-24 (voice-agent REQ-VA-13). The scripted Exorcist now
+        proposes both changes in one diff for one approval: Send Payment becomes a button and the Amount caption
+        becomes a label (4 changed lines, agent/fixes/exorcist.py). Not a second finding and not a second approval.
+      agent_mode: scripted
+      observed_after: >-
+        scripts/qa_exorcist.py, 5 runs: 5 of 5 valid diffs, 5 of 5 PASSED on the patched copy, 5 of 5 BLOCKED with the
+        bug put back. scripts/keyboard_loop_walk.py: keyboard PASSED and voice-command simulation PASSED on the patched
+        copy, screen says "Keyboard and voice". scripts/keyboard_autoloop_walk.py: both PASSED. The regression copy
+        still fails for voice (NO_ACTIVATION), as expected with the bug put back.
+      evidence:
+        - docs/pr/item-2-1-exorcist-closure.md (QA agent, keyboard loop walk, autoloop walk)
+      resolved: 2026-11-24
+  - id: fail-008
     kind: failure
     target: Fixed bank variant with typed test details (scripts/record_seed.py, POST /runs with amount)
     agent_mode: scripted

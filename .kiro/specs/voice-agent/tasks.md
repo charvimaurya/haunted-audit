@@ -9,3 +9,6 @@
 - [x] TASK-07 Top-bar "Voice agent" link to `/app/agents` (the panel from TASK-06). Secondary style, not primary; icon plus text; no new route, no new data. Owner asked for it on 2026 request "voice agent button on the ui".
 - [x] TASK-08 Natural phrases (REQ-VA-11): `parse_natural`, runner uses it, tests added
 - [x] TASK-09 Possession Mode: Agent toggle (Keyboard / Voice), "Run voice journey", Voice commands card with Push to talk and Edit commands (`AgentToggle`, `VoiceCommandsCard`, `useSpeechInput`). Owner supplied the layout as a screenshot.
+- [x] TASK-10 Say it once (REQ-VA-12): `expand_payment`, runner expands, Push to talk runs on speech end, tests added
+- [x] TASK-11 Run the whole loop (REQ-VA-13): `AutoLoopCard` and `useAutoLoop` on Possession Mode. Broken run, cause, one Approve click, fixed copy with keyboard and voice. The scripted Exorcist now also labels Amount (4 changed lines), so the voice replay passes on the patched copy (closes fail-006).
+- [x] TASK-10 Try page shares the Keyboard / Voice journey with Possession Mode (`PossessionJourney`); the Recipient name field is removed from both pages (owner request).
