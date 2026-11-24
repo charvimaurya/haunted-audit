@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 
 from agent.keyboard_agent.agent import run_llm_agent
 from agent.keyboard_agent.checker import check_journey
-from agent.keyboard_agent.models import JourneyConfig, JourneyResult, TokenUsage
+from agent.keyboard_agent.models import INTERNAL_DEFAULT_DETAILS, JourneyConfig, JourneyResult, TokenUsage, clean_detail
 from agent.keyboard_agent.scripted_walker import run_scripted_walker
 from agent.keyboard_agent.tools import KeyboardSession
 
@@ -64,15 +64,18 @@ def build_journey_config(
 ) -> JourneyConfig:
     """Build a config. Checker selectors are set here and stay out of the prompt."""
     _load_env()
-    recipient = str(overrides.pop("recipient", "Alex Carter"))
-    amount = str(overrides.pop("amount", "50.00"))
+    recipient = clean_detail(overrides.pop("recipient", None) or INTERNAL_DEFAULT_DETAILS["recipient"], required=True)
+    amount = clean_detail(overrides.pop("amount", None) or INTERNAL_DEFAULT_DETAILS["amount"], required=True)
+    reference = clean_detail(overrides.pop("reference", None), required=False)
     if variant not in {"broken", "fixed"}:
         raise ValueError("variant must be broken or fixed")
     if mode not in {"llm", "scripted"}:
         raise ValueError("mode must be llm or scripted")
     goal = (
-        f"Send a payment of EUR {amount} to {recipient}. "
-        "Fill the recipient and the amount, then activate the control that sends the payment."
+        f"Send a payment of EUR {amount} to {recipient}"
+        + (f" with the reference {reference}. " if reference else ". ")
+        + ("Fill the recipient, the amount and the reference" if reference else "Fill the recipient and the amount")
+        + ", then activate the control that sends the payment."
     )
     values = {
         "start_url": f"{FIXTURE_PATH.as_uri()}?variant={variant}",
@@ -81,6 +84,7 @@ def build_journey_config(
         "success_selector": SUCCESS_SELECTOR,
         "recipient": recipient,
         "amount": amount,
+        "reference": reference,
         "agent_mode": mode,
         "variant": variant,
         "input_usd_per_mtok": float(os.getenv("BEDROCK_INPUT_USD_PER_MTOK", "3")),

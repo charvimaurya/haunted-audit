@@ -7,6 +7,7 @@ The checker scores the page afterwards.
 
 from __future__ import annotations
 
+import json
 import os
 
 from agent.keyboard_agent.models import JourneyConfig, TokenUsage
@@ -33,9 +34,11 @@ def build_user_prompt(config: JourneyConfig) -> str:
     """Goal text for the model. Selectors used by the checker are not included."""
     prompt = (
         f"Goal: {config.goal}\n"
-        f"Recipient to enter: {config.recipient}\n"
-        f"Amount to enter: {config.amount}\n"
-        "Complete the goal using only the keyboard."
+        # Typed values are JSON-quoted and have no control characters (REQ-TD-07), so they stay one value each.
+        f"Recipient to enter: {json.dumps(config.recipient, ensure_ascii=False)}\n"
+        f"Amount to enter: {json.dumps(config.amount, ensure_ascii=False)}\n"
+        + (f"Reference to enter: {json.dumps(config.reference, ensure_ascii=False)}\n" if config.reference else "")
+        + "Complete the goal using only the keyboard."
     )
     _reject_leaked_selectors(config, prompt)
     return prompt

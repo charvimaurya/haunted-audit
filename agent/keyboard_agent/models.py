@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -18,6 +19,37 @@ AgentMode = Literal["llm", "scripted"]
 ClaimOutcome = Literal["attempted_complete", "blocked"]
 StopReason = Literal["completed", "step_limit", "timeout", "error"]
 Variant = Literal["broken", "fixed"]
+
+# Test details for direct API callers only (tests, eval scripts, the CLI, Night Watch) when a request
+# carries none. Never put in a run's test_details, never sent to the dashboard as a value, never used
+# to fill in a field (user-typed-test-details REQ-TD-06). The dashboard always sends what the tester typed.
+INTERNAL_DEFAULT_DETAILS: dict[str, str | None] = {"recipient": "Alex Carter", "amount": "50.00", "reference": None}
+
+DETAIL_MAX_CHARS = 40
+
+
+def clean_detail(value: str | None, *, required: bool) -> str | None:
+    """Trim a typed test detail and check it (REQ-TD-07). Raises ValueError with a plain sentence.
+
+    1 to 40 characters after trimming. No control or format characters (Unicode category C),
+    and no line or paragraph separators, so a value cannot add a line to the agent prompt.
+    """
+    if value is None:
+        if required:
+            raise ValueError("is required")
+        return None
+    if not isinstance(value, str):
+        raise ValueError("must be text")
+    if any(unicodedata.category(ch).startswith("C") or ch in "\u2028\u2029" for ch in value):
+        raise ValueError("must not contain control characters")
+    v = value.strip()
+    if not v:
+        if required:
+            raise ValueError("must not be empty")
+        return None
+    if len(v) > DETAIL_MAX_CHARS:
+        raise ValueError(f"must be {DETAIL_MAX_CHARS} characters or fewer")
+    return v
 AgentKind = Literal["keyboard", "voice"]
 InputSource = Literal["keyboard", "typed", "speech"]
 
@@ -92,8 +124,9 @@ class JourneyConfig(BaseModel):
     goal: str
     target_selector: str
     success_selector: str = "[data-testid='payment-confirmation']"
-    recipient: str = "Alex Carter"
-    amount: str = "50.00"
+    recipient: str = INTERNAL_DEFAULT_DETAILS["recipient"]  # type: ignore[assignment]
+    amount: str = INTERNAL_DEFAULT_DETAILS["amount"]  # type: ignore[assignment]
+    reference: str | None = None
     max_steps: int = Field(default=25, ge=1)
     timeout_seconds: float = Field(default=90.0, ge=0)
     agent_mode: AgentMode = "scripted"
