@@ -46,6 +46,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice]         = useState<RunNoticeProps | null>(null);
   const [apiStatus, setApiStatus]   = useState<ApiStatus>('checking');
   const [runError, setRunError]     = useState<string | null>(null);
+  const [voiceResult, setVoiceResult] = useState<JourneyResult | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
   // Close the stream only when the whole app goes away, not on page changes
@@ -148,8 +149,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
 
   const isRunning = runStatus === 'running';
   const value = useMemo<RunValue>(
-    () => ({ variant, mode, recipient, setRecipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
-    [variant, mode, recipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
+    () => ({ variant, mode, recipient, setRecipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run, voiceResult, setVoiceResult }),
+    [variant, mode, recipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run, voiceResult],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

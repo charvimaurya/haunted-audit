@@ -5,7 +5,7 @@ import { useRun } from '../../runs/runContext';
 import { to } from '../../routes';
 
 export default function Agents() {
-  const { result, isRunning, liveEvents, apiStatus } = useRun();
+  const { result, isRunning, liveEvents, apiStatus, voiceResult } = useRun();
   return (
     <Page id="app-agents">
       {result === null && !isRunning && (
@@ -20,7 +20,7 @@ export default function Agents() {
           .
         </p>
       )}
-      <GhostHuntSection result={result} isRunning={isRunning} liveEvents={liveEvents} apiStatus={apiStatus} />
+      <GhostHuntSection result={result} isRunning={isRunning} liveEvents={liveEvents} apiStatus={apiStatus} voiceResult={voiceResult} />
     </Page>
   );
 }

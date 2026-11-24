@@ -5,7 +5,7 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Ghost, Menu, Mic, X } from 'lucide-react';
+import { Ghost, Menu, X } from 'lucide-react';
 import { SenseControls } from '../immersion/SenseControls';
 import { SettingsMenu } from './SettingsMenu';
 import { NAV, to } from '../routes';
@@ -95,16 +95,6 @@ export function TopNav() {
           <div className="hidden lg:block">
             <SettingsMenu />
           </div>
-          <Link
-            to={`${to('possession')}?agent=voice`}
-            className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
-                       text-ink border border-violet-neon/60 hover:bg-base-surface/60
-                       transition-colors duration-150 shrink-0
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-          >
-            <Mic size={16} aria-hidden="true" />
-            <span>Voice agent</span>
-          </Link>
           <Link
             to={to('kiro')}
             className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold

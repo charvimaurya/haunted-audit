@@ -34,8 +34,27 @@ export function HeroScene() {
         {[[120,60],[260,30],[420,90],[560,40],[700,20],[860,70],[980,36],[1120,80],[1260,40],[1360,110],[330,150],[1040,150],[640,110]].map(([x, y]) => (
           <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" fill="var(--scene-star)" fillOpacity="0.7" />
         ))}
-        <g stroke="var(--scene-tree)" strokeWidth="6" strokeLinecap="round" fill="none">
-          <path d="M330 420 V300 M330 340 L300 300 M330 320 L362 280 M330 300 L318 270" />
+        {/* Bare trees, a graveyard fence and tombstones along the ground (v7 hero) */}
+        <g stroke="var(--scene-tree)" strokeLinecap="round" fill="none">
+          <path strokeWidth="9" d="M330 420 V250 M330 340 L290 290 L270 250 M330 310 L372 262 L392 224 M330 280 L312 236 M372 262 L398 270" />
+          <path strokeWidth="7" d="M1090 420 V270 M1090 350 L1056 306 L1040 270 M1090 320 L1126 282 L1140 246 M1090 292 L1076 252" />
+          <path strokeWidth="6" d="M1380 420 V290 M1380 350 L1352 316 M1380 330 L1408 300 M1380 306 L1368 276" />
+          <path strokeWidth="6" d="M470 420 V330 M470 370 L448 340 M470 356 L494 330" />
+          <path strokeWidth="3" d="M560 400 H900 M560 384 H900" strokeOpacity="0.55" />
+        </g>
+        <g fill="var(--scene-tree)" fillOpacity="0.9">
+          {Array.from({ length: 18 }, (_, i) => 560 + i * 20).map((x) => (
+            <path key={x} d={`M${x} 410 V372 L${x + 3} 366 L${x + 6} 372 V410 Z`} />
+          ))}
+        </g>
+        <g fill="var(--scene-grave)">
+          <path d="M600 420 v-46 a18 18 0 0 1 36 0 v46 Z" />
+          <path d="M690 420 v-34 a14 14 0 0 1 28 0 v34 Z" />
+          <path d="M770 420 v-52 a18 18 0 0 1 36 0 v52 Z" />
+          <path d="M850 420 v-36 a14 14 0 0 1 28 0 v36 Z" />
+          <path d="M1170 420 v-40 a16 16 0 0 1 32 0 v40 Z" />
+          <path d="M1250 420 v-30 a13 13 0 0 1 26 0 v30 Z" />
+          <path d="M930 420 v-44 h-14 v-10 h14 v-12 h10 v12 h14 v10 h-14 v44 Z" />
         </g>
         <defs>
           <linearGradient id="hero-ground-fade" x1="0" y1="0" x2="0" y2="1">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Page } from '../../components/Page';
 import { PossessionMode } from '../../components/PossessionMode';
@@ -14,10 +14,12 @@ import { useSpeechInput } from '../../voice/useSpeechInput';
 
 /** Starts empty: the tester types the recipient's name themselves (recipient-input REQ-RI-03). */
 const DEFAULT_COMMANDS = '';
+const VOICE_LEAD =
+  'A voice-command run of one user journey (sending a payment) on the Haunted Bank test site. A ghost is an accessibility barrier.';
 
 /** Possession Mode: a keyboard-only or voice run of the Send Payment journey (v7 panel B). */
 export default function Possession() {
-  const { variant, mode, recipient, setRecipient, runStatus, result, isRunning, notice, setVariant, setMode, run } =
+  const { variant, mode, recipient, setRecipient, setVoiceResult, runStatus, result, isRunning, notice, setVariant, setMode, run } =
     useRun();
   const [params] = useSearchParams();
   const [agent, setAgent] = useState<AgentKind>(params.get('agent') === 'voice' ? 'voice' : 'keyboard');
@@ -42,12 +44,25 @@ export default function Possession() {
         : undefined;
   const isVoice = agent === 'voice';
 
+  // A finished voice run feeds the status badge in the app bar.
+  useEffect(() => {
+    if (voice.state.phase === 'finished' && voice.state.result) setVoiceResult(voice.state.result);
+  }, [voice.state.phase, voice.state.result, setVoiceResult]);
+
+  function runKeyboard() {
+    setVoiceResult(null);
+    return run();
+  }
+
   function runVoice() {
     void voice.start(variant, commandsFrom(commandText), source);
   }
 
   return (
-    <Page id="possession">
+    <Page
+      id="possession"
+      lead={isVoice ? VOICE_LEAD : undefined}
+    >
       <RunControls
         variant={variant}
         mode={mode}
@@ -56,7 +71,7 @@ export default function Possession() {
         onModeChange={setMode}
         recipient={recipient}
         onRecipientChange={setRecipient}
-        onRun={isVoice ? runVoice : run}
+        onRun={isVoice ? runVoice : runKeyboard}
         agent={agent}
         onAgentChange={setAgent}
         statusLabel={isVoice ? voiceLabel : undefined}

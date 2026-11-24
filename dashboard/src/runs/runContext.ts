@@ -22,6 +22,9 @@ export interface RunValue {
   setMode: (m: AgentMode) => void;
   setRecipient: (r: string) => void;
   run: () => Promise<void>;
+  /** The last finished voice run, so the status badge can show it. Null when a keyboard run is newer. */
+  voiceResult: JourneyResult | null;
+  setVoiceResult: (r: JourneyResult | null) => void;
 }
 
 export const RunContext = createContext<RunValue | null>(null);

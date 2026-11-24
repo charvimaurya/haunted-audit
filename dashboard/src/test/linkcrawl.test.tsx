@@ -60,7 +60,7 @@ describe('link crawl', () => {
       const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
       const labels = within(nav).getAllByRole('link').map((a) => a.getAttribute('aria-label') ?? a.textContent);
       expect(labels, page.path).toEqual([
-        'Haunted Audit — home', 'Home', 'Scans', 'Journeys', 'Fixes', 'Kiro', 'Reports', 'Voice agent', 'Built with Kiro',
+        'Haunted Audit — home', 'Home', 'Scans', 'Journeys', 'Fixes', 'Kiro', 'Reports', 'Built with Kiro',
       ]);
       // The four settings sit behind one Settings button in the bar (owner approved, 22 Nov 2026).
       fireEvent.click(within(nav).getByRole('button', { name: 'Settings' }));

@@ -77,17 +77,17 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         id="hero-heading"
         data-page-title
         tabIndex={-1}
-        className="mb-3 leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
-        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.75rem, 6vw, 4.5rem)', letterSpacing: '0.02em' }}
+        className="mb-3 whitespace-nowrap leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
+        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 4rem)', letterSpacing: '0.02em' }}
       >
         <span className="wordmark-haunted">Haunted</span>{' '}<span className="wordmark-audit">Audit</span>
       </h1>
 
       {/* Tagline */}
-      <p className="text-base text-ink-muted max-w-md mb-1 font-ui">
+      <p className="text-base text-ink max-w-md mb-1 font-ui">
         The accessibility guardrail for AI-built applications.
       </p>
-      <p className="text-base text-ghost-ready mb-8 font-ui">
+      <p className="text-base text-ink mb-8 font-ui">
         Feel the barrier. Fix the cause. Prove the journey.
       </p>
 
@@ -98,8 +98,8 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         to={to}
         className={[
           'flex items-center gap-2 px-8 py-3 rounded-full font-ui font-bold text-base',
-          'bg-violet-600 text-white border border-violet-neon/60',
-          'hover:bg-violet-500 active:scale-95 transition-all duration-150 shadow-glow',
+          'bg-base-surface text-ink border-2 border-violet-neon',
+          'hover:bg-violet-600/40 active:scale-95 transition-all duration-150 shadow-glow',
           // Only add the pulse class when motion is allowed
           reducedMotion ? '' : 'animate-glow-pulse',
           'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-neon',

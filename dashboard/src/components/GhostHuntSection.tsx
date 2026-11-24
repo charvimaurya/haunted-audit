@@ -5,13 +5,14 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Ghost, Ban } from 'lucide-react';
+import { Keyboard, Ghost, Ban, Mic } from 'lucide-react';
+import { Link, useInRouterContext } from 'react-router-dom';
+import { to } from '../routes';
 import { ResultState } from './ResultState';
 import type { ApiStatus } from '../runs/runContext';
 import { AgentCard, type AgentOutcome } from './AgentCard';
 import { GhostMascot } from './GhostMascot';
 import { findingText } from '../lib/finding';
-import { VoiceAgentPanel } from './VoiceAgentPanel';
 import type { JourneyResult, StepEvent } from '../types';
 
 interface GhostHuntSectionProps {
@@ -20,6 +21,8 @@ interface GhostHuntSectionProps {
   liveEvents?: StepEvent[];
   /** Result of the last GET /health check. */
   apiStatus?: ApiStatus;
+  /** The last finished voice run, if any (shown on the Voice Agent card). */
+  voiceResult?: JourneyResult | null;
 }
 
 const TOOL_COLOR: Record<string, string> = {
@@ -41,17 +44,32 @@ function toolColor(tool: string) {
 /** Keyboard Agent rows, read only from the checker's result. Empty until a run finishes. */
 function keyboardOutcomes(result: JourneyResult | null): AgentOutcome[] {
   if (!result || !result.verdict) return [];
-  if (result.verdict === 'PASSED') return [{ label: 'Reached Send Payment by keyboard', passed: true }];
-  return [
-    { label: 'Could not reach Send Payment', passed: false, detail: result.reason_code ?? undefined },
-  ];
+  const reached = (hint: string) => result.focus_trail.some((snap) => snap.selector_hint.includes(hint));
+  const rows: AgentOutcome[] = [];
+  if (reached('#recipient') || reached('#amount')) rows.push({ label: 'Navigated form', passed: true });
+  if (result.verdict === 'PASSED') return [...rows, { label: 'Reached Send Payment by keyboard', passed: true }];
+  return [...rows, { label: 'Could not reach Send Payment', passed: false, detail: result.reason_code ?? undefined }];
+}
+/** Voice Agent rows: one per step of the last voice run, in the runner's own plain-English words. */
+function voiceOutcomes(voice: JourneyResult | null): AgentOutcome[] {
+  if (!voice) return [];
+  return voice.step_events.map((e) => {
+    const a = e.args as Record<string, unknown>;
+    return { label: typeof a.message === 'string' ? a.message : e.tool, passed: a.outcome === 'done' };
+  });
 }
 
 /** Ghost Hunter rows: the blocked element the checker measured. Empty when nothing was blocked. */
 function hunterOutcomes(result: JourneyResult | null): AgentOutcome[] {
   const el = result?.verdict === 'BLOCKED' ? result.blocked_element : null;
   if (!el) return [];
-  return [{ label: 'Found the blocked control', passed: false, detail: el.selector }];
+  const custom = result?.reason_code === 'TARGET_NOT_FOCUSABLE' && el.tag && !['button', 'a', 'input'].includes(el.tag.toLowerCase());
+  return [
+    { label: 'Identified root cause', passed: true },
+    ...(custom
+      ? [{ label: `Custom element (${el.tag?.toLowerCase()}) not keyboard accessible`, passed: false, detail: el.selector }]
+      : [{ label: 'Found the blocked control', passed: false, detail: el.selector }]),
+  ];
 }
 
 export function GhostHuntSection({
@@ -59,7 +77,9 @@ export function GhostHuntSection({
   isRunning = false,
   liveEvents = [],
   apiStatus = 'online',
+  voiceResult = null,
 }: GhostHuntSectionProps) {
+  const inRouter = useInRouterContext();
   const finding = result ? findingText(result) : null;
   const displayEvents: StepEvent[] = result?.step_events?.length
     ? result.step_events.slice(-8) // show last 8
@@ -93,7 +113,23 @@ export function GhostHuntSection({
           isRunning={isRunning}
           outcomes={keyboardOutcomes(result)}
         />
-        <VoiceAgentPanel result={result} />
+        <div className="flex flex-col gap-2">
+          <AgentCard name="Voice Agent" ariaLabel="Voice Agent" icon={<Mic size={14} />} outcomes={voiceOutcomes(voiceResult)} />
+          <p className="m-0 px-1 text-base font-ui text-ink-muted">
+            Commands are spoken or typed on{' '}
+            {inRouter ? (
+              <Link
+                to={`${to('possession')}?agent=voice`}
+                className="text-violet-300 underline underline-offset-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+              >
+                Possession Mode
+              </Link>
+            ) : (
+              'Possession Mode'
+            )}
+            .
+          </p>
+        </div>
         <AgentCard
           name="Ghost Hunter"
           icon={<Ghost size={14} />}

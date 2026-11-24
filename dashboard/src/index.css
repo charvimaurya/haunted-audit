@@ -28,7 +28,7 @@
   --color-ink:           #f0e8ff;
   --color-ink-muted:     #9d89b8;
 
-  --font-display: "Rubik Wet Paint", fantasy;
+  --font-display: "MedievalSharp", fantasy;
   --font-ui:      "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
@@ -274,7 +274,7 @@ html, body {
   --scene-moon: #cec3ed;
   --scene-pumpkin: #e07a1f;
   --scene-face: #2a1302;
-  --scene-grave: #120b24;
+  --scene-grave: #34255f;
   --scene-blush: #f4a6d7;
   --scene-bat: #0a0614;
 }
@@ -284,13 +284,13 @@ html, body {
 .hero-scene, .hero-scene * { pointer-events: none !important; }
 
 /* Wordmark colours: "Haunted" lavender-white, "Audit" violet (v7 hero wordmark). */
-.wordmark-haunted { background: linear-gradient(#f4eeff, #b9a0f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.wordmark-audit { background: linear-gradient(#c9a2ff, #8a4be0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wordmark-haunted { color: var(--color-ink); }
+.wordmark-audit { color: var(--color-ink); }
 .wordmark-glow { text-shadow: none; filter: drop-shadow(0 0 10px var(--color-violet-neon)); }
 
 /* Hero night scene: flat patches from v7 hero crop (design/Haunted_Audit_Final_UI_v7.png, x0-660,y0-320). */
 :root {
-  --scene-tree: #0b0618;
+  --scene-tree: #2a1a52;
   --scene-path: #2a1f4d;
   --scene-star: #e9e1ff;
 }
