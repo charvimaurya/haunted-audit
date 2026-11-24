@@ -146,6 +146,10 @@
           <p class="hint" id="recipient-hint">Use the name on the account.</p>
         </div>
         <div class="field" id="amount-slot"></div>
+        <div class="field">
+          <label for="reference">Reference</label>
+          <input id="reference" name="reference" type="text" maxlength="60" autocomplete="off" />
+        </div>
         <div class="actions">
           <div id="pay-slot"></div>
           <div id="cancel-slot"></div>
@@ -256,9 +260,12 @@
       balance -= result.cents;
       $("balance").textContent = "Demo balance: EUR " + fmt(balance) + " (not real money)";
       confirmation.hidden = false;
-      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + ". New balance: EUR " + fmt(balance) + ".";
+      const reference = $("reference").value.trim();
+      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + ". New balance: EUR " + fmt(balance) + "." +
+        (reference ? " Reference: " + reference + "." : "");
       $("recipient").value = "";
       $("amount").value = "";
+      $("reference").value = "";
     };
 
     $("payment-form").addEventListener("submit", function (event) {
@@ -269,6 +276,7 @@
     $("cancel").addEventListener("click", function () {
       $("recipient").value = "";
       $("amount").value = "";
+      $("reference").value = "";
       showErrors({});
       $("payment-confirmation").hidden = true;
       $("payment-confirmation").textContent = "";

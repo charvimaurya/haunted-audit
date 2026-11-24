@@ -290,3 +290,52 @@ def test_read_page_does_not_leak_the_state(browser, base_url, variant) -> None:
         assert word not in text, word
     assert bool(re.search(r"send-payment", text)) == (variant == "fixed")  # only the fixed control is listed
     context.close()
+# ---- the Reference field (spec reference-field, REQ-RF-01 to 03) --------------------------------
+@pytest.mark.parametrize("variant", ["broken", "fixed"])
+def test_reference_has_a_label_in_both_variants(browser, base_url, variant) -> None:
+    context, page, _ = open_bank(browser, base_url, variant)
+    assert page.get_by_label("Reference").count() == 1
+    assert page.locator("label[for=reference]").inner_text() == "Reference"
+    context.close()
+@pytest.mark.parametrize("variant", ["broken", "fixed"])
+def test_reference_sits_between_amount_and_the_send_control_in_tab_order(browser, base_url, variant) -> None:
+    context, page, _ = open_bank(browser, base_url, variant)
+    order = tab_order(page, 12)
+    assert order.index("recipient") < order.index("amount") < order.index("reference")
+    if variant == "fixed":
+        assert order.index("reference") < order.index("send-payment")
+    context.close()
+@pytest.mark.parametrize("variant", ["broken", "fixed"])
+def test_reference_is_shown_in_the_confirmation_and_cleared(browser, base_url, variant) -> None:
+    context, page, problems = open_bank(browser, base_url, variant)
+    fill(page, "Alex Carter", "50.00")
+    page.fill("#reference", "Electricity bill")
+    page.click("#send-payment")
+    text = confirmation(page) or ""
+    assert text.startswith("Sent EUR 50.00 to Alex Carter.")
+    assert text.endswith("Reference: Electricity bill.")
+    assert page.input_value("#reference") == ""
+    assert problems == []
+    context.close()
+@pytest.mark.parametrize("variant", ["broken", "fixed"])
+def test_an_empty_reference_never_blocks_the_payment(browser, base_url, variant) -> None:
+    context, page, _ = open_bank(browser, base_url, variant)
+    fill(page, "Alex Carter", "50.00")
+    page.click("#send-payment")
+    text = confirmation(page) or ""
+    assert text.startswith("Sent EUR 50.00 to Alex Carter.")
+    assert "Reference" not in text
+    context.close()
+@pytest.mark.parametrize("variant", ["broken", "fixed"])
+def test_cancel_clears_the_reference(browser, base_url, variant) -> None:
+    context, page, _ = open_bank(browser, base_url, variant)
+    page.fill("#reference", "Electricity bill")
+    page.click("#cancel")
+    assert page.input_value("#reference") == ""
+    context.close()
+def test_reference_is_limited_to_sixty_characters(browser, base_url) -> None:
+    context, page, _ = open_bank(browser, base_url, "fixed")
+    page.focus("#reference")
+    page.keyboard.type("x" * 80)
+    assert len(page.input_value("#reference")) == 60
+    context.close()
