@@ -4,5 +4,5 @@
 - [x] TASK-03 Setup form: `TestDetailsForm`, checks before Run Journey and Run voice journey, run context (REQ-TD-01, 02)
 - [x] TASK-04 Agent and checklist wiring: bank Reference field, walker, LLM prompt, voice commands from the form, checklist replay (REQ-TD-03, 04, 05)
 - [x] TASK-05 Remove visible hits: unused drawing, design pages, README and Known issues, docs, redaction marker (REQ-TD-09)
-- [ ] TASK-06 Seed re-export from runs with values the owner types, plus the replay note (REQ-TD-08)
-- [ ] TASK-07 Tests: browser test with the real API, name scan of src, public and bundle, API tests, 5-run scripted check, axe on the form (REQ-TD-10)
+- [ ] TASK-06 Seed re-export from runs with values the owner types, plus the replay note (REQ-TD-08). Script ready: `scripts/record_seed.py`. Waiting for the owner to type the values
+- [x] TASK-07 Tests: browser test with the real API, name scan of src, public and bundle, API tests, 5-run scripted check, axe on the form (REQ-TD-10)
