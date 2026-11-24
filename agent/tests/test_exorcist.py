@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
 import sqlite3
 import subprocess
 import time
@@ -221,3 +222,17 @@ def test_rows_are_never_deleted_and_history_is_append_only(tmp_path):
         conn.execute("UPDATE fix_events SET event = 'x'")
     with pytest.raises(sqlite3.DatabaseError):
         conn.execute("DELETE FROM fix_events")
+
+
+def test_fix_record_matches_the_data_contract(client):
+    """REQ-X-17: GET /fixes/{id} returns exactly the fields documented under "Fix" in data-contract.md."""
+    text = (REPO / ".kiro" / "steering" / "data-contract.md").read_text(encoding="utf-8")
+    rows = text.split("## Fix: `GET /fixes/{fix_id}`", 1)[1].splitlines()
+    documented: set[str] = set()
+    for line in rows:
+        if line.startswith("|") and not line.startswith("| Field") and not line.startswith("|---"):
+            documented |= set(re.findall(r"`([a-z0-9_]+)`", line.split("|")[1]))
+        elif documented and not line.startswith("|"):
+            break
+    fix = client.post(f"/runs/{_blocked_run(client)}/fixes", json={}).json()
+    assert set(fix) == documented
