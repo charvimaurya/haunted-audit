@@ -15,7 +15,7 @@ Rebuild each screen in the React dashboard (`dashboard/src`), with real data.
 | `07-results.html` | Results: four tiles and the Outcome parchment | `components/ResultsSection.tsx`, `OutcomeCard.tsx` |
 | `index.html` | All screens in one page, with working navigation | for reference |
 | `assets/hero-bg.jpg` | Home background (the v7 artwork with the text removed) | copy to `dashboard/src/assets/` |
-| `assets/creepster-latin-400-normal.woff2` | Title font | install `@fontsource/creepster` instead |
+| `assets/rubik-wet-paint-latin-400-normal.woff2` | Title font (the v7 dripping style) | install `@fontsource/rubik-wet-paint` instead (already in the dashboard) |
 
 ## Rules for every screen
 
@@ -31,7 +31,7 @@ Rebuild each screen in the React dashboard (`dashboard/src`), with real data.
 Attach the HTML page and the React files named in the table, then paste the prompt.
 
 **Home (`feature/ui-v9-home`)**
-> Rebuild the Home hero to match `design/v9/01-home.html` at 1366 px wide. Use `assets/hero-bg.jpg` as the background (copy it to `dashboard/src/assets/`), with the title, tagline, Possess This App link and the four chips as real HTML on top. Use `@fontsource/creepster` for the title only. Two decorative ghosts roam: red angry along the bottom, green happy along the top, behind the text, `aria-hidden`. Add a visible "Pause animation" button (WCAG 2.2.2). Hide the ghosts in Calm mode and with reduced motion. Cap the hero at 1360 px wide. Keep all existing tests passing and add tests for the Pause button.
+> Rebuild the Home hero to match `design/v9/01-home.html` at 1366 px wide. Use `assets/hero-bg.jpg` as the background (copy it to `dashboard/src/assets/`), with the title, tagline, Possess This App link and the four chips as real HTML on top. Use `@fontsource/rubik-wet-paint` (already installed) for the title only. Two decorative ghosts roam: red angry along the bottom, green happy along the top, behind the text, `aria-hidden`. Add a visible "Pause animation" button (WCAG 2.2.2). Hide the ghosts in Calm mode and with reduced motion. Cap the hero at 1360 px wide. Keep all existing tests passing and add tests for the Pause button.
 
 **Possession with the voice switch (`feature/ui-v9-possession`)**
 > Rebuild Possession Mode to match `design/v9/02-possession-keyboard.html` and `03-possession-voice.html`. Add a Keyboard / Voice switch inside the Possession Mode panel (buttons with `aria-pressed`). Keyboard shows the Tab steps. Voice shows the voice commands as steps, with Run voice journey, Push to talk (real Chrome speech recognition from `voice/speechRecognition.ts`) and Edit commands. Steps fill in live from the run's `step_events`. The red ghost sits beside Send Payment, never on it, with the Journey Blocked note. Move the voice controls out of the Agents page. Show "Live Test" only while a run is going.
