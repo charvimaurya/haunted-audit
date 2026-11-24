@@ -1,7 +1,7 @@
 # Master task tracker: Sukhda Build Plan v5.3
 
 Audit date: 24 Nov 2026 (local). Source plan: `Sukhdha plan v5.3 status.docx` (plan was checked against main 1568826).
-Audited: `main` at 1de776a, in a separate git worktree. My first pass read the stale branch `wip/dashboard-uncommitted` (925fd05, behind main by 6 commits, with 19 modified and 4 untracked uncommitted files owned by Sukhda; I did not touch them). Rows below are corrected to main.
+Audited: `main` at 28e8fec (it moved while I worked; the owner rebased it onto PR #16), in a separate git worktree. My first pass read the stale branch `wip/dashboard-uncommitted` (925fd05, behind main by 6 commits, with 19 modified and 4 untracked uncommitted files owned by Sukhda; I did not touch them). Rows below are corrected to main.
 
 ## Verified test baseline (run in this audit)
 
@@ -30,7 +30,7 @@ Status words: DONE, BUILT_PENDING_REVIEW, IN_PROGRESS, BLOCKED_EXTERNAL, NOT_STA
 | 2 | Verifier keyboard + voice | Built | BUILT_PENDING_REVIEW | voice replay is on main (LE-01 to LE-03); `scripts/qa_verifier_outcomes.py` shows the four outcomes (990b469). Left: independent Reviewer sign-off | 1 | 4 Verifier results in real runs; bank fixtures unchanged | commits 06933b3, 774f08b, 16fbe46; `docs/evidence/loop-evidence-*.png` | Sukhda |
 | 3 | Journey test, regression guard, API | Due | BUILT_PENDING_REVIEW | `tests/journeys/send-payment.spec.ts` and guard exist (JG-01 to JG-03, "GUARD_WORKS 5 of 5" recorded in 663ce22). Re-run the guard here. Plan's endpoint names `POST /runs/{id}/exorcise`, `POST /regression/demo`, `GET /fixes/{id}/events` differ from the data contract (`/runs/{id}/fixes`, `/fixes/{id}/regression`); I will not rename shipped endpoints (Task 20) | 1, 2 | GUARD_WORKS 5 of 5 | `docs/pr/item-3-journey-guard.md` | Sukhda |
 | 4 | Wire loop to dashboard | Built | BUILT_PENDING_REVIEW | PR, devlog, two evidence rows with run IDs (LE-02 adds them) | 1, 2 | whole loop by keyboard; npm test passes | dashboard tests 132 pass | Sukhda |
-| 5 | Spooky moments | Due | IN_PROGRESS | SS-01 exorcism on Approve and SS-02 before/after split are on main (d5e2a7d, 1de776a); SS-03 (docs, review record) not ticked. Returning-ghost moment on regression: unverified | 4 | 3 moments + no-motion version + tests | `.kiro/specs/spooky-steps/` | Sukhda |
+| 5 | Spooky moments | Due | BUILT_PENDING_REVIEW | SS-01, SS-02, SS-03 are on main with a review record (bfa8a1c, 28e8fec). Not checked by me: the returning-ghost moment on regression. Left: independent reviewer sign-off | 4 | 3 moments + no-motion version + tests | `.kiro/specs/spooky-steps/` |
 | 6 | UI fixes U1-U14 | Due | IN_PROGRESS | U3 (`/ 6` from PLANTED.md), U5 (focus trail on bank) | - | all U rows fixed | plan U table | Sukhda |
 | 7 | Core design states | Due | IN_PROGRESS | empty/loading/error on every loop screen plus test | 4 | see plan | - | Sukhda |
 | 8 | Self-scan axe | Due | IN_PROGRESS | re-run browser axe, save screenshot (live link needs item 9) | 41 | 0 findings | - | Sukhda |
@@ -73,3 +73,12 @@ Status words: DONE, BUILT_PENDING_REVIEW, IN_PROGRESS, BLOCKED_EXTERNAL, NOT_STA
 - AWS deploy (9), Kiro Web (30), second-laptop and Windows tests (18, 22), Codespaces test (23), tag (34): need accounts, other people or other machines.
 - `kiro-cli qa` / `reviewer` runs: not run here. The sub-agents `qa` and `reviewer` are available in this IDE and can be used per branch.
 - Plan Appendix A and B, and rows for items 35-41 beyond the prompt, were not read in full yet.
+
+## Five-level status
+
+Levels: Implemented, Tested, Independently reviewed, PR approved, Done per plan. A task is DONE only when all five are yes.
+
+| Items | Implemented | Tested | Independently reviewed | PR approved | Done per plan |
+|---|---|---|---|---|---|
+| 1, 2, 3, 4, 5 (straight to main) | yes | yes (pytest and 137 dashboard tests pass on main) | no | no (no PR) | no |
+| 12 | yes | yes (same suites pass on the branch) | no | no (PR open) | no |
