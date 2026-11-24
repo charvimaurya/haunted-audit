@@ -170,6 +170,7 @@ npm test
 4. On `fixed`, the ghost turns green and the checker reports `PASSED`.
 5. Unmeasured numbers stay `--`.
 6. After a `broken` run, **Fixes** walks Find, Fix, Verify, Regression by keyboard. Verify shows **BLOCKED → VERIFIED** and two evidence rows, Keyboard journey and Voice-command simulation, each with its run ID. **Reports** shows the same two rows.
+7. **Approve** plays a short exorcism: the red ghost glows and fades, beside "Exorcism started: a person approved the fix. The Verifier still has to prove it." The **Regression** step ends with **Before and after**: red BLOCKED from the first run, and green VERIFIED only when the Verifier's run passed. In Calm mode the same states show without movement.
 
 If the page says it cannot reach the API, the first terminal is not running, or it is not on port 8000.
 
