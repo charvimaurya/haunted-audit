@@ -1,0 +1,11 @@
+{
+  "name": "haunted-audit-journeys",
+  "private": true,
+  "description": "Keyboard-only journey tests for the Haunted Bank. JOURNEY_URL is the page to test.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
