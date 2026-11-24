@@ -88,6 +88,8 @@ def run_test(page: Path, test: Path = DEFAULT_TEST) -> tuple[str, str | None, st
         cwd=JOURNEYS, env=env, capture_output=True, text=True, timeout=120,
     )
     output = proc.stdout + proc.stderr
+    if "Executable doesn't exist" in output or "npx playwright install" in output:
+        raise SetupError("Chromium for Playwright is missing. Run: cd tests/journeys && npx playwright install chromium")
     if proc.returncode == 0:
         return "PASS", None, output
     message = next((ln.strip() for ln in output.splitlines() if ln.strip().startswith("Error:")), None)
@@ -116,12 +118,12 @@ def main(argv: list[str] | None = None) -> int:
     works = 0
     try:
         for n in range(1, args.runs + 1):
-            verdict, results = run_once(OUT_ROOT / f"{stamp}-{n}", args.test)
-            works += verdict == "GUARD_WORKS"
+            guard_result, results = run_once(OUT_ROOT / f"{stamp}-{n}", args.test)
+            works += guard_result == "GUARD_WORKS"
             print(f"\nRun {n} of {args.runs}  (copies in artifacts/regression/{stamp}-{n}/)")
             for r in results:
                 print(f"  {r.step:<13} {r.result}" + (f"   {r.message}" if r.message else ""))
-            print(f"  {verdict}")
+            print(f"  {guard_result}")
     except SetupError as exc:
         print(f"Not run: {exc}", file=sys.stderr)
         return 2

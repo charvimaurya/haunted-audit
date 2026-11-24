@@ -48,10 +48,10 @@ def test_missing_packages_is_not_a_result(monkeypatch, tmp_path: Path):
 @needs_node
 def test_real_guard_works_and_fixture_unchanged(tmp_path: Path):
     before = hashlib.sha256(FIXTURE.read_bytes()).hexdigest()
-    verdict, results = rg.run_once(tmp_path)
+    guard_result, results = rg.run_once(tmp_path)
     assert [r.result for r in results] == ["PASS", "FAIL", "PASS"]
     assert rg.FOCUS_MESSAGE in (results[1].message or "")
-    assert verdict == "GUARD_WORKS"
+    assert guard_result == "GUARD_WORKS"
     assert hashlib.sha256(FIXTURE.read_bytes()).hexdigest() == before
 
 
@@ -60,8 +60,8 @@ def test_always_pass_test_gives_guard_broken(tmp_path: Path):
     fake = rg.JOURNEYS / "always-pass.tmp.spec.ts"
     fake.write_text('import { test } from "@playwright/test";\ntest("always passes", async () => {});\n')
     try:
-        verdict, results = rg.run_once(tmp_path / "pages", fake)
+        guard_result, results = rg.run_once(tmp_path / "pages", fake)
     finally:
         fake.unlink()
     assert [r.result for r in results] == ["PASS", "PASS", "PASS"]
-    assert verdict == "GUARD_BROKEN"
+    assert guard_result == "GUARD_BROKEN"
