@@ -317,7 +317,7 @@ body.paused .roam,body.paused .bob{animation-play-state:paused}
 .brand{font-size:19px}.brand svg{width:32px;height:32px}
 .primary{gap:34px}.primary a{font-size:15.5px}
 .kiropill{min-height:38px;padding:0 14px}.gear{width:38px;height:38px}
-.appframe{margin:4px auto 14px;width:min(100% - 24px,1480px);min-height:max(563px,calc(100vh - 74px))}
+.appframe{margin:4px auto 16px;width:min(100% - 24px,(100vh - 110px)*2.418,1360px);min-height:calc(min(100vw - 24px,(100vh - 110px)*2.418,1360px)*536/1296);border-radius:18px}
 .appbody{align-items:stretch}
 .apphead{padding:9px 20px}.apphead ol{font-size:16px;gap:10px}.apphead li{gap:10px}.apphead li svg{width:26px;height:26px}
 .chip{font-size:14px;padding:4px 12px}
@@ -369,6 +369,7 @@ body.paused .roam,body.paused .bob{animation-play-state:paused}
 .parch{padding:22px 24px}.parch h3{font-size:22px;margin:0 0 10px}.parch li{font-size:15.5px}.parch ul{gap:10px}
 .okghost{width:130px;top:-82px}
 
+#p-possession .payform{padding-top:16px;padding-bottom:16px}#p-possession .steps li{min-height:42px}
 .view{display:none}.view.active{display:block}
 </style>
 </head>
@@ -431,6 +432,8 @@ body.paused .roam,body.paused .bob{animation-play-state:paused}
  <div class="frame appframe">
   <div class="apphead">
    <ol id="crumbs" aria-label="Breadcrumb"></ol>
+   <span id="variantBox" style="display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:12px;color:var(--mute);font-size:14px">
+     <label for="variant">Variant</label><select id="variant" style="background:#0d1022;color:#fff;border:1px solid var(--card-line);border-radius:8px;min-height:32px;font-size:14px"><option value="broken">broken (barrier present)</option><option value="fixed">fixed (barrier repaired)</option></select><span>· scripted, no AI</span></span>
    <span id="liveChip" class="chip idle"><i></i><span id="liveTxt">Ready</span></span>
   </div>
   <div class="appbody">
@@ -483,7 +486,7 @@ body.paused .roam,body.paused .bob{animation-play-state:paused}
        <div class="barrier idle" id="barrier" role="status" aria-live="polite">Run a journey to look for barriers</div>
       </div>
      </div>
-     <p class="dim" style="margin:28px 0 0">Variant: <select id="variant" aria-label="Variant" style="background:#0d1022;color:#fff;border:1px solid var(--card-line);border-radius:8px;min-height:36px"><option value="broken">broken (barrier present)</option><option value="fixed">fixed (barrier repaired)</option></select> · Agent mode: scripted (fixed steps, no AI)</p>
+     
     </div>
 
     <!-- AGENTS (panel C) -->
@@ -755,6 +758,7 @@ function route(){
   if(view!=='home'){$('crumbs').innerHTML=(view==='possession'?`<li>${ico('kiro',20)}Kiro</li>`:`<li><svg width="34" height="34" viewBox="0 0 120 120" aria-hidden="true"><use href="#ghostbody" fill="url(#gW)"/><use href="#face-happy"/></svg><b>Haunted Audit</b></li>`)+CRUMB[view].slice(1).map(c=>`<li>${c}</li>`).join('');}
   renderAll();
   $('liveChip').hidden=!['possession','agents','fixes'].includes(view);
+  $('variantBox').hidden=view!=='possession';
   const h=view==='home'?$('h-home'):document.querySelector('#p-'+view+' h2'); if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}
   document.title=(view==='home'?'Haunted Audit':(h?h.textContent:'')+' – Haunted Audit');
 }
