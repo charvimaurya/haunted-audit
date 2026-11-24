@@ -94,6 +94,7 @@ class JourneyConfig(BaseModel):
     success_selector: str = "[data-testid='payment-confirmation']"
     recipient: str = "Alex Carter"
     amount: str = "50.00"
+    reference: str = "Electricity bill"
     max_steps: int = Field(default=25, ge=1)
     timeout_seconds: float = Field(default=90.0, ge=0)
     agent_mode: AgentMode = "scripted"

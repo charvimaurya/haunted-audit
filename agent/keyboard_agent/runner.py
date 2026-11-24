@@ -66,13 +66,14 @@ def build_journey_config(
     _load_env()
     recipient = str(overrides.pop("recipient", "Alex Carter"))
     amount = str(overrides.pop("amount", "50.00"))
+    reference = str(overrides.pop("reference", "Electricity bill"))
     if variant not in {"broken", "fixed"}:
         raise ValueError("variant must be broken or fixed")
     if mode not in {"llm", "scripted"}:
         raise ValueError("mode must be llm or scripted")
     goal = (
-        f"Send a payment of EUR {amount} to {recipient}. "
-        "Fill the recipient and the amount, then activate the control that sends the payment."
+        f"Send a payment of EUR {amount} to {recipient} with the reference {reference}. "
+        "Fill the recipient, the amount and the reference, then activate the control that sends the payment."
     )
     values = {
         "start_url": f"{FIXTURE_PATH.as_uri()}?variant={variant}",
@@ -81,6 +82,7 @@ def build_journey_config(
         "success_selector": SUCCESS_SELECTOR,
         "recipient": recipient,
         "amount": amount,
+        "reference": reference,
         "agent_mode": mode,
         "variant": variant,
         "input_usd_per_mtok": float(os.getenv("BEDROCK_INPUT_USD_PER_MTOK", "3")),

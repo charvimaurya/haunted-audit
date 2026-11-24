@@ -35,6 +35,7 @@ def build_user_prompt(config: JourneyConfig) -> str:
         f"Goal: {config.goal}\n"
         f"Recipient to enter: {config.recipient}\n"
         f"Amount to enter: {config.amount}\n"
+        f"Reference to enter: {config.reference}\n"
         "Complete the goal using only the keyboard."
     )
     _reject_leaked_selectors(config, prompt)

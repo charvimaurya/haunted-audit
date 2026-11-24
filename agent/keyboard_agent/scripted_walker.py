@@ -4,7 +4,8 @@ Policy, in order:
 
 1. Read the page and the current focus.
 2. Press Tab through the focus order.
-3. Type the recipient into the first editable field and the amount into the second.
+3. Type the recipient into the first editable field, the amount into the second and the
+   reference into the third (a page without a third field still works).
 4. If a focused button is the send control, press Enter.
 5. If a full tab cycle ends without that control, press Enter once on the last
    control and declare the attempt blocked.
@@ -34,6 +35,7 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
 
     filled_recipient = False
     filled_amount = False
+    filled_reference = False
     activated_submit = False
     cycle_start: str | None = None
     tabs = 0
@@ -58,6 +60,11 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
             filled_amount = True
             if _halt(session, "Stopped while entering the amount."):
                 return
+        elif _is_editable(focus) and filled_amount and not filled_reference:
+            session.type_text(config.reference)
+            filled_reference = True
+            if _halt(session, "Stopped while entering the reference."):
+                return
 
         session.press_tab()
         tabs += 1
@@ -80,7 +87,7 @@ def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None
     if activated_submit:
         session.declare_done(
             "attempted_complete",
-            "Filled the recipient and the amount in tab order and pressed Enter on the send control.",
+            "Filled the recipient, the amount and the reference in tab order and pressed Enter on the send control.",
         )
         return
 
