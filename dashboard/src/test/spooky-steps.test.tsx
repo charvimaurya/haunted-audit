@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { BeforeAfterSplit } from '../components/BeforeAfterSplit';
 import { PipelineSection } from '../components/PipelineSection';
 import { FixProvider } from '../fixes/FixProvider';
 import { useFix, type CopyRun, type Fix } from '../fixes/fixContext';
@@ -89,5 +90,49 @@ describe('exorcism on Approve', () => {
       propose: async () => {}, approve: async () => {}, reject: async () => {}, verify: async () => {}, regression: async () => {} };
     render(<PipelineSection result={result} apiStatus="online" activeStep={3} flow={flow} />);
     expect(screen.queryByText(EXORCISM)).toBeNull();
+  });
+});
+
+describe('before and after split', () => {
+  const approved = { ...baseFix, status: 'approved' as const, decided_by: 'u', decided_at: 'x' };
+  const after = (c: HTMLElement) => c.querySelector('[data-after]') as HTMLElement;
+
+  it('Verifier PASSED: BLOCKED with the red ghost, VERIFIED with the green ghost, both run IDs, axe clean', async () => {
+    const { container } = render(<BeforeAfterSplit fix={{ ...approved, verify: copyRun('verify-run-9', 'PASSED') }} />);
+    expect(screen.getByRole('heading', { name: 'Before and after' })).toBeTruthy();
+    expect(screen.getByText('BLOCKED')).toBeTruthy();
+    expect(screen.getByText('VERIFIED')).toBeTruthy();
+    expect(screen.getByText('r1')).toBeTruthy();
+    expect(screen.getByText('verify-run-9')).toBeTruthy();
+    expect(container.querySelector('[data-ghost-state="blocked"]')).toBeTruthy();
+    expect(after(container).querySelector('[data-ghost-state="verified"]')).toBeTruthy();
+    expect(after(container).classList.contains('split-reveal')).toBe(true);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('Verifier BLOCKED: Not verified and no green ghost', () => {
+    const { container } = render(<BeforeAfterSplit fix={{ ...approved, verify: copyRun('v', 'BLOCKED') }} />);
+    expect(screen.getByText('Not verified')).toBeTruthy();
+    expect(container.textContent).not.toMatch(/VERIFIED/);
+    expect(container.querySelector('[data-ghost-state="verified"]')).toBeNull();
+  });
+
+  it('not run or running: Not run yet and no green ghost', () => {
+    const { container, rerender } = render(<BeforeAfterSplit fix={approved} />);
+    expect(screen.getByText('Not run yet')).toBeTruthy();
+    rerender(<BeforeAfterSplit fix={{ ...approved, verify: copyRun('v', null, 'running') }} />);
+    expect(screen.getByText('Not run yet')).toBeTruthy();
+    expect(container.querySelector('[data-ghost-state="verified"]')).toBeNull();
+  });
+
+  it('no fix at all: one plain sentence, no ghosts', () => {
+    const { container } = render(<BeforeAfterSplit fix={null} />);
+    expect(screen.getByText('Not run yet: approve and verify a fix to see the before and after.')).toBeTruthy();
+    expect(container.querySelector('[data-ghost-state]')).toBeNull();
+  });
+
+  it('adds no tab stops', () => {
+    const { container } = render(<BeforeAfterSplit fix={{ ...approved, verify: copyRun('v', 'PASSED') }} />);
+    expect(container.querySelectorAll('a, button, input, select, [tabindex]').length).toBe(0);
   });
 });

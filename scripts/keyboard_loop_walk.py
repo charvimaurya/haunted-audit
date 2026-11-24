@@ -1,6 +1,7 @@
 """Keyboard-only walk of the whole fix loop (loop-evidence LE-02): run, propose, approve, verify, regression, Reports.
 Only Tab, Shift+Tab, Enter, Space and typing into a focused field. No clicks. Every stop must show a focus ring.
 Usage: DASHBOARD_URL=http://127.0.0.1:5180 API_URL=http://127.0.0.1:8010 .venv/bin/python scripts/keyboard_loop_walk.py
+REDUCED_MOTION=1 emulates prefers-reduced-motion: the spooky moments must show the same text with no animation.
 Prints what each step showed and exits 1 on any failure. Screenshots go to artifacts/loop-walk/.
 """
 import json
@@ -14,6 +15,9 @@ from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("DASHBOARD_URL", "http://127.0.0.1:5173")
 API = os.environ.get("API_URL", "http://127.0.0.1:8000")
+REDUCED = os.environ.get("REDUCED_MOTION") == "1"
+ANIMS = """(sel) => { const e = document.querySelector(sel); if (!e) return null;
+  return {running: e.getAnimations().length, opacity: getComputedStyle(e).opacity}; }"""
 OUT = Path(__file__).resolve().parent.parent / "artifacts" / "loop-walk"
 FOCUS = """() => { const e = document.activeElement; if (!e || e === document.body) return null;
   const s = getComputedStyle(e);
@@ -56,7 +60,8 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        pg = browser.new_page(viewport={"width": 1280, "height": 800})
+        pg = browser.new_page(viewport={"width": 1280, "height": 800}, reduced_motion="reduce" if REDUCED else "no-preference")
+        print(f"(reduced motion: {'on' if REDUCED else 'off'})")
         pg.goto(BASE + "/app/journeys/send-payment/possession")
         pg.wait_for_selector("h1")
         pg.wait_for_load_state("networkidle")
@@ -83,6 +88,11 @@ def main() -> int:
         tab_to(pg, "Approve Fix")
         pg.keyboard.press(" ")
         wait_text(pg, "No file in the repo was changed", 30)
+        wait_text(pg, "Exorcism started: a person approved the fix.", 5)
+        moment = pg.evaluate(ANIMS, '[data-moment="exorcism"]')
+        print(f"   exorcism moment shown; animations running {moment['running']}, opacity {moment['opacity']}")
+        if REDUCED and moment["running"] != 0:
+            fail("the exorcism animates with reduced motion on")
 
         print("3. Verify with Enter: keyboard and voice on the patched copy")
         tab_to(pg, "Verify on a patched copy")
@@ -118,6 +128,21 @@ def main() -> int:
         steps = pg.get_by_role("list", name="Regression steps").inner_text()
         print("   " + steps.replace("\n", "\n   "))
         pg.screenshot(path=str(OUT / "regression.png"), full_page=True)
+
+        print("5b. Regression page with Enter: before and after")
+        tab_to(pg, "Regression")
+        pg.keyboard.press("Enter")
+        pg.get_by_role("heading", level=1, name="Fixes: Regression").wait_for()
+        split = pg.get_by_role("region", name="Before and after")
+        split.wait_for()
+        print("   " + split.inner_text().replace("\n", " | "))
+        reveal = pg.evaluate(ANIMS, ".split-reveal")
+        if reveal is not None:
+            print(f"   after half: animations running {reveal['running']}")
+            if REDUCED and reveal["running"] != 0:
+                fail("the split animates with reduced motion on")
+        pg.wait_for_timeout(800)  # let the 600 ms reveal finish so the picture shows the final state
+        pg.screenshot(path=str(OUT / ("split-calm.png" if REDUCED else "split.png")), full_page=True)
 
         print("6. Reports with Enter: the same two rows and run IDs")
         tab_to(pg, "Reports")
