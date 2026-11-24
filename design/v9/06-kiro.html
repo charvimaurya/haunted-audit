@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+@font-face{font-family:"Rubik Wet Paint";font-style:normal;font-weight:400;font-display:swap;src:url(assets/rubik-wet-paint-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:Creepster;font-style:normal;font-weight:400;font-display:swap;src:url(assets/creepster-latin-400-normal.woff2) format("woff2")}
 :root{
   --page:#08060f;
@@ -284,12 +285,40 @@ body.hc .frame,body.hc .card{box-shadow:none}
 .pausebtn .pi{width:12px;height:12px;border-left:4px solid #fff;border-right:4px solid #fff}
 .pausebtn[aria-pressed="true"] .pi{width:0;height:0;border-left:11px solid #fff;border-right:0;border-top:7px solid transparent;border-bottom:7px solid transparent}
 body.paused .roam,body.paused .bob{animation-play-state:paused}
+
+/* ===== ELEGANT pass (v9.1) ===== */
+.hero2::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(38% 46% at 56.6% 46%,#0b0618b3 0%,#0b061866 45%,transparent 75%)}
+.center2{top:10.5%}
+.wordmark2{font-family:"Rubik Wet Paint",Creepster,cursive;font-size:max(34px,6.7cqw);letter-spacing:.08cqw;color:transparent;
+  background:linear-gradient(180deg,#ffffff 0%,#f3ecff 42%,#cdb4ff 72%,#a98bff 100%);-webkit-background-clip:text;background-clip:text;
+  text-shadow:none;filter:drop-shadow(0 0 .6cqw #b794ff99) drop-shadow(0 .25cqw .6cqw #0009)}
+.wordmark2 span{color:transparent;background:linear-gradient(180deg,#e9ddff 0%,#c4a6ff 55%,#9f7bff 100%);-webkit-background-clip:text;background-clip:text}
+.tag2{margin-top:1.6cqw;font-size:max(16px,1.75cqw);font-weight:600;letter-spacing:.01em;color:#f6f2ff}
+.sub2{margin-top:.8cqw;font-size:max(14px,1.3cqw);font-weight:400;color:#d9d0f3;letter-spacing:.02em}
+.cta2{margin-top:2.6cqw;height:max(46px,4.9cqw);padding:0 3cqw;gap:1cqw;border-radius:999px;font-size:max(16px,1.75cqw);font-weight:600;letter-spacing:.01em;
+  background:linear-gradient(180deg,#5b30c4 0%,#3a1a8f 100%);border:1px solid #c4b5fd99;
+  box-shadow:0 0 0 1px #ffffff14 inset,0 .5cqw 1.6cqw #2a0f6699,0 0 1.8cqw #8b5cf666}
+.cta2:hover{filter:none;background:linear-gradient(180deg,#6a3ad8 0%,#4520a3 100%);box-shadow:0 0 0 1px #ffffff1f inset,0 .6cqw 1.8cqw #2a0f66aa,0 0 2.4cqw #8b5cf699}
+.cta2 svg{width:max(22px,2.3cqw);height:max(22px,2.3cqw)}
+.chips2{gap:1.1cqw;margin-top:2.4cqw}
+.chips2 li{height:max(34px,3cqw);padding:0 1.4cqw;gap:.6cqw;border-radius:999px;font-size:max(14px,1.2cqw);font-weight:500;
+  background:#160e2e99;border:1px solid #ffffff1f;box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.chips2 li.prev{border-color:#ffffff1f;box-shadow:none}
+.chips2 li svg{width:max(15px,1.3cqw);height:max(15px,1.3cqw)}
+.chips2 .dot{width:max(16px,1.4cqw)!important;height:max(16px,1.4cqw)!important;box-shadow:none}
+.hero2 .roam{width:4cqw;height:4cqw;opacity:.85}
+.hero2 .roam-b{top:.6%;width:3.3cqw;height:3.3cqw}
+.center2{top:12%}
+.pausebtn{min-height:34px;padding:0 12px;gap:7px;font-size:13.5px;font-weight:500;border-radius:999px;background:#0f0a22b3;border:1px solid #ffffff26;box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pausebtn .pi{width:10px;height:10px;border-left-width:3px;border-right-width:3px}
 /* ===== COMPACT: fit a panel on a laptop screen at 100% zoom ===== */
 .topnav{padding:8px 28px;gap:18px}
 .brand{font-size:19px}.brand svg{width:32px;height:32px}
 .primary{gap:34px}.primary a{font-size:15.5px}
 .kiropill{min-height:38px;padding:0 14px}.gear{width:38px;height:38px}
-.appframe{margin:4px auto 14px;width:min(100% - 24px,1480px);min-height:auto}
+.appframe{margin:4px auto 14px;width:min(100% - 24px,1480px);min-height:max(563px,calc(100vh - 74px))}
+.appbody{align-items:stretch}
 .apphead{padding:9px 20px}.apphead ol{font-size:16px;gap:10px}.apphead li{gap:10px}.apphead li svg{width:26px;height:26px}
 .chip{font-size:14px;padding:4px 12px}
 .side{flex:0 0 190px;padding:12px 10px}.side a{min-height:38px;font-size:15px;gap:12px;padding:0 12px}.side a svg{width:19px;height:19px}
