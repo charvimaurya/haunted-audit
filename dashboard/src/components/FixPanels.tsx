@@ -6,6 +6,7 @@
 import { CheckCircle2, CircleDashed, Loader2, Mic, XCircle } from 'lucide-react';
 import { CodeBlock } from './CodeBlock';
 import { GhostMascot } from './GhostMascot';
+import { ExorcismMoment } from './ExorcismMoment';
 import { ResultState } from './ResultState';
 import { VerifierEvidence } from './VerifierEvidence';
 import type { FixValue } from '../fixes/fixContext';
@@ -93,11 +94,15 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
               </button>
             </div>
           ) : (
-            <p className="m-0 text-base font-ui text-ink" role="status">
-              {fix.status === 'approved' ? 'Approved' : 'Rejected'} by {fix.decided_by} at{' '}
-              {fix.decided_at ? new Date(fix.decided_at).toLocaleString() : '--'}. Diff{' '}
-              <span className="font-mono break-all">{fix.diff_sha256?.slice(0, 12)}</span>. No file in the repo was changed.
-            </p>
+            <>
+              <p className="m-0 text-base font-ui text-ink" role="status">
+                {fix.status === 'approved' ? 'Approved' : 'Rejected'} by {fix.decided_by} at{' '}
+                {fix.decided_at ? new Date(fix.decided_at).toLocaleString() : '--'}. Diff{' '}
+                <span className="font-mono break-all">{fix.diff_sha256?.slice(0, 12)}</span>. No file in the repo was changed.
+              </p>
+              {/* Between Approve and Verify only: after that the Verifier's own result speaks. */}
+              {fix.status === 'approved' && !fix.verify && <ExorcismMoment />}
+            </>
           )}
         </>
       )}

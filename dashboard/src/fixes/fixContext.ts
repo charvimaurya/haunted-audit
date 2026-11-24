@@ -23,6 +23,7 @@ export interface Fix {
   diff_sha256: string | null;
   changed_lines: number | null;
   exorcist_mode: 'scripted' | 'llm';
+  exorcist_model_id?: string | null;
   input_tokens: number | null;
   output_tokens: number | null;
   cost_usd: number | null;
@@ -38,6 +39,9 @@ export interface Fix {
   /** The voice-command simulation on the same copies (loop-evidence REQ-LE-03). Absent from older records. */
   verify_voice?: CopyRun | null;
   regression_voice?: CopyRun | null;
+  created_at?: string;
+  /** Append-only decision and run history (data-contract.md, "Fix"). Not shown on screen today. */
+  history?: { at: string; event: string; detail: Record<string, unknown> }[];
 }
 
 export interface FixValue {

@@ -1,5 +1,6 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Page } from '../../components/Page';
+import { BeforeAfterSplit } from '../../components/BeforeAfterSplit';
 import { PipelineSection } from '../../components/PipelineSection';
 import { FIX_STEPS, FIX_STEP_LABEL, fixStepId, to, type FixStep } from '../../routes';
 import { useRun } from '../../runs/runContext';
@@ -33,6 +34,7 @@ export default function Fixes() {
         activeStep={(index + 1) as 1 | 2 | 3 | 4}
         onSelectStep={(s) => navigate(to(fixStepId(FIX_STEPS[s - 1])))}
       />
+      {step === 'regression' && <BeforeAfterSplit fix={flow?.fix ?? null} />}
       <nav aria-label="Step navigation" className="mt-6 flex gap-3">
         {back && (
           <Link to={to(fixStepId(back))} className={linkClass}>
