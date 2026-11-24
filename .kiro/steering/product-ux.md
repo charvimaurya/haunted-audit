@@ -67,6 +67,7 @@ Choices are saved on the device and applied before first paint where possible.
 - No invented customers, logos, testimonials, prices or statistics.
 - A number is either sourced (with a source line next to it) or measured.
   Until it is measured it shows `--` with "not yet measured".
+- When the API cannot be reached, a page says so in plain words (an offline state). It never shows empty or made-up results in its place.
 
 ## Scope
 

@@ -1,72 +1,43 @@
 # Haunted Audit — Frontend Design
 
 **Spec version:** 1.0  
-**Stack:** Next.js 14 (App Router) · TypeScript 5 · Tailwind CSS 3 · Vercel  
-**Backend:** FastAPI at `NEXT_PUBLIC_API_URL`  
+**Stack:** Vite · React · React Router · TypeScript · Tailwind CSS · Vercel (static)  
+**Backend:** FastAPI at `VITE_API_URL`  
 **Design reference:** `design/Haunted_Audit_Final_UI_v7.png` (frozen)
 
 ---
 
 ## 1. Architecture Overview
-
+Source of truth for paths and names: `dashboard/src/routes.ts` and the folders below. This section was rewritten on 24 Nov 2026 to match the code as built (Vite with React Router).
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Next.js App Router (app/)                                       │
-│                                                                  │
-│  app/                                                            │
-│  ├── layout.tsx              ← RootLayout: fonts, nav, skip link │
-│  ├── page.tsx                ← / (Landing)                       │
-│  ├── bank/page.tsx           ← /bank                             │
-│  ├── journeys/               │                                   │
-│  │   └── send-payment/       │                                   │
-│  │       └── page.tsx        ← /journeys/send-payment            │
-│  ├── agents/page.tsx         ← /agents                           │
-│  ├── fixes/page.tsx          ← /fixes                            │
-│  ├── kiro/page.tsx           ← /kiro                             │
-│  ├── reports/page.tsx        ← /reports                          │
-│  ├── scans/page.tsx          ← /scans                            │
-│  └── demo/page.tsx           ← /demo                             │
-│                                                                  │
-│  lib/                                                            │
-│  ├── api.ts                  ← typed API client (single file)    │
-│  ├── types.ts                ← shared TS types (mirrors Pydantic)│
-│  └── hooks/                                                      │
-│      ├── useRun.ts           ← POST /runs + poll result          │
-│      ├── useSSE.ts           ← GET /runs/{id}/events SSE         │
-│      └── usePrefersReducedMotion.ts                              │
-│                                                                  │
-│  components/                                                     │
-│  ├── layout/                 ← TopNav, SkipLink, Footer          │
-│  ├── ghost/                  ← GhostSVG, GhostMascot             │
-│  ├── ui/                     ← Panel, Badge, MetricTile, etc.    │
-│  ├── bank/                   ← BankPage, PaySlot                 │
-│  ├── journeys/               ← PossessionMode, ChecklistItem     │
-│  ├── agents/                 ← AgentCard, LiveTimeline           │
-│  ├── fixes/                  ← PipelineStepper, CodeDiff         │
-│  ├── kiro/                   ← FileTree, HookCode, HookEvents    │
-│  └── reports/                ← MetricTile, OutcomeCard           │
-│                                                                  │
-│  styles/                                                         │
-│  └── globals.css             ← Tailwind directives, CSS vars,    │
-│                                 reduced-motion block             │
-└─────────────────────────────────────────────────────────────────┘
-                          │ NEXT_PUBLIC_API_URL
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  FastAPI Backend                                                  │
-│  POST /runs · GET /runs/{id} · GET /runs/{id}/events (SSE)       │
-└─────────────────────────────────────────────────────────────────┘
+dashboard/src/
+  main.tsx, AppRoutes.tsx, routes.ts   router set-up and the one route table
+  layouts/       RootLayout, MarketingLayout, AppLayout (skip link, nav, settings)
+  pages/         Home.tsx, NotFound.tsx
+    marketing/   About, Accessibility, HowItWorks, Kiro, Results, Roadmap, Trust, Try
+    app/         AppHome, Agents, Fixes, Journeys, Possession, Reports, Scans, Settings
+  components/    one component per file, props typed
+  runs/          api.ts (typed API client), RunProvider, record.ts, runContext.ts
+  fixes/         FixProvider, fixContext, verifiedPct
+  voice/         voice-command interpretation and the voice run hook
+  immersion/     ambient layer, Calm mode, high contrast, text size
+  lib/           announce, finding, route announcer
+  samples/       labelled sample values (never shown as results)
+  types/, test/
+  index.css      Tailwind directives, CSS variables, reduced-motion block
+                      | VITE_API_URL
+                      v
+  FastAPI backend: POST /runs, GET /runs/{id}, GET /runs/{id}/events (SSE), fix and voice endpoints
+  (see .kiro/steering/data-contract.md)
 ```
+The frontend is a **pure client of the backend API**. No server routes proxy backend calls: `src/runs/api.ts` calls `VITE_API_URL` directly from the browser. This avoids an extra hop, keeps SSE streaming simple, and matches Vercel's static deployment model.
+Every component runs in the browser. There is no server rendering and no server/client component split.
 
-The frontend is a **pure client of the backend API**. No Next.js API routes proxy backend calls — `lib/api.ts` calls `NEXT_PUBLIC_API_URL` directly from the browser. This avoids an extra hop, keeps SSE streaming simple, and matches Vercel's static-edge deployment model.
-
-Server Components are used **only** for static layout (RootLayout, page shells). Every panel that fetches live data is a Client Component (`'use client'`).
-
+**Status of this document (24 Nov 2026).** Sections 1, 10, 12 and 13 match the code as built. Sections 3 to 9 and 11 are the original plan for pages and components. Some of those pages (for example `/demo`, `/bank` as a dashboard page) and the folder-per-feature component layout were not built that way, and the e2e file names are the planned ones. Check `dashboard/src/` and `dashboard/e2e/` before relying on a name. The sibling `requirements.md` and `tasks.md` still describe the old framework (11 places); they are history of the original plan and are left for a follow-up.
 ---
-
 ## 2. Design Tokens
 
-All tokens are defined once in `tailwind.config.ts` and mirrored as CSS custom properties in `styles/globals.css`. No hex values appear in component files.
+All tokens are defined once in `tailwind.config.js` and mirrored as CSS custom properties in `src/index.css`. No hex values appear in component files.
 
 ### Color palette
 
@@ -106,7 +77,7 @@ All tokens are defined once in `tailwind.config.ts` and mirrored as CSS custom p
 
 ### Animations
 
-All animations are CSS `@keyframes` defined in `tailwind.config.ts` → emitted as Tailwind utilities. The `prefers-reduced-motion` block in `globals.css` sets `animation: none !important` on `*` — this stops every Tailwind animation class. The `usePrefersReducedMotion` hook provides a JS-level guard for conditional class application.
+All animations are CSS `@keyframes` defined in `tailwind.config.js` → emitted as Tailwind utilities. The `prefers-reduced-motion` block in `src/index.css` sets `animation: none !important` on `*` — this stops every Tailwind animation class. The `usePrefersReducedMotion` hook provides a JS-level guard for conditional class application.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -126,7 +97,7 @@ All animations are CSS `@keyframes` defined in `tailwind.config.ts` → emitted 
 
 ```typescript
 // Conceptual shape — not implementation
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
+const BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -195,7 +166,7 @@ One file per component. Props typed with explicit interfaces. No implicit `any`.
 
 | Component | File | Props |
 |---|---|---|
-| `RootLayout` | `app/layout.tsx` | children |
+| `RootLayout` | `src/layouts/RootLayout.tsx` | children |
 | `TopNav` | `components/layout/TopNav.tsx` | `activeSection?: string` |
 | `MobileMenu` | `components/layout/MobileMenu.tsx` | `open, onClose, links` |
 | `SkipLink` | `components/layout/SkipLink.tsx` | `targetId: string` |
@@ -423,7 +394,7 @@ URL input form + submit button. Rate-limit notice. Results panel (Skeleton → J
 
 ### `/demo`
 
-Full-screen guided tour. Progress dots (5 beats). Back/Next controls. Beat 4 (Approve Fix) requires `FixPanel` Approve action. Offline banner when `NEXT_PUBLIC_API_URL` is unreachable.
+Full-screen guided tour. Progress dots (5 beats). Back/Next controls. Beat 4 (Approve Fix) requires `FixPanel` Approve action. Offline banner when `VITE_API_URL` is unreachable.
 
 ---
 
@@ -458,19 +429,21 @@ No global state library. State is co-located:
 
 ## 10. Routing and Navigation
 
-All routes are Next.js App Router file-based routes. No dynamic segments needed except `app/bank/page.tsx` which reads `searchParams.variant` (a Server Component that passes the parsed value to the `BankPage` Client Component).
+All routes are React Router routes, declared in one route table. The bank is a static page in `fixtures/haunted_bank/` that reads `?variant=` itself.
 
-| Route | Page file | Key query params |
-|---|---|---|
-| `/` | `app/page.tsx` | — |
-| `/bank` | `app/bank/page.tsx` | `variant` |
-| `/journeys/send-payment` | `app/journeys/send-payment/page.tsx` | — |
-| `/agents` | `app/agents/page.tsx` | — |
-| `/fixes` | `app/fixes/page.tsx` | — |
-| `/kiro` | `app/kiro/page.tsx` | — |
-| `/reports` | `app/reports/page.tsx` | — |
-| `/scans` | `app/scans/page.tsx` | — |
-| `/demo` | `app/demo/page.tsx` | — |
+Routes come from `PATHS` in `dashboard/src/routes.ts`. Components build links with `to(pageId)`, so a renamed route cannot leave a dead link.
+| Route | Page file |
+|---|---|
+| `/` | `pages/Home.tsx` |
+| `/how-it-works`, `/try`, `/results`, `/trust`, `/kiro`, `/roadmap`, `/about`, `/accessibility` | `pages/marketing/*.tsx` |
+| `/app` | `pages/app/AppHome.tsx` |
+| `/app/scans` | `pages/app/Scans.tsx` |
+| `/app/journeys` | `pages/app/Journeys.tsx` |
+| `/app/journeys/send-payment/possession` | `pages/app/Possession.tsx` |
+| `/app/agents` | `pages/app/Agents.tsx` |
+| `/app/fixes/find`, `/fix`, `/verify`, `/regression` | `pages/app/Fixes.tsx` (the step comes from the path) |
+| `/app/reports`, `/app/settings` | `pages/app/Reports.tsx`, `Settings.tsx` |
+The bank itself is the static page `fixtures/haunted_bank/index.html`, which reads `?variant=` on its own.
 
 ---
 
@@ -502,7 +475,7 @@ Located at `e2e/`. Each test file maps to one route.
 | `e2e/demo.spec.ts` | Full tour completes; offline banner shows when API is mocked down |
 | `e2e/a11y.spec.ts` | `@axe-core/playwright` scan of every route; asserts zero violations |
 
-Playwright tests run against a local `next dev` server with the real FastAPI backend (or a mock server for offline scenarios). The offline mock is an `msw` (Mock Service Worker) handler that returns `net::ERR_CONNECTION_REFUSED`.
+Playwright tests run against a local `vite` dev server with the real FastAPI backend (or a mock server for offline scenarios). The offline mock is an `msw` (Mock Service Worker) handler that returns `net::ERR_CONNECTION_REFUSED`.
 
 ### Contrast and zoom
 
@@ -517,126 +490,28 @@ Manual verification checklist:
 
 ## 12. Deployment
 
-Vercel. Single `next.config.ts`:
+Vercel, as a static Vite build (`dashboard/vercel.json`). `vite.config.ts` needs no server routes:
 
 ```typescript
-const nextConfig = {
-  // No API routes needed; all calls go client-side to NEXT_PUBLIC_API_URL
-};
+// No API routes needed; all calls go client-side to VITE_API_URL
 ```
 
 Environment variables:
 
 | Variable | Scope | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | Client + Server | FastAPI base URL, e.g. `https://api.haunted-audit.example.com` |
+| `VITE_API_URL` | Client (build time) | FastAPI base URL, e.g. `https://api.haunted-audit.example.com` |
 
-The `/bank` page is a standalone HTML document. It must be served from the Next.js app (not a separate static file) so the `<GhostSVG>` component and Tailwind tokens are available. The Playwright test for `?variant=broken` verifies that `div.pay-btn` is not in the tab order by asserting that pressing Tab 20 times from `document.body` never moves focus to `#send-payment`.
+The `/bank` page is a standalone HTML document. It is served as a static file from the bundled bank, not from the dashboard. The Playwright test for `?variant=broken` verifies that `div.pay-btn` is not in the tab order by asserting that pressing Tab 20 times from `document.body` never moves focus to `#send-payment`.
 
 ---
 
 ## 13. File Structure (complete)
 
 ```
-app/
-  layout.tsx
-  page.tsx
-  bank/
-    page.tsx
-  journeys/
-    send-payment/
-      page.tsx
-  agents/
-    page.tsx
-  fixes/
-    page.tsx
-  kiro/
-    page.tsx
-  reports/
-    page.tsx
-  scans/
-    page.tsx
-  demo/
-    page.tsx
-
-components/
-  layout/
-    TopNav.tsx
-    MobileMenu.tsx
-    SkipLink.tsx
-    Footer.tsx
-    ErrorBoundary.tsx
-  ghost/
-    GhostSVG.tsx
-    GhostPositioned.tsx
-  ui/
-    Panel.tsx
-    Badge.tsx
-    MetricTile.tsx
-    AgentModeBadge.tsx
-    StatusIcon.tsx
-    CodeBlock.tsx
-    CodeDiff.tsx
-    Skeleton.tsx
-    ErrorState.tsx
-    EmptyState.tsx
-    LiveBadge.tsx
-  bank/
-    BankPage.tsx
-    PaySlot.tsx
-  journeys/
-    PossessionMode.tsx
-    ChecklistItem.tsx
-    JourneyBreadcrumb.tsx
-    GhostOverlay.tsx
-  agents/
-    AgentCard.tsx
-    CriticalGhostCard.tsx
-    LiveTimeline.tsx
-    StepEventRow.tsx
-  fixes/
-    PipelineStepper.tsx
-    StepTab.tsx
-    FindPanel.tsx
-    FixPanel.tsx
-    VerifyPanel.tsx
-    RegressionPanel.tsx
-  kiro/
-    FileTree.tsx
-    HookCodePanel.tsx
-    HookEventList.tsx
-  reports/
-    MetricStrip.tsx
-    OutcomeCard.tsx
-
-lib/
-  api.ts
-  types.ts
-  hooks/
-    useRun.ts
-    useSSE.ts
-    usePrefersReducedMotion.ts
-
-styles/
-  globals.css
-
-tailwind.config.ts
-next.config.ts
-tsconfig.json
-
-e2e/
-  landing.spec.ts
-  bank.spec.ts
-  possession-mode.spec.ts
-  agents.spec.ts
-  fixes.spec.ts
-  demo.spec.ts
-  a11y.spec.ts
-
-src/test/
-  setup.ts
-  a11y.test.tsx
-  api.test.ts
-  useRun.test.ts
-  useSSE.test.ts
+dashboard/
+  index.html, vite.config.ts, tailwind.config.js, tsconfig*.json, vercel.json
+  e2e/                 browser tests (Playwright)
+  src/                 see section 1
 ```
+Component list: `ls dashboard/src/components`. The earlier planned folders (`components/bank/`, `components/journeys/` and so on) were not used; components sit flat in one folder, one per file.
