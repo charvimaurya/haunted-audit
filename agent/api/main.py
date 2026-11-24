@@ -440,7 +440,10 @@ def create_app(
 
         verify = run_summary(fix.pop("verify_run_id"))
         regression = run_summary(fix.pop("regression_run_id"))
-        return {**fix, "verify": verify, "regression": regression}
+        verify_voice = run_summary(fix.pop("verify_voice_run_id", None))
+        regression_voice = run_summary(fix.pop("regression_voice_run_id", None))
+        return {**fix, "verify": verify, "regression": regression,
+                "verify_voice": verify_voice, "regression_voice": regression_voice}
 
     @app.post("/runs/{run_id}/fixes", status_code=201)
     def create_fix(run_id: str, body: FixCreate) -> dict:
@@ -518,19 +521,29 @@ def create_app(
         except Exception as exc:
             limiter.release()
             raise HTTPException(status_code=409, detail={"code": "DIFF_NO_LONGER_APPLIES", "message": str(exc)})
-        run_id = str(uuid.uuid4())
-        app.state.store.insert_running(run_id, "broken", "scripted")
-        app.state.fixes.link_run(fix["fix_id"], kind, run_id)
-        body = RunCreate(variant="broken", mode="scripted")
-        thread = threading.Thread(
-            target=_execute_run,
-            args=(app.state.store, run_id, body, limiter, app.state.artifacts_root),
-            kwargs={"start_url": verifier.start_url(copy)},
-            daemon=True, name=f"{kind}-{run_id[:8]}",
-        )
-        thread.start()
-        log_event(msg=f"fix_{kind}_started", fix_id=fix["fix_id"], run_id=run_id)
-        return {"run_id": run_id, "status": "running"}
+        # Keyboard and voice on the same copy, each with its own run ID (loop-evidence REQ-LE-01, 02).
+        # One thread runs them one after the other and holds one limiter slot for both.
+        run_id, voice_run_id = str(uuid.uuid4()), str(uuid.uuid4())
+        store = app.state.store
+        store.insert_running(run_id, "broken", "scripted")
+        store.insert_running(voice_run_id, "broken", "scripted")
+        app.state.fixes.link_run(fix["fix_id"], kind, run_id, voice_run_id)
+        url = verifier.start_url(copy)
+        artifacts_root = app.state.artifacts_root
+
+        def both() -> None:
+            try:
+                _execute_run(store, run_id, RunCreate(variant="broken", mode="scripted"), None, artifacts_root,
+                             start_url=url)
+                _execute_voice_run(store, voice_run_id,
+                                   VoiceRunCreate(variant="broken", commands=list(VOICE_REPLAY), input_source="typed"),
+                                   None, start_url=url)
+            finally:
+                limiter.release()
+
+        threading.Thread(target=both, daemon=True, name=f"{kind}-{run_id[:8]}").start()
+        log_event(msg=f"fix_{kind}_started", fix_id=fix["fix_id"], run_id=run_id, voice_run_id=voice_run_id)
+        return {"run_id": run_id, "status": "running", "voice_run_id": voice_run_id}
 
     @app.post("/fixes/{fix_id}/verify", status_code=202)
     def verify_fix(fix_id: str, request: Request) -> dict:
@@ -576,6 +589,10 @@ def create_app(
         )
 
     return app
+
+
+# The voice-command simulation the Verifier replays on a copy of the bank (loop-evidence REQ-LE-01). Typed, no microphone.
+VOICE_REPLAY = ('type "Test Recipient" in Recipient', "type 10.00 in Amount", "click Send Payment")
 
 
 def _execute_run(
@@ -630,7 +647,8 @@ def _execute_run(
             pass
 
 
-def _execute_voice_run(store: RunStore, run_id: str, body: VoiceRunCreate, limiter: RunLimiter | None = None) -> None:
+def _execute_voice_run(store: RunStore, run_id: str, body: VoiceRunCreate, limiter: RunLimiter | None = None,
+                       start_url: str | None = None) -> None:
     from agent.voice_agent.runner import run_voice_journey
 
     started = time.perf_counter()
@@ -641,6 +659,7 @@ def _execute_voice_run(store: RunStore, run_id: str, body: VoiceRunCreate, limit
             body.variant, body.commands, body.input_source,
             on_event=lambda event: store.append_event(run_id, event.model_dump(mode="json")),
             run_id=run_id,
+            start_url=start_url,
         )
         status = "error" if result.error else "complete"
         verdict = result.verdict

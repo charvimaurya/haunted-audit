@@ -19,8 +19,8 @@ Rules:
 | `GET /fixes/{fix_id}` | Fix. `404` |
 | `POST /fixes/{fix_id}/approve` | Fix. Body `{diff_sha256, note?}`. `422 DIFF_CHANGED`, `409 ALREADY_DECIDED` |
 | `POST /fixes/{fix_id}/reject` | Fix. Body `{note?}`. `409 ALREADY_DECIDED` |
-| `POST /fixes/{fix_id}/verify` | `202 {run_id, status}`: a keyboard run on the patched copy. `409 NOT_APPROVED` |
-| `POST /fixes/{fix_id}/regression` | `202 {run_id, status}`: a keyboard run on the copy with the bug put back. `409 NOT_VERIFIED` |
+| `POST /fixes/{fix_id}/verify` | `202 {run_id, status, voice_run_id}`: a keyboard run, then a voice run, on the patched copy. `409 NOT_APPROVED` |
+| `POST /fixes/{fix_id}/regression` | `202 {run_id, status, voice_run_id}`: a keyboard run, then a voice run, on the copy with the bug put back. `409 NOT_VERIFIED` |
 | `POST /voice-runs` | `202 {"run_id": str, "status": "running"}`. Read back with `GET /runs/{run_id}` and the same events stream |
 
 There is no run list and no scan endpoint today. Fix endpoints are below ("Fix").
@@ -157,4 +157,5 @@ Spec: `.kiro/specs/exorcist/`. Approve changes no tracked file; the Verifier and
 | `agent_mode` | the original run's mode |
 | `created_at` | str (UTC) |
 | `verify`, `regression` | `null`, or `{run_id, status, verdict, reason_code, agent_mode, error}`; `verdict` is `null` until the run is `complete` |
-| `history` | list of `{at, event, detail}`, append-only |
+| `verify_voice`, `regression_voice` | same shape: the voice-command simulation on the same copy (`VOICE_REPLAY` in `agent/api/main.py`). Spec `.kiro/specs/loop-evidence/` |
+| `history` | list of `{at, event, detail}`, append-only. `verify_started` and `regression_started` detail: `{run_id, voice_run_id}` |

@@ -12,8 +12,10 @@ _COLUMNS = [
     "fix_id", "run_id", "variant", "reason_code", "blocked_element", "reason", "diff", "diff_sha256",
     "changed_lines", "exorcist_mode", "exorcist_model_id", "input_tokens", "output_tokens", "cost_usd",
     "latency_ms", "status", "error", "decided_by", "decided_at", "decision_note", "agent_mode", "created_at",
-    "verify_run_id", "regression_run_id",
+    "verify_run_id", "regression_run_id", "verify_voice_run_id", "regression_voice_run_id",
 ]
+# Added after the first release; opened databases get them with ALTER TABLE ADD COLUMN (no row is touched).
+_ADDED_COLUMNS = ("verify_voice_run_id", "regression_voice_run_id")
 
 
 def now() -> str:
@@ -35,7 +37,8 @@ class FixStore:
                     exorcist_mode TEXT NOT NULL, exorcist_model_id TEXT, input_tokens INTEGER,
                     output_tokens INTEGER, cost_usd REAL, latency_ms REAL, status TEXT NOT NULL, error TEXT,
                     decided_by TEXT, decided_at TEXT, decision_note TEXT, agent_mode TEXT, created_at TEXT NOT NULL,
-                    verify_run_id TEXT, regression_run_id TEXT
+                    verify_run_id TEXT, regression_run_id TEXT,
+                    verify_voice_run_id TEXT, regression_voice_run_id TEXT
                 );
                 CREATE TABLE IF NOT EXISTS fix_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, fix_id TEXT NOT NULL, at TEXT NOT NULL,
@@ -49,6 +52,10 @@ class FixStore:
                 BEGIN SELECT RAISE(ABORT, 'fix_events is append-only'); END;
                 """
             )
+            have = {r["name"] for r in self._conn.execute("PRAGMA table_info(fixes)")}
+            for col in _ADDED_COLUMNS:
+                if col not in have:
+                    self._conn.execute(f"ALTER TABLE fixes ADD COLUMN {col} TEXT")
             self._conn.commit()
 
     def _event(self, fix_id: str, event: str, detail: dict | None = None) -> None:
@@ -87,9 +94,11 @@ class FixStore:
             self._event(fix_id, status, {"by": actor, "note": note})
             self._conn.commit()
 
-    def link_run(self, fix_id: str, kind: str, run_id: str) -> None:
+    def link_run(self, fix_id: str, kind: str, run_id: str, voice_run_id: str | None = None) -> None:
+        """The keyboard run and, when given, the voice run on the same copy. One history event for both."""
         assert kind in ("verify", "regression")
         with self._lock:
-            self._conn.execute(f"UPDATE fixes SET {kind}_run_id = ? WHERE fix_id = ?", (run_id, fix_id))
-            self._event(fix_id, f"{kind}_started", {"run_id": run_id})
+            self._conn.execute(f"UPDATE fixes SET {kind}_run_id = ?, {kind}_voice_run_id = ? WHERE fix_id = ?",
+                               (run_id, voice_run_id, fix_id))
+            self._event(fix_id, f"{kind}_started", {"run_id": run_id, "voice_run_id": voice_run_id})
             self._conn.commit()
