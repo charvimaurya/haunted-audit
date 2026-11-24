@@ -25,9 +25,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from agent.api.limits import LimitSettings, Refusal, RunLimiter, client_ip
+from agent.keyboard_agent.models import clean_amount, clean_detail
 from agent.keyboard_agent.runner import build_journey_config, run_journey
 
 load_dotenv()
@@ -71,11 +72,33 @@ class RunCreate(BaseModel):
     mode: Literal["llm", "scripted"] = "scripted"
     max_steps: int = Field(default=25, ge=1, le=80)
     timeout_seconds: float = Field(default=90, ge=0, le=300)
-    # The tester's own recipient name (recipient-input REQ-RI-02). It reaches the agent's goal text,
-    # so only letters, spaces, . ' and - are allowed, starting with a letter, 60 at most (the bank's limit).
-    recipient: Annotated[
-        str, StringConstraints(min_length=1, max_length=60, pattern=r"^\p{L}[\p{L} .'\-]*$")
-    ] | None = None
+    # The details the tester typed (user-typed-test-details REQ-TD-03, 07). Left out, the run uses
+    # INTERNAL_DEFAULT_DETAILS, so old requests and Night Watch keep working (REQ-TD-06).
+    recipient: str | None = None
+    amount: str | None = None
+    reference: str | None = None
+
+    @field_validator("recipient")
+    @classmethod
+    def _required_when_given(cls, v: str | None) -> str | None:
+        return None if v is None else clean_detail(v, required=True)
+
+    @field_validator("amount")
+    @classmethod
+    def _amount(cls, v: str | None) -> str | None:
+        # The bank's own rule, so a run never starts with an amount the bank will refuse.
+        return None if v is None else clean_amount(v, required=True)
+
+    @field_validator("reference")
+    @classmethod
+    def _optional(cls, v: str | None) -> str | None:
+        return clean_detail(v, required=False)
+
+    def test_details(self) -> dict | None:
+        """What the tester typed, or None when the request carried no details."""
+        if self.recipient is None and self.amount is None and self.reference is None:
+            return None
+        return {"recipient": self.recipient, "amount": self.amount, "reference": self.reference}
 
 
 class VoiceRunCreate(BaseModel):
@@ -148,6 +171,8 @@ class RunStore:
                 self._conn.execute("ALTER TABLE runs ADD COLUMN seeded INTEGER NOT NULL DEFAULT 0")
             if "recorded_at" not in columns:
                 self._conn.execute("ALTER TABLE runs ADD COLUMN recorded_at TEXT")
+            if "test_details" not in columns:  # nullable, so existing rows keep everything (REQ-TD-05)
+                self._conn.execute("ALTER TABLE runs ADD COLUMN test_details TEXT")
             self._conn.commit()
 
     def load_seed(self, path: Path) -> int:
@@ -169,6 +194,9 @@ class RunStore:
                 variant, mode, status = row["variant"], row["mode"], row["status"]
                 result, recorded_at = row["result"], row["recorded_at"]
                 events = row.get("events", [])
+                details = row.get("test_details")
+                if details is not None and not isinstance(details, dict):
+                    raise ValueError("test_details must be an object or null")
                 if variant not in {"broken", "fixed"} or mode not in {"llm", "scripted"}:
                     raise ValueError("variant or mode not recognised")
                 if status not in {"complete", "error"} or not isinstance(result, dict):
@@ -181,13 +209,14 @@ class RunStore:
                 cur = self._conn.execute(
                     """
                     INSERT OR IGNORE INTO runs
-                      (run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+                      (run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at, test_details)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                     """,
                     (
                         run_id, variant, mode, status,
                         result.get("verdict"), result.get("reason_code"),
                         json.dumps(result), recorded_at,
+                        json.dumps(details) if details is not None else None,
                     ),
                 )
                 if cur.rowcount:
@@ -220,11 +249,11 @@ class RunStore:
                 except OSError:
                     continue
 
-    def insert_running(self, run_id: str, variant: str, mode: str) -> None:
+    def insert_running(self, run_id: str, variant: str, mode: str, test_details: dict | None = None) -> None:
         with self._lock:
             self._conn.execute(
-                "INSERT INTO runs (run_id, variant, mode, status) VALUES (?, ?, ?, 'running')",
-                (run_id, variant, mode),
+                "INSERT INTO runs (run_id, variant, mode, status, test_details) VALUES (?, ?, ?, 'running', ?)",
+                (run_id, variant, mode, json.dumps(test_details) if test_details is not None else None),
             )
             self._conn.commit()
 
@@ -262,7 +291,7 @@ class RunStore:
     def get_run(self, run_id: str) -> dict | None:
         with self._lock:
             row = self._conn.execute(
-                "SELECT run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at "
+                "SELECT run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at, test_details "
                 "FROM runs WHERE run_id = ?",
                 (run_id,),
             ).fetchone()
@@ -279,6 +308,8 @@ class RunStore:
             "result": result,
             "seeded": bool(row["seeded"]),
             "recorded_at": row["recorded_at"],
+            # Only what the tester typed; null for the internal default (REQ-TD-05, 06).
+            "test_details": json.loads(row["test_details"]) if row["test_details"] else None,
         }
 
     def events_after(self, run_id: str, seq: int) -> tuple[list[dict], str] | None:
@@ -382,7 +413,7 @@ def create_app(
             raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
         run_id = str(uuid.uuid4())
         try:
-            app.state.store.insert_running(run_id, body.variant, body.mode)
+            app.state.store.insert_running(run_id, body.variant, body.mode, body.test_details())
             thread = threading.Thread(
                 target=_execute_run,
                 args=(app.state.store, run_id, body, limiter, app.state.artifacts_root),
@@ -524,6 +555,10 @@ def create_app(
         # Keyboard and voice on the same copy, each with its own run ID (loop-evidence REQ-LE-01, 02).
         # One thread runs them one after the other and holds one limiter slot for both.
         run_id, voice_run_id = str(uuid.uuid4()), str(uuid.uuid4())
+        # Both replays type the details of the run the fix came from (user-typed-test-details REQ-TD-03).
+        original = app.state.store.get_run(fix["run_id"]) or {}
+        body = RunCreate(variant="broken", mode="scripted", **(original.get("test_details") or {}))
+        voice_commands = _voice_commands(body)
         store = app.state.store
         url = verifier.start_url(copy)
         artifacts_root = app.state.artifacts_root
@@ -531,11 +566,11 @@ def create_app(
         def both() -> None:
             voice_started = False
             try:
-                _execute_run(store, run_id, RunCreate(variant="broken", mode="scripted"), None, artifacts_root,
+                _execute_run(store, run_id, body, None, artifacts_root,
                              start_url=url)
                 voice_started = True
                 _execute_voice_run(store, voice_run_id,
-                                   VoiceRunCreate(variant="broken", commands=list(VOICE_REPLAY), input_source="typed"),
+                                   VoiceRunCreate(variant="broken", commands=voice_commands, input_source="typed"),
                                    None, start_url=url)
             finally:
                 if not voice_started:  # never leave the voice run "running" when it could not start
@@ -544,7 +579,7 @@ def create_app(
                 limiter.release()
 
         try:
-            store.insert_running(run_id, "broken", "scripted")
+            store.insert_running(run_id, "broken", "scripted", body.test_details())
             store.insert_running(voice_run_id, "broken", "scripted")
             app.state.fixes.link_run(fix["fix_id"], kind, run_id, voice_run_id)
             threading.Thread(target=both, daemon=True, name=f"{kind}-{run_id[:8]}").start()
@@ -604,6 +639,22 @@ def create_app(
 VOICE_REPLAY = ('type "Test Recipient" in Recipient', "type 10.00 in Amount", "click Send Payment")
 
 
+def _voice_commands(body: RunCreate) -> list[str]:
+    """The voice replay types the original run's details when the tester typed them, else VOICE_REPLAY."""
+    if body.test_details() is None:
+        return list(VOICE_REPLAY)
+
+    def quoted(v: str) -> str:
+        return f"'{v}'" if '"' in v and "'" not in v else f'"{v}"'
+
+    commands = [f"type {quoted(body.recipient)} in Recipient"] if body.recipient else []
+    if body.amount:
+        commands.append(f"type {quoted(body.amount)} in Amount")
+    if body.reference:
+        commands.append(f"type {quoted(body.reference)} in Reference")
+    return commands + ["click Send Payment"]
+
+
 def _execute_run(
     store: RunStore,
     run_id: str,
@@ -625,7 +676,9 @@ def _execute_run(
             max_steps=body.max_steps,
             timeout_seconds=body.timeout_seconds,
             artifacts_dir="artifacts/api",
-            **({"recipient": body.recipient.strip()} if body.recipient else {}),
+            recipient=body.recipient,
+            amount=body.amount,
+            reference=body.reference,
             **({"start_url": start_url} if start_url else {}),
         )
         result = run_journey(config, on_event=on_event, run_id=run_id)

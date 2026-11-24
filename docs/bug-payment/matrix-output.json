@@ -2,7 +2,7 @@
  "bundled-chromium": {
   "version": "156.0.8078.4",
   "broken/mouse/filled": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
@@ -51,7 +51,7 @@
   },
   "broken/console": [],
   "fixed/mouse/filled": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
@@ -71,17 +71,17 @@
    "#send-payment"
   ],
   "fixed/keyboard/after-enter-on-control": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
   "fixed/keyboard/enter-in-amount-field": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
   "fixed/keyboard/space-on-button": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
@@ -102,7 +102,7 @@
  "google-chrome": {
   "version": "157.0.8103.79",
   "broken/mouse/filled": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
@@ -151,7 +151,7 @@
   },
   "broken/console": [],
   "fixed/mouse/filled": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
@@ -171,17 +171,17 @@
    "#send-payment"
   ],
   "fixed/keyboard/after-enter-on-control": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
   "fixed/keyboard/enter-in-amount-field": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },
   "fixed/keyboard/space-on-button": {
-   "confirmation": "Sent EUR 50.00 to Alex Carter.",
+   "confirmation": "Sent EUR 50.00 to [test name removed].",
    "error": null,
    "testid": "payment-confirmation"
   },

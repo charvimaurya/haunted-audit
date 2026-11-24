@@ -1,4 +1,5 @@
 # Recipient name typed by the tester: requirements
+**Superseded on 24 Nov 2026 by `.kiro/specs/user-typed-test-details/`** (three fields, 40 characters, control characters rejected).
 Asked for by the owner on 22 Nov 2026: "i want to enter the name myself for testing". No screen puts a person's name in for you.
 
 ## Requirements

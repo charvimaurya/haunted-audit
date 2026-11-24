@@ -29,7 +29,7 @@ Mouse clicks on the dashboard were sent at the control's coordinates. Playwright
 
 | State | Action | Result |
 |---|---|---|
-| broken | mouse click, both fields filled | **Works.** `Sent EUR 50.00 to Alex Carter.` in `[data-testid="payment-confirmation"]` |
+| broken | mouse click, both fields filled | **Works.** `Sent EUR 50.00 to [test name removed].` in `[data-testid="payment-confirmation"]` |
 | broken | mouse click, fields empty | Error "Enter a recipient and an amount." |
 | broken | Tab from the page start | Order: skip link, 4 nav links, `#recipient`, `#amount`, `#cancel`, `#offer-terms`, `#privacy`, then back to the start. **`#send-payment` is never focused** |
 | broken | Enter after Tabbing as far as possible | Nothing happens |
@@ -74,3 +74,5 @@ The dashboard panel was written as a picture of the bank for the Possession Mode
 - Keep barrier 1 on the test page exactly as is: mouse works, keyboard cannot reach it.
 - Remove the badge and the two selectors from user screens; the state is chosen by the backend.
 - The fix is specified in `.kiro/specs/payment-journey/`.
+
+_Redaction, 24 Nov 2026 (user-typed-test-details REQ-TD-09): the test person's name in the quoted confirmation and in `bug-payment/matrix-output.json` was replaced with "[test name removed]". Nothing else in the recorded output was changed. The scripts now type "Test recipient"._

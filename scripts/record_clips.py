@@ -47,7 +47,9 @@ def voice(variant):
 
 def fix_loop(pg):
     pg.goto(BASE + '/app/journeys/send-payment/possession'); pg.wait_for_selector('h1')
-    pg.get_by_label('Recipient name').focus(); pg.keyboard.type('Test recipient', delay=60)  # typed by keyboard, like a tester
+    # Typed by keyboard, like a tester (user-typed-test-details)
+    pg.focus('#td-recipient'); pg.keyboard.type('Test recipient', delay=60)
+    pg.keyboard.press('Tab'); pg.keyboard.type('10.00', delay=60)
     pg.get_by_role('button', name='Run Journey').focus(); pg.keyboard.press('Enter')
     pg.wait_for_function("() => /Complete|Error/.test(document.getElementById('run-status').textContent)", timeout=90000)
     pg.wait_for_timeout(1200)

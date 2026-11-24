@@ -28,7 +28,7 @@ def run(browser_name, browser):
         pg.on("console", lambda m: errs.append(m.text) if m.type in ("error","warning") else None)
         pg.on("pageerror", lambda e: errs.append("pageerror: "+str(e)))
         pg.goto(url)
-        pg.fill("#recipient", "Alex Carter"); pg.fill("#amount", "50.00")
+        pg.fill("#recipient", "Test recipient"); pg.fill("#amount", "50.00")
         pg.click("#send-payment")
         res[f"{variant}/mouse/filled"] = state(pg)
         pg.close()
@@ -41,7 +41,7 @@ def run(browser_name, browser):
         pg.keyboard.press("Tab")
         for _ in range(14):
             order.append(focus_id(pg)); 
-            if order[-1] == "#recipient": pg.keyboard.type("Alex Carter")
+            if order[-1] == "#recipient": pg.keyboard.type("Test recipient")
             if order[-1] == "#amount": pg.keyboard.type("50.00")
             if order[-1] == "#send-payment":
                 pg.keyboard.press("Enter"); break
@@ -51,13 +51,13 @@ def run(browser_name, browser):
         pg.close()
         # --- keyboard: Enter inside a field (implicit submission)
         pg = browser.new_page(); pg.goto(url)
-        pg.fill("#recipient", "Alex Carter"); pg.fill("#amount", "50.00")
+        pg.fill("#recipient", "Test recipient"); pg.fill("#amount", "50.00")
         pg.focus("#amount"); pg.keyboard.press("Enter")
         res[f"{variant}/keyboard/enter-in-amount-field"] = state(pg); pg.close()
         # --- keyboard: Space on the control (fixed only reachable)
         if variant == "fixed":
             pg = browser.new_page(); pg.goto(url)
-            pg.fill("#recipient", "Alex Carter"); pg.fill("#amount", "50.00")
+            pg.fill("#recipient", "Test recipient"); pg.fill("#amount", "50.00")
             pg.focus("#send-payment"); pg.keyboard.press("Space")
             res["fixed/keyboard/space-on-button"] = state(pg); pg.close()
         # --- element facts

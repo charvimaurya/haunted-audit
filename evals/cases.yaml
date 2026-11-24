@@ -124,3 +124,25 @@ cases:
     status: open
     next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
     recorded: 2026-11-24
+  - id: fail-007
+    kind: failure
+    target: Fixed bank variant with typed test details (scripts/record_seed.py, POST /runs with amount)
+    agent_mode: scripted
+    expected: fixed PASSED; broken BLOCKED / TARGET_NOT_FOCUSABLE
+    observed: >-
+      The owner's saved record_seed.py output (generated 2026-11-24T11:44:52Z) has fixed BLOCKED / NO_ACTIVATION, and its
+      typed amount is "100", not "100.00" (agent_claim_mismatch true:
+      the walker pressed Enter, the bank showed "Enter the amount as a positive number with two decimals, for example
+      50.00." and moved focus to Amount). The same happens for "100.0", "€100.00", "100,00", "1,000.00" and, by the
+      balance limit, "1000.01". "100.00" passes on this branch and on origin/main, so the bank did not change: the
+      branch let the tester type any 1 to 40 character amount, and nothing checked the bank's own rule first.
+    evidence:
+      - artifacts/seed-owner-run-2026-11-24-blocked.json (git-ignored copy of the refused output)
+      - agent/tests/test_typed_details.py (good and bad amount tests, record_seed guard tests)
+    label_source: fixtures/haunted_bank/index.html (toCents, validate, let balance = 100000)
+    status: fixed
+    next: >-
+      Amount is checked with the bank's rule in the API (clean_amount, 422), the dashboard form ("Use two decimals,
+      like 10.00") and record_seed.py, which also refuses to write the seed unless broken is BLOCKED /
+      TARGET_NOT_FOCUSABLE and fixed is PASSED.
+    recorded: 2026-11-24

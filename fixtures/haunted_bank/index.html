@@ -146,6 +146,10 @@
           <p class="hint" id="recipient-hint">Use the name on the account.</p>
         </div>
         <div class="field" id="amount-slot"></div>
+        <div class="field">
+          <label for="reference">Reference (optional)</label>
+          <input id="reference" name="reference" type="text" maxlength="40" autocomplete="off" />
+        </div>
         <div class="actions">
           <div id="pay-slot"></div>
           <div id="cancel-slot"></div>
@@ -207,7 +211,7 @@
     const fmt = (cents) => Math.floor(cents / 100) + "." + String(cents % 100).padStart(2, "0");
     const toCents = (text) => (/^(0|[1-9]\d*)\.\d{2}$/.test(text) ? parseInt(text.replace(".", ""), 10) : null);
 
-    function validate(recipient, amountText) {
+    function validate(recipient, amountText, referenceText) {
       const errors = {};
       const r = recipient.trim();
       const a = amountText.trim();
@@ -217,14 +221,16 @@
       if (a === "") errors.amount = "Enter an amount.";
       else if (cents === null || cents <= 0) errors.amount = "Enter the amount as a positive number with two decimals, for example 50.00.";
       else if (cents > balance) errors.amount = "The amount is more than your balance (EUR " + fmt(balance) + ").";
-      return { errors: errors, cents: cents, recipient: r, amount: a };
+      const ref = (referenceText || "").trim();
+      if (ref.length > 40) errors.reference = "Reference must be 40 characters or fewer.";
+      return { errors: errors, cents: cents, recipient: r, amount: a, reference: ref };
     }
 
     function showErrors(errors) {
       const box = $("form-error");
       box.replaceChildren();
       let first = null;
-      [["recipient", "recipient-error"], ["amount", "amount-error"]].forEach(function (pair) {
+      [["recipient", "recipient-error"], ["amount", "amount-error"], ["reference", "reference-error"]].forEach(function (pair) {
         const input = $(pair[0]);
         if (errors[pair[0]]) {
           const p = document.createElement("p");
@@ -250,15 +256,17 @@
       confirmation.hidden = true;
       confirmation.textContent = "";
       $("cancelled").hidden = true;
-      const result = validate($("recipient").value, $("amount").value);
+      const result = validate($("recipient").value, $("amount").value, $("reference").value);
       showErrors(result.errors);
       if (Object.keys(result.errors).length > 0) return;
       balance -= result.cents;
       $("balance").textContent = "Demo balance: EUR " + fmt(balance) + " (not real money)";
       confirmation.hidden = false;
-      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + ". New balance: EUR " + fmt(balance) + ".";
+      confirmation.textContent = "Sent EUR " + result.amount + " to " + result.recipient + "." +
+        (result.reference ? " Reference: " + result.reference + "." : "") + " New balance: EUR " + fmt(balance) + ".";
       $("recipient").value = "";
       $("amount").value = "";
+      $("reference").value = "";
     };
 
     $("payment-form").addEventListener("submit", function (event) {
@@ -269,6 +277,7 @@
     $("cancel").addEventListener("click", function () {
       $("recipient").value = "";
       $("amount").value = "";
+      $("reference").value = "";
       showErrors({});
       $("payment-confirmation").hidden = true;
       $("payment-confirmation").textContent = "";

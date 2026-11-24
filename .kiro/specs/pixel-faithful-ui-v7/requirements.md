@@ -191,7 +191,7 @@ THE SYSTEM SHALL render the bank panel as the real fixture (`fixtures/haunted_ba
 **Check:** the iframe loads from the app's own origin; pressing Tab inside it moves real focus.
 
 ### REQ-POS-04 Field values
-THE SYSTEM SHALL show Recipient "Alex Carter" and Amount "EUR 50.00" only as the values the journey uses, read from the journey definition shown on the page (the run's `goal`), and SHALL NOT type into the fixture by itself. The judge can type their own values. The fields do not claim to hold real data. (Decision D2: you earlier asked to remove prefilled demo names; the image shows them.)
+THE SYSTEM SHALL show the example Recipient and Amount from the image only as the values the journey uses, read from the journey definition shown on the page (the run's `goal`), and SHALL NOT type into the fixture by itself. The judge can type their own values. The fields do not claim to hold real data. (Decision D2: you earlier asked to remove prefilled demo names; the image shows them.)
 **Check:** field values come from one constant `JOURNEY` defined in one file, labelled in the UI as the test journey.
 
 ### REQ-POS-05 Live checklist from real focus
@@ -433,7 +433,7 @@ Every route SHALL load and run without `console.error`, `console.warn` or uncaug
 
 | # | Conflict | Default in this spec |
 |---|---|---|
-| D2 | You earlier asked to remove the demo names ("I will fill it manually"); the image shows Alex Carter and the amount. | The image is the source of truth, so the page shows the journey's values as labelled test-journey values (REQ-POS-04). **Please choose: show them, or leave the fields empty.** |
+| D2 | You earlier asked to remove the demo names ("I will fill it manually"); the image shows an example name and the amount. | The image is the source of truth, so the page shows the journey's values as labelled test-journey values (REQ-POS-04). **Please choose: show them, or leave the fields empty.** Decided 24 Nov 2026: fields stay empty and the tester types made-up details (`user-typed-test-details`). |
 | D4 | The image's bank panel is a custom dark design; the real fixture has its own gold look. A React replica would match the picture but cannot put the ghost from real checker coordinates. | Real fixture in an iframe. The look inside the frame differs from the image (listed). |
 | D20 | Matching the bank panel exactly needs the fixture's CSS and layout changed. The fixture is the checker's test page and the plan's answer key. | Not changed. If you approve, a separate task restyles CSS and layout only, keeps every id, role, handler and variant behaviour, and a test compares the id list before and after. |
 | D17 | `product-ux.md` wants a visible "What this page shows" line and plain-English meaning beside spooky terms; the image has neither and `ui-fidelity.md` says do not add copy. | Plain meanings and "what this page shows" are provided for assistive technology (`aria-describedby`), not shown. **Owner may choose visible lines instead.** |

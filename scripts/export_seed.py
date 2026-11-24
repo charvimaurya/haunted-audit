@@ -22,7 +22,7 @@ def export(db: Path, out: Path, *, limit_per_variant: int = 1, modes: tuple[str,
     runs = []
     for variant in ("broken", "fixed"):
         rows = conn.execute(
-            """SELECT run_id, variant, mode, status, json, created_at FROM runs
+            """SELECT run_id, variant, mode, status, json, created_at, test_details FROM runs
                WHERE variant = ? AND status = 'complete' AND json IS NOT NULL AND seeded = 0
                ORDER BY created_at DESC""",
             (variant,),
@@ -44,6 +44,8 @@ def export(db: Path, out: Path, *, limit_per_variant: int = 1, modes: tuple[str,
                 "recorded_at": row["created_at"].replace(" ", "T") + "Z",
                 "result": result,
                 "events": events,
+                # What the tester typed for this run (user-typed-test-details REQ-TD-08); null for the internal default.
+                "test_details": json.loads(row["test_details"]) if row["test_details"] else None,
             })
             taken += 1
             if taken >= limit_per_variant:

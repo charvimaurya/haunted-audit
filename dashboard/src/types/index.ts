@@ -49,6 +49,18 @@ export interface TokenUsage {
   total_tokens: number;
 }
 
+/** The made-up details the tester typed (user-typed-test-details). Never filled in by the app. */
+export interface TestDetails {
+  recipient: string;
+  amount: string;
+  reference: string;
+}
+/** test_details on a run record: what was typed for that run, or null (internal default, never shown). */
+export interface RecordedDetails {
+  recipient: string | null;
+  amount: string | null;
+  reference: string | null;
+}
 export interface JourneyResult {
   run_id: string;
   verdict: Verdict;

@@ -11,8 +11,9 @@
  */
 import { useRef, useState } from 'react';
 import { CheckCircle2, Loader2, Play, XCircle } from 'lucide-react';
-import type { AgentMode, RunStatus, Variant } from '../types';
+import type { AgentMode, RunStatus, TestDetails, Variant } from '../types';
 import { AgentToggle, type AgentKind } from './AgentToggle';
+import { TestDetailsForm, detailsProblems, type DetailErrors, type DetailField } from './TestDetailsForm';
 interface RunControlsProps {
   variant: Variant;
   mode: AgentMode;
@@ -25,18 +26,11 @@ interface RunControlsProps {
   onAgentChange?: (a: AgentKind) => void;
   /** Replaces the status words, for example "Blocked" after a voice run. */
   statusLabel?: string;
-  /** The tester's recipient name for the keyboard agent (recipient-input REQ-RI-01). Omit both to hide the field. */
-  recipient?: string;
-  onRecipientChange?: (r: string) => void;
-}
-/** Same rule as the API (REQ-RI-02): starts with a letter; letters, spaces, . ' - only; 60 at most. */
-const NAME_RULE = /^\p{L}[\p{L} .'\-]*$/u;
-export function recipientProblem(name: string): string | null {
-  const n = name.trim();
-  if (!n) return 'Enter a recipient name first.';
-  if (n.length > 60) return 'Use 60 characters or fewer.';
-  if (!NAME_RULE.test(n)) return 'Use letters, spaces, full stops, apostrophes and hyphens, starting with a letter.';
-  return null;
+  /** The tester's made-up details (user-typed-test-details REQ-TD-01). Omit both to hide the form. */
+  details?: TestDetails;
+  onDetailsChange?: (d: TestDetails) => void;
+  /** False when the run does not use the form (voice commands the tester edited). Default true. */
+  requireDetails?: boolean;
 }
 const STATUS_STYLE: Record<RunStatus, string> = {
   running:  'bg-amber-500/15 border-amber-500/40 text-amber-300',
@@ -68,14 +62,19 @@ export function RunControls({
   agent,
   onAgentChange,
   statusLabel,
-  recipient,
-  onRecipientChange,
+  details,
+  onDetailsChange,
+  requireDetails = true,
 }: RunControlsProps) {
   const isRunning = status === 'running';
   const voice = agent === 'voice';
-  const askName = recipient !== undefined && !!onRecipientChange && !voice;
-  const [nameError, setNameError] = useState<string | null>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
+  const showForm = details !== undefined && !!onDetailsChange;
+  const [errors, setErrors] = useState<DetailErrors>({});
+  const fieldRefs = {
+    recipient: useRef<HTMLInputElement>(null),
+    amount: useRef<HTMLInputElement>(null),
+    reference: useRef<HTMLInputElement>(null),
+  };
   return (
     <div
       className="flex flex-wrap items-end gap-3 px-5 py-3
@@ -116,23 +115,14 @@ export function RunControls({
         </select>
       </div>
       {agent && onAgentChange && <AgentToggle value={agent} onChange={onAgentChange} disabled={isRunning} />}
-      {askName && (
-        <div className="flex flex-col gap-0.5">
-          <label htmlFor="recipient-input" className="text-base font-ui text-ink-faint uppercase tracking-wider">
-            Recipient name
-          </label>
-          <input
-            id="recipient-input"
-            ref={nameRef}
-            type="text"
-            autoComplete="off"
-            maxLength={60}
-            value={recipient}
-            onChange={(e) => { onRecipientChange!(e.target.value); setNameError(null); }}
+      {showForm && (
+        <div className="basis-full">
+          <TestDetailsForm
+            details={details!}
+            onChange={(d) => { onDetailsChange!(d); setErrors({}); }}
+            errors={errors}
             disabled={isRunning}
-            aria-invalid={nameError ? true : undefined}
-            aria-describedby={nameError ? 'recipient-error' : undefined}
-            className={`${FIELD} cursor-text w-56`}
+            fieldRefs={fieldRefs}
           />
         </div>
       )}
@@ -141,9 +131,12 @@ export function RunControls({
         type="button"
         onClick={() => {
           if (isRunning) return;
-          if (askName) {
-            const problem = recipientProblem(recipient ?? '');
-            if (problem) { setNameError(problem); nameRef.current?.focus(); return; }
+          if (showForm && requireDetails) {
+            // Never start without the details, never fill one in: say what is missing and go there (REQ-TD-02).
+            const problems = detailsProblems(details!);
+            const first = (['recipient', 'amount', 'reference'] as DetailField[]).find((f) => problems[f]);
+            setErrors(problems);
+            if (first) { fieldRefs[first].current?.focus(); return; }
           }
           onRun();
         }}
@@ -162,12 +155,6 @@ export function RunControls({
         )}
         {isRunning ? 'Running…' : voice ? 'Run voice journey' : 'Run Journey'}
       </button>
-      {askName && nameError && (
-        <p id="recipient-error" role="alert" className="flex min-h-11 items-center gap-1.5 m-0 text-base font-ui text-ghost-blocked">
-          <XCircle size={16} aria-hidden="true" />
-          {nameError}
-        </p>
-      )}
       {/* Status: the live region is always in the page; only its content changes. */}
       <span id="run-status" role="status" aria-live="polite" className="flex min-h-11 items-center">
         {status !== null && (

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -18,6 +20,60 @@ AgentMode = Literal["llm", "scripted"]
 ClaimOutcome = Literal["attempted_complete", "blocked"]
 StopReason = Literal["completed", "step_limit", "timeout", "error"]
 Variant = Literal["broken", "fixed"]
+
+# Test details for direct API callers only (tests, eval scripts, the CLI, Night Watch) when a request
+# carries none. Never put in a run's test_details, never sent to the dashboard as a value, never used
+# to fill in a field (user-typed-test-details REQ-TD-06). The dashboard always sends what the tester typed.
+INTERNAL_DEFAULT_DETAILS: dict[str, str | None] = {"recipient": "Alex Carter", "amount": "50.00", "reference": None}
+
+DETAIL_MAX_CHARS = 40
+
+
+def clean_detail(value: str | None, *, required: bool) -> str | None:
+    """Trim a typed test detail and check it (REQ-TD-07). Raises ValueError with a plain sentence.
+
+    1 to 40 characters after trimming. No control or format characters (Unicode category C),
+    and no line or paragraph separators, so a value cannot add a line to the agent prompt.
+    """
+    if value is None:
+        if required:
+            raise ValueError("is required")
+        return None
+    if not isinstance(value, str):
+        raise ValueError("must be text")
+    if any(unicodedata.category(ch).startswith("C") or ch in "\u2028\u2029" for ch in value):
+        raise ValueError("must not contain control characters")
+    v = value.strip()
+    if not v:
+        if required:
+            raise ValueError("must not be empty")
+        return None
+    if len(v) > DETAIL_MAX_CHARS:
+        raise ValueError(f"must be {DETAIL_MAX_CHARS} characters or fewer")
+    return v
+
+
+# The bank's own amount rule (fixtures/haunted_bank/index.html, toCents and validate). An amount the bank
+# refuses can never complete the journey, so it is refused before a run starts instead of ending as
+# BLOCKED / NO_ACTIVATION on the fixed page.
+AMOUNT_PATTERN = re.compile(r"^(0|[1-9]\d*)\.\d{2}$", re.ASCII)
+BANK_START_BALANCE_CENTS = 100_000  # `let balance = 100000;` in the fixture: EUR 1000.00, fresh on every page load
+AMOUNT_HINT = "Use two decimals, like 10.00"
+
+
+def clean_amount(value: str | None, *, required: bool = True) -> str | None:
+    """clean_detail, then the bank's rule: two decimals, more than 0.00, at most the EUR 1000.00 test balance."""
+    v = clean_detail(value, required=required)
+    if v is None:
+        return None
+    if not AMOUNT_PATTERN.match(v):
+        raise ValueError(AMOUNT_HINT)
+    cents = int(v.replace(".", ""))
+    if cents <= 0:
+        raise ValueError(f"must be more than 0.00. {AMOUNT_HINT}")
+    if cents > BANK_START_BALANCE_CENTS:
+        raise ValueError("must be 1000.00 or less (the test balance)")
+    return v
 AgentKind = Literal["keyboard", "voice"]
 InputSource = Literal["keyboard", "typed", "speech"]
 
@@ -92,8 +148,9 @@ class JourneyConfig(BaseModel):
     goal: str
     target_selector: str
     success_selector: str = "[data-testid='payment-confirmation']"
-    recipient: str = "Alex Carter"
-    amount: str = "50.00"
+    recipient: str = INTERNAL_DEFAULT_DETAILS["recipient"]  # type: ignore[assignment]
+    amount: str = INTERNAL_DEFAULT_DETAILS["amount"]  # type: ignore[assignment]
+    reference: str | None = None
     max_steps: int = Field(default=25, ge=1)
     timeout_seconds: float = Field(default=90.0, ge=0)
     agent_mode: AgentMode = "scripted"

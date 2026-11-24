@@ -35,7 +35,11 @@ Unknown fields are rejected with `422` (so a `url`, path or selector cannot be s
 | `mode` | `"llm"` or `"scripted"` | `"scripted"` |
 | `max_steps` | int, 1 to 80 | 25 |
 | `timeout_seconds` | float, 0 to 300 | 90 |
-| `recipient` | str or omitted. 1 to 60 characters: starts with a letter, then letters, spaces, `.`, `'`, `-`. Anything else is `422`. It reaches the agent's goal text. Spec: `.kiro/specs/recipient-input/` | omitted (the API's own default, used by evals and tests; no screen fills it in) |
+| `recipient` | str or omitted. Trimmed, 1 to 40 characters, no control or format characters, else `422` | omitted |
+| `amount` | str or omitted. The bank's own rule: two decimals (`^(0|[1-9][0-9]*)\.[0-9]{2}$`), more than 0.00, at most 1000.00 (the test balance). Anything else is `422` ("Use two decimals, like 10.00") | omitted |
+| `reference` | str or omitted. Trimmed, 0 to 40 characters, same character rule; empty means none | omitted |
+
+These are the tester's made-up test details (spec `.kiro/specs/user-typed-test-details/`). When `recipient` or `amount` is left out, the run uses `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py` (for tests, eval scripts, the CLI and Night Watch). That default is never put in `test_details` and no screen shows it. Typed values are never logged.
 
 Refusals: `429` (rate limit, or too many runs at once; has `Retry-After`), `403` (LLM mode is off on the public demo). Both return `{"detail": "<plain sentence>"}`.
 
@@ -67,6 +71,7 @@ A voice run's `JourneyResult` has `agent_kind: "voice"`, `agent_mode: "scripted"
 | `result` | JourneyResult or `null` | `null` while running. If the run crashed, only `{"run_id", "error", "verdict": "BLOCKED"}` |
 | `seeded` | bool | `true` for a recorded run loaded from `docs/evidence-seed.json` |
 | `recorded_at` | str or `null` | set only for seeded runs |
+| `test_details` | `{recipient, amount, reference}` or `null` | what the tester typed; `null` when the request had no details (internal default). A seeded run shows the values typed when it was recorded |
 
 ## Finding: the checker's result (JourneyResult)
 

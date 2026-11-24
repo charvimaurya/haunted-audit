@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { RunNoticeProps } from '../components/RunNotice';
-import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from '../types';
+import type { AgentMode, JourneyResult, RecordedDetails, RunStatus, StepEvent, TestDetails, Variant } from '../types';
 
 /** Result of the last GET /health check. */
 export type ApiStatus = 'checking' | 'online' | 'offline';
@@ -8,8 +8,10 @@ export type ApiStatus = 'checking' | 'online' | 'offline';
 export interface RunValue {
   variant: Variant;
   mode: AgentMode;
-  /** The recipient name the tester typed (recipient-input REQ-RI-01). Starts empty. */
-  recipient: string;
+  /** The made-up details the tester is typing for the next run. Start empty (REQ-TD-01). */
+  details: TestDetails;
+  /** test_details from the last run's record: what was typed for it, or null. */
+  runDetails: RecordedDetails | null;
   runStatus: RunStatus | null;
   result: JourneyResult | null;
   liveEvents: StepEvent[];
@@ -20,7 +22,7 @@ export interface RunValue {
   runError: string | null;
   setVariant: (v: Variant) => void;
   setMode: (m: AgentMode) => void;
-  setRecipient: (r: string) => void;
+  setDetails: (d: TestDetails) => void;
   run: () => Promise<void>;
 }
 

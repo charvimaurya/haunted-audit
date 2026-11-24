@@ -26,7 +26,7 @@ metadata:
 def test_send_payment_by_keyboard(page, bank_url):
     page.goto(bank_url + "?variant=fixed")
     page.get_by_label("Recipient").focus()
-    page.keyboard.type("Alex Carter")
+    page.keyboard.type("Test recipient")
     page.keyboard.press("Tab")
     page.keyboard.type("50")
     for _ in range(10):
