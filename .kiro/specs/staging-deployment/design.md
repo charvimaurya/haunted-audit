@@ -258,24 +258,51 @@ docker push <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/haunted-audit-api:manua
 
 ### 5.2 Roles (infrastructure and execution from the AWS getting-started page)
 
+**Who runs this:** an IAM administrator, not the deployment permission set (`HauntedAuditDeployer` has no IAM write permissions). Kiro writes the files in `iam/`; the IAM administrator runs the commands; the deployment operator runs the read-only checks in TASK-11. Who the IAM administrator is has not been approved yet (proposed: Charvi; see TASK-11).
+
+**Permissions the IAM administrator needs:** `iam:CreateRole`, `iam:TagRole` (`create-role` with `--tags` checks both), `iam:AttachRolePolicy`, `iam:PutRolePolicy`, and `iam:CreateServiceLinkedRole` only if the ECS service-linked role is missing.
+
+**Before the roles:** check that the ECS service-linked role exists. If the first command prints `NoSuchEntity`, create it once with the second.
+
 ```bash
-# Execution role (pull image, write logs)
-aws iam create-role --role-name haunted-audit-execution --assume-role-policy-document file://iam/trust-ecs-tasks.json
+aws iam get-role --role-name AWSServiceRoleForECS
+aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com   # only if missing
+```
+
+```bash
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Execution role (pull image, write logs). Managed policy only; no inline policy.
+aws iam create-role --role-name haunted-audit-execution \
+  --assume-role-policy-document file://iam/trust-ecs-tasks.json --tags Key=Project,Value=haunted-audit Key=Environment,Value=staging
 aws iam attach-role-policy --role-name haunted-audit-execution \
   --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
-# Infrastructure role (creates the ALB, target group, security groups, scaling)
-aws iam create-role --role-name haunted-audit-infrastructure --assume-role-policy-document file://iam/trust-ecs.json
+# Infrastructure role (creates the ALB, target group, security groups, scaling). Managed policy only; no inline policy.
+aws iam create-role --role-name haunted-audit-infrastructure \
+  --assume-role-policy-document file://iam/trust-ecs.json --tags Key=Project,Value=haunted-audit Key=Environment,Value=staging
 aws iam attach-role-policy --role-name haunted-audit-infrastructure \
   --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
 
-# Task role (what the container itself may do)
-aws iam create-role --role-name haunted-audit-task --assume-role-policy-document file://iam/trust-ecs-tasks.json
+# Task role (what the container itself may do). No managed policy; one inline policy.
+aws iam create-role --role-name haunted-audit-task \
+  --assume-role-policy-document file://iam/trust-ecs-tasks.json --tags Key=Project,Value=haunted-audit Key=Environment,Value=staging
+# The committed file holds <ACCOUNT_ID>; fill it in a temporary copy that is never committed.
+sed "s/<ACCOUNT_ID>/$ACCOUNT_ID/g" iam/task-bedrock.json > "${TMPDIR:-/tmp}/task-bedrock.json"
 aws iam put-role-policy --role-name haunted-audit-task --policy-name bedrock-invoke-one-model \
-  --policy-document file://iam/task-bedrock.json
+  --policy-document "file://${TMPDIR:-/tmp}/task-bedrock.json"
 ```
 
-`iam/trust-ecs-tasks.json` has principal `ecs-tasks.amazonaws.com`; `iam/trust-ecs.json` has `ecs.amazonaws.com`. Wait about a minute after creating roles before the first deploy (the docs warn about eventual consistency).
+`iam/trust-ecs-tasks.json` has principal `ecs-tasks.amazonaws.com`; `iam/trust-ecs.json` has `ecs.amazonaws.com`. Both use only `sts:AssumeRole`. Wait about a minute after creating roles before the first deploy (the docs warn about eventual consistency).
+
+**Before 5.4 (deployment operator, not a role step):** create the log group the service writes to, then set its retention. Neither role can create a log group with this name: the execution role's managed policy can only create streams and write events, and the infrastructure role's managed policy only creates groups tagged `AmazonECSManaged=true`.
+
+```bash
+aws logs create-log-group --log-group-name /haunted-audit/api --region us-east-1
+aws logs put-retention-policy --log-group-name /haunted-audit/api --retention-in-days 30 --region us-east-1
+```
+
+`HauntedAuditDeployer` allows both commands on this one group but no tagging (`logs:TagResource`, `logs:TagLogGroup`), so the group is created without the REQ-AWS-07 tags. Whether to accept that, have the IAM administrator tag it, or extend the permission set is an open decision.
 
 `iam/task-bedrock.json` (model id comes from `BEDROCK_MODEL_ID`; **verify the profile and model ids with `aws bedrock list-inference-profiles`** and that the account has model access enabled):
 

@@ -91,8 +91,24 @@ Order: Dockerfile -> /ping and SSE keep-alive -> ECR push -> IAM roles -> deploy
 
 ### TASK-11 Create the roles
 **Satisfies:** REQ-AWS-03, REQ-AWS-04, REQ-AWS-05, REQ-AWS-07
-**Steps:** I add `iam/*.json` (trust policies, task policy; placeholders for account id) and commit them. You run design 5.2: execution, infrastructure and task roles. Confirm the Bedrock model and inference-profile ids with `aws bedrock list-inference-profiles` and that model access is enabled; fix `iam/task-bedrock.json` if the ids differ.
-**Verified by:** `aws iam get-role-policy --role-name haunted-audit-task --policy-name bedrock-invoke-one-model` shows one statement with only `bedrock:InvokeModel`; `aws iam list-attached-role-policies` for the other two roles shows only the managed policies; no access keys exist for any of them.
+**Who does what (three separate parts):**
+1. **Kiro authors the files.** `iam/trust-ecs-tasks.json` (trusts only `ecs-tasks.amazonaws.com`), `iam/trust-ecs.json` (trusts only `ecs.amazonaws.com`) and `iam/task-bedrock.json` (`bedrock:InvokeModel` only, `<ACCOUNT_ID>` placeholder). The real account id is never committed. Kiro runs no AWS command.
+2. **An IAM administrator creates the roles** with design 5.2: three roles, each tagged `Project=haunted-audit` and `Environment=staging`; the two managed policies; the one inline policy. They need `iam:CreateRole`, `iam:TagRole` (because `create-role` passes `--tags`), `iam:AttachRolePolicy` and `iam:PutRolePolicy`. The deployment permission set `HauntedAuditDeployer` has none of these, by design.
+3. **The deployment operator verifies** the roles with the read-only checks below, and records in `docs/deploy.md` only the commands that ran.
+
+**Owner: not yet approved.** This task said "You run design 5.2" (Sukhada) and plan Appendix A step 4 also has Sukhada run the commands, but the plan says Charvi owns AWS access and `HauntedAuditDeployer` has no IAM write permissions. Proposed: Charvi, or another IAM administrator, runs part 2. This is a proposal until the owner and Charvi confirm it.
+
+**Steps:**
+1. Before creating anything, the IAM administrator confirms the Bedrock model and inference-profile ids with `aws bedrock list-inference-profiles` (or `get-inference-profile`) and that model access is enabled; Kiro fixes `iam/task-bedrock.json` if the ids differ.
+2. Check that the ECS service-linked role exists: `aws iam get-role --role-name AWSServiceRoleForECS`. If it does not, the IAM administrator creates it once with `aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com`. `HauntedAuditDeployer` cannot create it, so the first `create-express-gateway-service` would fail without it. (The load balancer and auto scaling service-linked roles are created by the infrastructure role's managed policy; no manual step.)
+3. The IAM administrator runs design 5.2.
+4. Wait about a minute for IAM to propagate before TASK-13.
+
+**Hand-off to TASK-13 (prerequisite, not a role step):** the log group `/haunted-audit/api` must exist before `create-express-gateway-service`. Neither role can create it under that name: the execution role's managed policy has only `logs:CreateLogStream` and `logs:PutLogEvents`, and the infrastructure role's managed policy creates log groups only when they carry the tag `AmazonECSManaged=true`. The deployment operator creates it with `aws logs create-log-group --log-group-name /haunted-audit/api --region us-east-1`, then sets 30-day retention. `HauntedAuditDeployer` allows `logs:CreateLogGroup` and `logs:PutRetentionPolicy` on that one group, but **not** tagging: creating a group with `--tags` also needs `logs:TagResource` and `logs:TagLogGroup`, which the permission set does not grant. So, with the current permission set, the group is created **untagged**, which falls short of REQ-AWS-07. Open decision: accept an untagged log group, or have the IAM administrator tag it, or extend the permission set (a change that needs approval).
+
+**Not part of this task:** testing the task role against Bedrock and any streaming permission (TASK-12). `bedrock:InvokeModelWithResponseStream` is not added here.
+
+**Verified by:** `aws iam get-role` for each role shows its one trusted service and the two tags; `aws iam get-role-policy --role-name haunted-audit-task --policy-name bedrock-invoke-one-model` shows one statement with only `bedrock:InvokeModel`; `aws iam list-attached-role-policies` shows only `AmazonECSTaskExecutionRolePolicy` for the execution role, only `AmazonECSInfrastructureRoleforExpressGatewayServices` for the infrastructure role, and nothing for the task role; `aws iam list-role-policies` shows no inline policy for the execution and infrastructure roles; `AWSServiceRoleForECS` exists. (Roles cannot have access keys, so there is nothing to check for keys.)
 
 ### TASK-12 Test the task role against Bedrock
 **Satisfies:** REQ-AWS-03, design D6
