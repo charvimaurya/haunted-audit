@@ -525,23 +525,32 @@ def create_app(
         # One thread runs them one after the other and holds one limiter slot for both.
         run_id, voice_run_id = str(uuid.uuid4()), str(uuid.uuid4())
         store = app.state.store
-        store.insert_running(run_id, "broken", "scripted")
-        store.insert_running(voice_run_id, "broken", "scripted")
-        app.state.fixes.link_run(fix["fix_id"], kind, run_id, voice_run_id)
         url = verifier.start_url(copy)
         artifacts_root = app.state.artifacts_root
 
         def both() -> None:
+            voice_started = False
             try:
                 _execute_run(store, run_id, RunCreate(variant="broken", mode="scripted"), None, artifacts_root,
                              start_url=url)
+                voice_started = True
                 _execute_voice_run(store, voice_run_id,
                                    VoiceRunCreate(variant="broken", commands=list(VOICE_REPLAY), input_source="typed"),
                                    None, start_url=url)
             finally:
+                if not voice_started:  # never leave the voice run "running" when it could not start
+                    store.complete(voice_run_id, {"run_id": voice_run_id, "error": "the keyboard run failed first",
+                                                  "verdict": "BLOCKED"}, status="error")
                 limiter.release()
 
-        threading.Thread(target=both, daemon=True, name=f"{kind}-{run_id[:8]}").start()
+        try:
+            store.insert_running(run_id, "broken", "scripted")
+            store.insert_running(voice_run_id, "broken", "scripted")
+            app.state.fixes.link_run(fix["fix_id"], kind, run_id, voice_run_id)
+            threading.Thread(target=both, daemon=True, name=f"{kind}-{run_id[:8]}").start()
+        except Exception:
+            limiter.release()
+            raise
         log_event(msg=f"fix_{kind}_started", fix_id=fix["fix_id"], run_id=run_id, voice_run_id=voice_run_id)
         return {"run_id": run_id, "status": "running", "voice_run_id": voice_run_id}
 
