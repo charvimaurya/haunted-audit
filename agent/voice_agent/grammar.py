@@ -141,12 +141,75 @@ def _normal_amount(raw: str) -> str | None:
     value = f"{int(whole)}.{frac.ljust(2, '0')}"
     return None if int(whole) == 0 and int(frac or 0) == 0 else value
 
+_ONES = {w: i for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen "
+    "seventeen eighteen nineteen".split())}
+_TENS = {w: 10 * i for i, w in enumerate("_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()) if w != "_"}
+_SCALES = {"hundred": 100, "thousand": 1000}
+
+
+def _words_value(words: list[str]) -> int | None:
+    """'one hundred and fifty' -> 150, 'a hundred' -> 100, 'twenty five' -> 25. None when it is not a number."""
+    total, current, seen = 0, 0, False
+    for i, w in enumerate(words):
+        if w in ("a", "an") and i + 1 < len(words) and words[i + 1] in _SCALES and not seen:
+            current = 1
+        elif w == "and" and seen:
+            continue
+        elif w in _ONES:
+            current += _ONES[w]
+            seen = True
+        elif w in _TENS:
+            current += _TENS[w]
+            seen = True
+        elif w == "hundred":
+            current = (current or 1) * 100
+            seen = True
+        elif w == "thousand":
+            total += (current or 1) * 1000
+            current = 0
+            seen = True
+        else:
+            return None
+    return total + current if seen else None
+
+
+def _number_words_to_digits(text: str) -> str:
+    """Rewrite each run of spoken number words as digits: 'Sam Lee hundred dollars' -> 'Sam Lee 100 dollars'.
+    A run must hold at least one number word; 'a', 'an' and 'and' only count inside a run."""
+    tokens = text.split()
+    out: list[str] = []
+    i = 0
+    number = set(_ONES) | set(_TENS) | set(_SCALES)
+    while i < len(tokens):
+        j = i
+        run: list[str] = []
+        while j < len(tokens):
+            parts = tokens[j].lower().split("-")
+            if all(p in number for p in parts) or (tokens[j].lower() in ("a", "an", "and") and run is not None):
+                run.extend(parts)
+                j += 1
+            else:
+                break
+        while run and run[-1] in ("a", "an", "and"):  # never end a run on a filler word
+            run.pop()
+            j -= 1
+        value = _words_value(run) if run else None
+        if value is not None and any(w in number for w in run):
+            out.append(str(value))
+            i = j
+        else:
+            out.append(tokens[i])
+            i += 1
+    return " ".join(out)
+
+
 def expand_payment(text: str) -> list[str]:
     """Return the ordinary commands for a send-money phrase, or [text] when it is not one.
     With a recipient and an amount: type both, then click Send Payment. With a recipient only: type it and stop."""
     if not isinstance(text, str) or len(text) > MAX_COMMAND_CHARS or "\n" in text.strip():
         return [text]
-    t = _POLITE.sub("", _clean(text)).strip()
+    t = _number_words_to_digits(_POLITE.sub("", _clean(text)).strip())
     m = _SEND.match(t)
     if not m:
         return [text]

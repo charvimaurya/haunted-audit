@@ -81,6 +81,7 @@ A spoken or typed command acts on the real Haunted Bank in a browser, by accessi
 - `expand_payment` in `agent/voice_agent/grammar.py` turns one send-money phrase into ordinary commands. A fixed pattern decides, never a model. The runner expands before it runs, so the checker and the data contract do not change.
 - "send money to Sam Lee, 100 dollars", "send $100 to Sam Lee" and "pay 50.5 euros to Ann" become: type the name in Recipient, type the amount with two decimals in Amount, click Send Payment.
 - "send money to Sam" with no amount only types the recipient. It never clicks Send Payment.
+- Whole amounts in words are read as digits: "hundred", "a hundred", "one hundred and fifty", "twenty-five", "two thousand". Cents in words are not.
 - A zero or malformed amount, or no recipient, is left as it was said, so it is "not understood".
 - Push to talk runs the voice journey as soon as the speech ends. What was heard replaces the command list. The currency word is ignored; the bank page is in EUR.
 - The broken page still cannot be finished by Tab. That barrier is planted and the checker depends on it.

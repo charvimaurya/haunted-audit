@@ -210,12 +210,18 @@ from agent.voice_agent.grammar import expand_payment  # noqa: E402
     ("Please send $100 to Sam Lee", ['type "Sam Lee" in Recipient', "type 100.00 in Amount", "click Send Payment"]),
     ("pay 50.5 euros to Ann", ['type "Ann" in Recipient', "type 50.50 in Amount", "click Send Payment"]),
     ("send money to Sam", ['type "Sam" in Recipient']),
+    # Amounts in words, as Chrome speech recognition often writes them.
+    ("Send money to Sam Lee hundred dollars", ['type "Sam Lee" in Recipient', "type 100.00 in Amount", "click Send Payment"]),
+    ("send a hundred dollars to Sam Lee", ['type "Sam Lee" in Recipient', "type 100.00 in Amount", "click Send Payment"]),
+    ("send money to Ann and one hundred and fifty dollars", ['type "Ann" in Recipient', "type 150.00 in Amount", "click Send Payment"]),
+    ("pay twenty-five euros to Ann", ['type "Ann" in Recipient', "type 25.00 in Amount", "click Send Payment"]),
+    ("send money to Sam and Ann", ['type "Sam and Ann" in Recipient']),  # "and" alone is not a number
 ])
 def test_expand_payment(text, expected):
     assert expand_payment(text) == expected
 
 
-@pytest.mark.parametrize("text", ["send payment", "pay now", "send 0 to Bob", "send 100 to 200", "click Send Payment", "send money"])
+@pytest.mark.parametrize("text", ["send payment", "pay now", "send 0 to Bob", "send 100 to 200", "click Send Payment", "send money", "send zero dollars to Bob"])
 def test_expand_payment_leaves_other_text(text):
     assert expand_payment(text) == [text]
 
