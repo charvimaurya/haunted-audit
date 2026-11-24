@@ -22,7 +22,7 @@ Effort numbers are my estimates in hours (not measured, not from your plan). The
 
 ### TASK-00 Settle the open decisions (you)
 **Effort:** 0.5 (your time)
-Answer D2 (prefilled Alex Carter and amount), D4 and D20 (real fixture in an iframe, and whether the fixture may be restyled), D17 (plain-English lines hidden or visible), D16 (Settings button), D5 (sidebar placement), D12/D13, D18 (which routes win). Until D2/D4 are answered the Possession task cannot start.
+Answer D2 (prefilled example name and amount; decided: empty, see user-typed-test-details), D4 and D20 (real fixture in an iframe, and whether the fixture may be restyled), D17 (plain-English lines hidden or visible), D16 (Settings button), D5 (sidebar placement), D12/D13, D18 (which routes win). Until D2/D4 are answered the Possession task cannot start.
 **Verified by:** the table in `requirements.md` has an answer beside each row.
 
 ---

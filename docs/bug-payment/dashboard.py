@@ -33,7 +33,7 @@ with sync_playwright() as p:
         OUT["before-run/elements"]=snap(pg,"before")
         OUT["before-run/inputs"]=pg.evaluate("[...document.querySelectorAll('section#journeys input')].map(i=>({id:i.id,readOnly:i.readOnly,value:i.value}))")
         # fill and click with mouse
-        pg.fill("#pm-recipient","Alex Carter"); pg.fill("#pm-amount","50.00")
+        pg.fill("#pm-recipient","Test recipient"); pg.fill("#pm-amount","50.00")
         n0=len(reqs)
         click_center(pg, sec.get_by_text("Send Payment", exact=True).last)
         time.sleep(.5)
@@ -59,7 +59,7 @@ with sync_playwright() as p:
         pg.get_by_role("button", name=re.compile("Run", re.I)).first.click()
         pg.wait_for_function("document.body.innerText.includes('PASSED') || !document.body.innerText.includes('Journey Blocked')", timeout=60000); time.sleep(1.5)
         OUT["fixed/elements"]=snap(pg,"fixed")
-        pg.locator("#pm-recipient").fill("Alex Carter"); pg.locator("#pm-amount").fill("50.00")
+        pg.locator("#pm-recipient").fill("Test recipient"); pg.locator("#pm-amount").fill("50.00")
         n0=len(reqs)
         btn=sec.get_by_role("button", name="Send Payment")
         OUT["fixed/send-buttons"]=btn.count()

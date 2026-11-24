@@ -4,7 +4,7 @@ Kiroween 2026, Costume Contest. An accessibility engineer for AI-built applicati
 
 ## Project Overview
 
-Haunted Audit watches a keyboard-only agent try to send EUR 50 to Alex Carter on a small test bank called Haunted Bank. The agent can tab, type, and read what is focused. It cannot click. A fixed checker, not the AI, decides whether the payment journey passed.
+Haunted Audit watches a keyboard-only agent try to send a payment, using made-up details you type yourself, on a small test bank called Haunted Bank. The agent can tab, type, and read what is focused. It cannot click. A fixed checker, not the AI, decides whether the payment journey passed.
 
 Two pages live in `fixtures/haunted_bank/index.html`:
 
@@ -85,11 +85,11 @@ Set up and launch Haunted Audit from this folder. Do not invent credentials and 
    cd dashboard && npm install && npm run dev -- --host 127.0.0.1 --port 5173
    Vite is configured in dashboard/vite.config.ts. It proxies /runs and /health to http://127.0.0.1:8000.
 7. When both are up, tell me to open http://127.0.0.1:5173 and that the API health check is http://127.0.0.1:8000/health.
-8. On the page, leave Variant on broken and Agent mode on scripted, then press Run Journey.
+8. On the page, leave Variant on broken and Agent mode on scripted. Under Test details, type a made-up Recipient and Amount (for example 10.00), then press Run Journey.
 ```
 
 3. Wait until the assistant says both servers are running.
-4. Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**.
+4. Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Leave **Variant** on `broken` and **Agent mode** on `scripted`. Under **Test details**, type a made-up Recipient and Amount (for example `10.00`); Reference is optional. Nothing is filled in for you, and Run Journey asks for them if they are empty. Then press **Run Journey**.
 
 The API stays at [http://127.0.0.1:8000](http://127.0.0.1:8000). [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) should answer when the API is up.
 
@@ -130,7 +130,7 @@ Then open:
 - Dashboard: [http://127.0.0.1:5173](http://127.0.0.1:5173)
 - API health: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 
-On the dashboard, leave **Variant** on `broken` and **Agent mode** on `scripted`, then press **Run Journey**. The broken page should end blocked, because Send Payment is not a real keyboard button. Switch **Variant** to `fixed` and run again to see the journey pass.
+On the dashboard, leave **Variant** on `broken` and **Agent mode** on `scripted`. Under **Test details**, type a made-up Recipient and Amount (for example `10.00`); Reference is optional. Nothing is filled in for you, and Run Journey asks for them if they are empty. Then press **Run Journey**. The broken page should end blocked, because Send Payment is not a real keyboard button. Switch **Variant** to `fixed` and run again to see the journey pass.
 
 Stop either server with Ctrl+C in its terminal.
 
@@ -170,6 +170,7 @@ npm test
 4. On `fixed`, the ghost turns green and the checker reports `PASSED`.
 5. Unmeasured numbers stay `--`.
 6. After a `broken` run, **Fixes** walks Find, Fix, Verify, Regression by keyboard. Verify shows **BLOCKED → VERIFIED** and two evidence rows, Keyboard journey and Voice-command simulation, each with its run ID. **Reports** shows the same two rows.
+7. After a run, the Possession checklist shows the values the agent typed, which are the ones you typed. Recorded replays (`docs/evidence-seed.json`) show the values typed when they were recorded.
 
 If the page says it cannot reach the API, the first terminal is not running, or it is not on port 8000.
 
@@ -255,3 +256,7 @@ Specs, steering rules, and the axe-on-save hook live in `.kiro/`. Rules decide a
 | `.env.example` | Placeholder environment variables |
 | `.kiro/` | Specs, steering, and the axe-on-save hook |
 | `docs/` | Team plans, schedule, judge deck, and evidence |
+
+## Known issues
+- **Internal test details.** A direct API call to `POST /runs` without `recipient` and `amount` (pytest, the eval scripts, the command line, Night Watch) still uses one built-in made-up name and amount: `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py`. That default is never sent to the dashboard as a typed value and never fills in a field. The same name also appears as test input in `agent/tests/` and `agent/eval/run_voice_eval.py`. The full list is in `docs/user-typed-test-details-audit.md`.
+- **Design image.** The frozen v7 design image (`design/Haunted_Audit_Final_UI_v7.png`) shows an example name in the Recipient field. The app does not copy it.

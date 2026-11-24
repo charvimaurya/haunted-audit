@@ -612,7 +612,7 @@ const $=id=>document.getElementById(id);
 const say=t=>$('say').textContent=t;
 
 /* ---------- state ---------- */
-const DEFAULT_CMDS=['type "Alex Carter" in Recipient','type 50.00 in Amount','click Send Payment'];
+const DEFAULT_CMDS=['type "Test recipient" in Recipient','type 50.00 in Amount','click Send Payment'];
 const S={agent:'keyboard',variant:'broken',run:{keyboard:'blocked',voice:'blocked'},running:false,cmds:[...DEFAULT_CMDS],
   fix:{approved:true,verified:true,regression:true},step:3};
 
@@ -632,7 +632,7 @@ function renderPos(partial){
   $('runTxt').textContent=v?'Run voice journey':'Run keyboard journey';
   const d=steps();
   if(!partial) $('steps').innerHTML=d.map(x=>`<li>${r?dot(x.ok?'ok':'bad'):dot('wait')}<span>${x.t}${r&&!x.ok?`<small>${x.why}</small>`:''}</span></li>`).join('');
-  $('rec').value=r?'Alex Carter':'';$('amt').value=r?'€50.00':'';
+  $('rec').value=r?'Test recipient':'';$('amt').value=r?'€50.00':'';
   const bad=r==='blocked', ok=r==='passed';
   $('payBtn').className='paybtn'+(bad?'':ok?' ok':' idle');
   r?$('ghostPin').removeAttribute('hidden'):$('ghostPin').setAttribute('hidden','');$('tip').hidden=!r;
@@ -659,7 +659,7 @@ function run(){
   const d=steps(); let i=0; const items=$('steps').children; const fast=document.body.classList.contains('calm');
   const tick=()=>{
     if(i<d.length){const x=d[i];items[i].innerHTML=`${dot(x.ok?'ok':'bad')}<span>${x.t}${x.ok?'':`<small>${x.why}</small>`}</span>`;
-      if(i===0) $('rec').value='Alex Carter'; if(i===1) $('amt').value='€50.00';
+      if(i===0) $('rec').value='Test recipient'; if(i===1) $('amt').value='€50.00';
       say(x.t.replace(/<[^>]+>/g,'')+(x.ok?': done':': blocked'));i++;
       if(!x.ok) return end('blocked'); setTimeout(tick,fast?120:750);}
     else end('passed');

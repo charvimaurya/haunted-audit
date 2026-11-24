@@ -31,7 +31,7 @@ A spoken or typed command acts on the real Haunted Bank in a browser, by accessi
 - The run continues with the next command.
 
 **REQ-VA-04: The haunted and fixed pages.** With the commands
-`type "Alex Carter" in Recipient`, `type 50.00 in Amount` (the bank asks for two decimals), `click Send Payment`:
+`type "<name>" in Recipient`, `type 50.00 in Amount` (the bank asks for two decimals), `click Send Payment`:
 - On the haunted page (`?variant=broken`), the click fails with exactly "Could not activate Send Payment: no accessible role or name".
 - On the fixed page, the payment completes and the confirmation (`data-testid="payment-confirmation"`) is visible.
 

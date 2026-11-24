@@ -83,7 +83,7 @@ Verdict authority: the deterministic checker, not the agent, decides every `verd
 
 **THE SYSTEM SHALL** render a left sidebar with navigation items: Dashboard, Send Payment, Accounts, Transactions. "Send Payment" is the active page.
 
-**THE SYSTEM SHALL** render a main panel titled "Send Payment" with: a Recipient field (pre-filled "Alex Carter"), an Amount field (pre-filled "€50.00"), and a send control in a `#pay-slot` div.
+**THE SYSTEM SHALL** render a main panel titled "Send Payment" with: a Recipient field and an Amount field, both empty until the tester types (superseded by `user-typed-test-details`), and a send control in a `#pay-slot` div.
 
 **THE SYSTEM SHALL** read the `?variant` query parameter. Accepted values: `broken`, `fixed`. If absent or invalid, default to `broken`.
 
