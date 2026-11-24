@@ -5,6 +5,7 @@ import { PossessionMode } from './PossessionMode';
 import { RunControls } from './RunControls';
 import { RunNotice } from './RunNotice';
 import { AutoLoopCard } from './AutoLoopCard';
+import { SafariTabTip } from './SafariTabTip';
 import { VoiceCommandsCard } from './VoiceCommandsCard';
 import type { AgentKind } from './AgentToggle';
 import { useRun } from '../runs/runContext';
@@ -89,6 +90,7 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
         onAgentChange={setAgent}
         statusLabel={isVoice ? voiceLabel : undefined}
       />
+      {!isVoice && <SafariTabTip />}
       {!isVoice && notice && <RunNotice {...notice} />}
       <div className="mt-6">
         {isVoice ? (
