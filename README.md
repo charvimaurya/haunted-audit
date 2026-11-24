@@ -169,6 +169,7 @@ npm test
 3. On `broken`, the ghost turns red beside Send Payment, and the checker reports `BLOCKED` / `TARGET_NOT_FOCUSABLE` on `div.pay-btn`.
 4. On `fixed`, the ghost turns green and the checker reports `PASSED`.
 5. Unmeasured numbers stay `--`.
+6. After a `broken` run, **Fixes** walks Find, Fix, Verify, Regression by keyboard. Verify shows **BLOCKED → VERIFIED** and two evidence rows, Keyboard journey and Voice-command simulation, each with its run ID. **Reports** shows the same two rows.
 
 If the page says it cannot reach the API, the first terminal is not running, or it is not on port 8000.
 
@@ -198,14 +199,14 @@ API routes, once the first terminal is running:
 After a `broken` run ends `BLOCKED`, the fix loop runs on copies of the bank. No tracked file changes.
 
 1. **Fix.** The Exorcist proposes a diff. A person approves or rejects it. Without AWS the fix is a **Scripted repair demonstration** (one rule for the planted Send Payment barrier, 0 tokens). Only `exorcist_mode: "llm"` needs Amazon Bedrock.
-2. **Verify.** The keyboard agent runs on the patched copy and the checker decides.
+2. **Verify.** The keyboard agent, then the voice-command simulation, run on the patched copy, each with its own run ID. The checker decides both. Today the keyboard journey passes and the voice journey is still blocked: the Amount field has no label (barrier 2), which this fix does not touch. The screen says **Keyboard only**.
 3. **Prevent.** The journey test `tests/journeys/send-payment.spec.ts` presses Tab until Send Payment has focus, then Enter. It catches the barrier when it comes back.
 
 API routes for the loop:
 
 - `POST /runs/{id}/fixes`, `GET /fixes/{id}`
 - `POST /fixes/{id}/approve` (with the `diff_sha256` you reviewed) and `POST /fixes/{id}/reject`
-- `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy)
+- `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy). Each returns `run_id` (keyboard) and `voice_run_id`.
 
 The regression guard, from the repo root. Node.js is needed once for the journey test:
 

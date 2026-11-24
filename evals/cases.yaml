@@ -107,3 +107,20 @@ cases:
     next: Configure AWS credentials and Bedrock access, build the Bedrock call, then run scripts/qa_exorcist.py.
     recorded: 2026-11-22
 
+  - id: fail-006
+    kind: failure
+    target: Verifier voice replay on the patched copy (POST /fixes/{id}/verify, voice_run_id)
+    agent_mode: scripted
+    expected: voice-command simulation PASSED on the patched copy, so the screens can say "Keyboard and voice"
+    observed: >-
+      Keyboard journey PASSED on the patched copy; the voice-command simulation was BLOCKED (NO_ACTIVATION) because
+      "Could not type in Amount: no accessible label". The scripted Exorcist fixes barrier 1 (Send Payment div) only;
+      barrier 2 (Amount has no label, bank/PLANTED.md) still stops a voice user. Seen in every keyboard loop walk on
+      2026-11-24 and in agent/tests/test_loop_evidence.py. The screens say "Keyboard only" and "Not verified".
+    evidence:
+      - scripts/keyboard_loop_walk.py output in docs/pr/item-4-loop-evidence.md
+      - docs/evidence/loop-evidence-verify.png
+    label_source: bank/PLANTED.md (barrier 2) and .kiro/specs/loop-evidence/requirements.md
+    status: open
+    next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
+    recorded: 2026-11-24
