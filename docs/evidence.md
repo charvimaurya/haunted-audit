@@ -6,7 +6,7 @@ Measured on the scripted keyboard walker. LLM rows were not executed because Ama
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | llm | broken | 0/5 | 0 | n/a | n/a | n/a | 0 | no |
 | llm | fixed | 0/5 | 0 | n/a | n/a | n/a | 0 | no |
-| scripted | broken | 5/5 | 5 | 18.0 | 897.8 | 0.000000 | 0 | yes |
-| scripted | fixed | 5/5 | 5 | 14.0 | 756.2 | 0.000000 | 0 | yes |
+| scripted | broken | 5/5 | 5 | 20.0 | 1049.9 | 0.000000 | 0 | yes |
+| scripted | fixed | 5/5 | 5 | 16.0 | 829.7 | 0.000000 | 0 | yes |
 
 Broken verdict: `BLOCKED` / `TARGET_NOT_FOCUSABLE`, blocked element `div.pay-btn`. Fixed verdict: `PASSED`. The checker, not the model, decided both.
