@@ -28,7 +28,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from agent.api.limits import LimitSettings, Refusal, RunLimiter, client_ip
-from agent.keyboard_agent.models import clean_detail
+from agent.keyboard_agent.models import clean_amount, clean_detail
 from agent.keyboard_agent.runner import build_journey_config, run_journey
 
 load_dotenv()
@@ -78,10 +78,16 @@ class RunCreate(BaseModel):
     amount: str | None = None
     reference: str | None = None
 
-    @field_validator("recipient", "amount")
+    @field_validator("recipient")
     @classmethod
     def _required_when_given(cls, v: str | None) -> str | None:
         return None if v is None else clean_detail(v, required=True)
+
+    @field_validator("amount")
+    @classmethod
+    def _amount(cls, v: str | None) -> str | None:
+        # The bank's own rule, so a run never starts with an amount the bank will refuse.
+        return None if v is None else clean_amount(v, required=True)
 
     @field_validator("reference")
     @classmethod

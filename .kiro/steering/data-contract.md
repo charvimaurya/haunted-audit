@@ -36,7 +36,7 @@ Unknown fields are rejected with `422` (so a `url`, path or selector cannot be s
 | `max_steps` | int, 1 to 80 | 25 |
 | `timeout_seconds` | float, 0 to 300 | 90 |
 | `recipient` | str or omitted. Trimmed, 1 to 40 characters, no control or format characters, else `422` | omitted |
-| `amount` | str or omitted. Same rule as `recipient`. The bank itself checks the format (two decimals) | omitted |
+| `amount` | str or omitted. The bank's own rule: two decimals (`^(0|[1-9][0-9]*)\.[0-9]{2}$`), more than 0.00, at most 1000.00 (the test balance). Anything else is `422` ("Use two decimals, like 10.00") | omitted |
 | `reference` | str or omitted. Trimmed, 0 to 40 characters, same character rule; empty means none | omitted |
 
 These are the tester's made-up test details (spec `.kiro/specs/user-typed-test-details/`). When `recipient` or `amount` is left out, the run uses `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py` (for tests, eval scripts, the CLI and Night Watch). That default is never put in `test_details` and no screen shows it. Typed values are never logged.

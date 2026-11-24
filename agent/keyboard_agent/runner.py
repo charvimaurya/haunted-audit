@@ -16,7 +16,14 @@ from playwright.sync_api import sync_playwright
 
 from agent.keyboard_agent.agent import run_llm_agent
 from agent.keyboard_agent.checker import check_journey
-from agent.keyboard_agent.models import INTERNAL_DEFAULT_DETAILS, JourneyConfig, JourneyResult, TokenUsage, clean_detail
+from agent.keyboard_agent.models import (
+    INTERNAL_DEFAULT_DETAILS,
+    JourneyConfig,
+    JourneyResult,
+    TokenUsage,
+    clean_amount,
+    clean_detail,
+)
 from agent.keyboard_agent.scripted_walker import run_scripted_walker
 from agent.keyboard_agent.tools import KeyboardSession
 
@@ -65,7 +72,7 @@ def build_journey_config(
     """Build a config. Checker selectors are set here and stay out of the prompt."""
     _load_env()
     recipient = clean_detail(overrides.pop("recipient", None) or INTERNAL_DEFAULT_DETAILS["recipient"], required=True)
-    amount = clean_detail(overrides.pop("amount", None) or INTERNAL_DEFAULT_DETAILS["amount"], required=True)
+    amount = clean_amount(overrides.pop("amount", None) or INTERNAL_DEFAULT_DETAILS["amount"], required=True)
     reference = clean_detail(overrides.pop("reference", None), required=False)
     if variant not in {"broken", "fixed"}:
         raise ValueError("variant must be broken or fixed")

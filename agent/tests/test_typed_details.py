@@ -152,3 +152,85 @@ def test_the_llm_prompt_quotes_each_typed_value() -> None:
     assert 'Recipient to enter: "Test \\"Q\\""' in prompt
     assert 'Reference to enter: "Ref"' in prompt
     assert "Reference" not in build_user_prompt(build_journey_config("fixed", "scripted"))
+
+
+# ── Amount follows the bank's own rule (fixed page ended BLOCKED / NO_ACTIVATION with "100") ──
+
+OWNER = {"recipient": "Test recipient", "amount": "100.00", "reference": "Test reference"}
+
+
+@pytest.mark.parametrize("amount", ["100.00", "1000.00", "0.01"])
+def test_a_good_amount_lets_the_fixed_page_pass(client, amount) -> None:
+    body = {"variant": "fixed", "mode": "scripted", **OWNER, "amount": amount}
+    record = _wait(client, client.post("/runs", json=body).json()["run_id"])
+    assert (record["verdict"], record["reason_code"]) == ("PASSED", None)
+    assert _typed(record) == [OWNER["recipient"], amount, OWNER["reference"]]
+
+
+@pytest.mark.parametrize("amount", ["100", "100.0", "100.000", "€100.00", "100,00", "1,000.00", "0.00", "1000.01",
+                                    "050.00", "5e1", "-5.00", "\u0663.\u0660\u0660"])
+def test_a_bad_amount_is_refused_before_any_run(client, amount) -> None:
+    r = client.post("/runs", json={"variant": "fixed", "mode": "scripted", "recipient": "Test recipient", "amount": amount})
+    assert r.status_code == 422
+
+
+def test_the_amount_rule_matches_the_bank_page() -> None:
+    from agent.keyboard_agent.models import AMOUNT_PATTERN, BANK_START_BALANCE_CENTS
+    from agent.keyboard_agent.runner import FIXTURE_PATH
+
+    page = FIXTURE_PATH.read_text()
+    assert f"let balance = {BANK_START_BALANCE_CENTS};" in page
+    assert "/^(0|[1-9]\\d*)\\.\\d{2}$/.test(text)" in page
+    assert AMOUNT_PATTERN.pattern == r"^(0|[1-9]\d*)\.\d{2}$"
+
+
+def test_the_broken_page_is_still_blocked_by_its_barrier_with_a_good_amount(client) -> None:
+    record = _wait(client, client.post("/runs", json={"variant": "broken", "mode": "scripted", **OWNER}).json()["run_id"])
+    assert (record["verdict"], record["reason_code"]) == ("BLOCKED", "TARGET_NOT_FOCUSABLE")
+
+
+# ── scripts/record_seed.py writes the seed only for the expected verdicts ──
+
+def test_record_seed_writes_when_broken_is_blocked_and_fixed_passes(tmp_path) -> None:
+    from scripts.record_seed import record
+
+    out = tmp_path / "seed.json"
+    assert record(OWNER, out) == 0
+    runs = {r["variant"]: r for r in json.loads(out.read_text())["runs"]}
+    assert (runs["broken"]["result"]["verdict"], runs["broken"]["result"]["reason_code"]) == ("BLOCKED", "TARGET_NOT_FOCUSABLE")
+    assert runs["fixed"]["result"]["verdict"] == "PASSED"
+    assert runs["fixed"]["test_details"] == OWNER
+
+
+def test_record_seed_refuses_a_bad_amount_and_leaves_the_file_unchanged(tmp_path, capsys) -> None:
+    from scripts.record_seed import record
+
+    out = tmp_path / "seed.json"
+    out.write_text("previous seed\n")
+    assert record({**OWNER, "amount": "100"}, out) == 1
+    assert out.read_text() == "previous seed\n"
+    assert "fixed should be PASSED" in capsys.readouterr().err
+
+
+def test_record_seed_refuses_unless_both_verdicts_are_right() -> None:
+    from scripts.record_seed import problems
+
+    good = {"broken": {"status": "complete", "verdict": "BLOCKED", "reason_code": "TARGET_NOT_FOCUSABLE"},
+            "fixed": {"status": "complete", "verdict": "PASSED", "reason_code": None}}
+    assert problems(good) == []
+    assert problems({**good, "fixed": {"status": "complete", "verdict": "BLOCKED", "reason_code": "NO_ACTIVATION"}}) == [
+        "fixed should be PASSED, got complete BLOCKED / NO_ACTIVATION"]
+    assert problems({**good, "broken": {"status": "complete", "verdict": "BLOCKED", "reason_code": "NO_ACTIVATION"}})
+    assert problems({**good, "fixed": {"status": "error", "verdict": "PASSED", "reason_code": None}})
+
+
+def test_record_seed_asks_again_for_a_bad_amount(monkeypatch, capsys) -> None:
+    import builtins
+
+    from agent.keyboard_agent.models import clean_amount
+    from scripts.record_seed import ask
+
+    answers = iter(["100", "100.00"])
+    monkeypatch.setattr(builtins, "input", lambda prompt="": next(answers))
+    assert ask("Amount", True, check=clean_amount) == "100.00"
+    assert "Use two decimals, like 10.00" in capsys.readouterr().out

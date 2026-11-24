@@ -14,10 +14,11 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 - Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 10.00", "Optional, e.g. Test payment". No placeholder looks like a real person.
 - No field is ever filled in by the app.
 - Reference is optional. Recipient and Amount are required.
+- Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-007: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
 
 **REQ-TD-02: Missing details stop the run.**
 - Run Journey (keyboard) and Run voice journey (voice, when its commands come from the form) check Recipient, then Amount.
-- If Recipient is empty, the run does not start. Under the field: a cross icon and "Type a made-up name to continue". For Amount: "Type a made-up amount to continue". The message is tied to the field (`aria-describedby`, `aria-invalid`) and announced (`role="alert"`). Focus moves to the first field with a problem.
+- If Recipient is empty, the run does not start. Under the field: a cross icon and "Type a made-up name to continue". For Amount: "Type a made-up amount to continue", and for an amount the bank would refuse: "Use two decimals, like 10.00". The message is tied to the field (`aria-describedby`, `aria-invalid`) and announced (`role="alert"`). Focus moves to the first field with a problem.
 - Possess This App opens the setup form (it is a link to Try). It never starts a run, so it can never start one without the details.
 
 **REQ-TD-03: The typed values are what the agents type.**
@@ -47,6 +48,7 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 - Unseeded runs are deleted after 7 days, and screenshots after 24 hours (existing pruning).
 
 **REQ-TD-08: Recorded fallback.**
+- `scripts/record_seed.py` checks Amount with the bank's rule before any run, and writes the seed only when broken is BLOCKED / TARGET_NOT_FOCUSABLE and fixed is PASSED. Otherwise the existing file is left unchanged.
 - `docs/evidence-seed.json` is re-exported from runs made with values the owner typed. `test_details` is in the export.
 - A note says that recorded replays show the values typed when they were recorded.
 

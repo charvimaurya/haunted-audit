@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from typing import Literal
 
@@ -49,6 +50,29 @@ def clean_detail(value: str | None, *, required: bool) -> str | None:
         return None
     if len(v) > DETAIL_MAX_CHARS:
         raise ValueError(f"must be {DETAIL_MAX_CHARS} characters or fewer")
+    return v
+
+
+# The bank's own amount rule (fixtures/haunted_bank/index.html, toCents and validate). An amount the bank
+# refuses can never complete the journey, so it is refused before a run starts instead of ending as
+# BLOCKED / NO_ACTIVATION on the fixed page.
+AMOUNT_PATTERN = re.compile(r"^(0|[1-9]\d*)\.\d{2}$", re.ASCII)
+BANK_START_BALANCE_CENTS = 100_000  # `let balance = 100000;` in the fixture: EUR 1000.00, fresh on every page load
+AMOUNT_HINT = "Use two decimals, like 10.00"
+
+
+def clean_amount(value: str | None, *, required: bool = True) -> str | None:
+    """clean_detail, then the bank's rule: two decimals, more than 0.00, at most the EUR 1000.00 test balance."""
+    v = clean_detail(value, required=required)
+    if v is None:
+        return None
+    if not AMOUNT_PATTERN.match(v):
+        raise ValueError(AMOUNT_HINT)
+    cents = int(v.replace(".", ""))
+    if cents <= 0:
+        raise ValueError(f"must be more than 0.00. {AMOUNT_HINT}")
+    if cents > BANK_START_BALANCE_CENTS:
+        raise ValueError("must be 1000.00 or less (the test balance)")
     return v
 AgentKind = Literal["keyboard", "voice"]
 InputSource = Literal["keyboard", "typed", "speech"]

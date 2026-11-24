@@ -47,7 +47,7 @@ describe('Test details form', () => {
     expect(recipient).toHaveFocus();
     expect(recipient).toHaveAttribute('aria-invalid', 'true');
     expect(recipient).toHaveAccessibleDescription('Type a made-up name to continue');
-    expect(screen.getByLabelText('Amount (EUR)')).toHaveAccessibleDescription('Type a made-up amount to continue');
+    expect(screen.getByLabelText('Amount (EUR)')).toHaveAccessibleDescription('Use two decimals, like 10.00, up to 1000.00. Type a made-up amount to continue');
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -71,6 +71,36 @@ describe('Test details form', () => {
     await user.click(screen.getByRole('button', { name: 'Run Journey' }));
     expect(onRun).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('a bad amount is refused with "Use two decimals, like 10.00" and focus on Amount; a good one runs', async () => {
+    const onRun = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(<Harness onRun={onRun} />);
+    const amount = screen.getByLabelText('Amount (EUR)');
+    expect(amount).toHaveAccessibleDescription('Use two decimals, like 10.00, up to 1000.00.');
+    await user.type(screen.getByLabelText('Recipient'), 'Test recipient');
+    await user.type(amount, '100');
+    await user.click(screen.getByRole('button', { name: 'Run Journey' }));
+    expect(onRun).not.toHaveBeenCalled();
+    expect(amount).toHaveFocus();
+    expect(amount).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('alert').textContent).toBe('Use two decimals, like 10.00');
+    expect(await axe(container)).toHaveNoViolations();
+    await user.type(amount, '.00');
+    await user.click(screen.getByRole('button', { name: 'Run Journey' }));
+    expect(onRun).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('the amount rule matches the bank: two decimals, more than 0.00, at most 1000.00', () => {
+    const p = (amount: string) => detailsProblems({ recipient: 'Test recipient', amount, reference: '' }).amount;
+    for (const good of ['100.00', '0.01', '1000.00', '10.00']) expect(p(good)).toBeUndefined();
+    for (const bad of ['100', '100.0', '€100.00', '100,00', '1,000.00', '050.00', '5e1', '-5.00']) {
+      expect(p(bad)).toBe('Use two decimals, like 10.00');
+    }
+    expect(p('0.00')).toBe('Use more than 0.00. Use two decimals, like 10.00');
+    expect(p('1000.01')).toBe('Use 1000.00 or less (the test balance)');
   });
 
   it('does not ask for details when the run does not use them (edited voice commands)', async () => {
