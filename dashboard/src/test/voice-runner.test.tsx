@@ -14,7 +14,7 @@ import { commandsFrom } from '../voice/useVoiceRun';
 expect.extend(toHaveNoViolations);
 
 const STEPS = [
-  { step: 1, tool: 'voice_type', args: { outcome: 'done', message: 'Type "Alex Carter" in Recipient: done.' } },
+  { step: 1, tool: 'voice_type', args: { outcome: 'done', message: 'Type "Test recipient" in Recipient: done.' } },
   { step: 2, tool: 'voice_type', args: { outcome: 'failed', message: 'Could not type in Amount: no accessible label',
     element: { tag: 'span', text: 'Amount (EUR)' } } },
   { step: 3, tool: 'voice_click', args: { outcome: 'failed', message: 'Could not activate Send Payment: no accessible role or name',
@@ -78,13 +78,13 @@ describe('voice panel with the API online', () => {
     const user = userEvent.setup();
     const { container } = renderOnline();
     expect(screen.getByText(/Runs your commands on the Haunted Bank test site \(broken page\)/)).toBeTruthy();
-    await user.type(screen.getByLabelText('Command'), 'type "Alex Carter" in Recipient{enter}type 50.00 in Amount{enter}click Send Payment');
+    await user.type(screen.getByLabelText('Command'), 'type "Test recipient" in Recipient{enter}type 50.00 in Amount{enter}click Send Payment');
     await user.click(screen.getByRole('button', { name: 'Run command' }));
     await waitFor(() => expect(FakeEventSource.last).not.toBeNull());
     expect(calls[0].body).toEqual({ variant: 'broken', input_source: 'typed',
-      commands: ['type "Alex Carter" in Recipient', 'type 50.00 in Amount', 'click Send Payment'] });
+      commands: ['type "Test recipient" in Recipient', 'type 50.00 in Amount', 'click Send Payment'] });
     FakeEventSource.last!.emit(STEPS[0]);
-    expect(await screen.findByText('Type "Alex Carter" in Recipient: done.')).toBeTruthy();
+    expect(await screen.findByText('Type "Test recipient" in Recipient: done.')).toBeTruthy();
     FakeEventSource.last!.emit(STEPS[2]);
     FakeEventSource.last!.done();
     expect(await screen.findByText(/Checker: BLOCKED \(NO_ACTIVATION\)\. Voice agent, scripted mode, broken page\./)).toBeTruthy();

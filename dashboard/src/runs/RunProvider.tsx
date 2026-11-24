@@ -15,9 +15,9 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { RunNoticeProps } from '../components/RunNotice';
-import type { AgentMode, JourneyResult, RunStatus, StepEvent, Variant } from '../types';
+import type { AgentMode, JourneyResult, RecordedDetails, RunStatus, StepEvent, TestDetails, Variant } from '../types';
 import { RunContext, type ApiStatus, type RunValue } from './runContext';
-import { shownRun, type RunRecordLike } from './record';
+import { recordedDetails, shownRun, type RunRecordLike } from './record';
 
 import { API_BASE } from './api';
 const HEALTH_EVERY_MS = 30_000;
@@ -39,7 +39,8 @@ async function checkHealth(): Promise<ApiStatus> {
 export function RunProvider({ children }: { children: ReactNode }) {
   const [variant, setVariant]       = useState<Variant>('broken');
   const [mode, setMode]             = useState<AgentMode>('scripted');
-  const [recipient, setRecipient]   = useState('');
+  const [details, setDetails]       = useState<TestDetails>({ recipient: '', amount: '', reference: '' });
+  const [runDetails, setRunDetails] = useState<RecordedDetails | null>(null);
   const [runStatus, setRunStatus]   = useState<RunStatus | null>(null);
   const [result, setResult]         = useState<JourneyResult | null>(null);
   const [liveEvents, setLiveEvents] = useState<StepEvent[]>([]);
@@ -70,6 +71,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const run = useCallback(async () => {
     // Reset state
     setResult(null);
+    setRunDetails(null);
     setRunError(null);
     setLiveEvents([]);
     setNotice(null);
@@ -81,8 +83,13 @@ export function RunProvider({ children }: { children: ReactNode }) {
       const res = await fetch(`${API_BASE}/runs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // The tester's own name; no name is ever filled in for them (recipient-input REQ-RI-01).
-        body: JSON.stringify(recipient.trim() ? { variant, mode, recipient: recipient.trim() } : { variant, mode }),
+        // Exactly what the tester typed; the app never fills a value in (user-typed-test-details REQ-TD-03).
+        body: JSON.stringify({
+          variant, mode,
+          recipient: details.recipient.trim(),
+          amount: details.amount.trim(),
+          ...(details.reference.trim() ? { reference: details.reference.trim() } : {}),
+        }),
       });
       if (!res.ok) {
         // 429 = rate limit or busy, 403 = LLM mode paused. The API sends the plain-English text.
@@ -120,8 +127,10 @@ export function RunProvider({ children }: { children: ReactNode }) {
         try {
           const r = await fetch(`${API_BASE}/runs/${run_id}`);
           if (r.ok) {
-            const shown = shownRun((await r.json()) as RunRecordLike);
+            const record = (await r.json()) as RunRecordLike;
+            const shown = shownRun(record);
             setResult(shown.result);
+            setRunDetails(recordedDetails(record));
             setRunError(shown.error);
             setRunStatus(shown.error ? 'error' : 'complete');
           } else {
@@ -144,12 +153,12 @@ export function RunProvider({ children }: { children: ReactNode }) {
       setApiStatus('offline');
       setRunStatus('error');
     }
-  }, [variant, mode, recipient]);
+  }, [variant, mode, details]);
 
   const isRunning = runStatus === 'running';
   const value = useMemo<RunValue>(
-    () => ({ variant, mode, recipient, setRecipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
-    [variant, mode, recipient, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
+    () => ({ variant, mode, details, setDetails, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run }),
+    [variant, mode, details, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

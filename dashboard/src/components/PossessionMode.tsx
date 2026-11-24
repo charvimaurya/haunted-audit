@@ -19,6 +19,10 @@
  * All text is 16px or larger. The checklist reads real data: a row turns green
  * only when the run's focus trail reached that control, and red only when the
  * checker returned BLOCKED / TARGET_NOT_FOCUSABLE.
+ *
+ * Typed values (user-typed-test-details REQ-TD-05): after a run, a field's row says what the agent typed
+ * there, read from the run's type_text steps, and only when the run record has test_details (the tester
+ * typed them). The bank drawing's own fields always start empty, for a judge to type into.
  */
 
 import {
@@ -38,17 +42,21 @@ import {
 } from 'lucide-react';
 import { GhostMascot } from './GhostMascot';
 import { PossessionGhost } from './PossessionGhost';
-import type { GhostState, JourneyResult } from '../types';
+import type { GhostState, JourneyResult, RecordedDetails } from '../types';
 
 interface TabStep {
   label: string;
   status: 'pending' | 'pass' | 'fail';
+  /** What the agent typed in this field, from the run record. */
+  typed?: string;
 }
 
 interface PossessionModeProps {
   result: JourneyResult | null;
   isRunning?: boolean;
   liveSteps?: TabStep[];
+  /** test_details of the run; null hides typed values (internal default or no run). */
+  runDetails?: RecordedDetails | null;
 }
 
 const DEFAULT_STEPS: TabStep[] = [
@@ -71,8 +79,18 @@ function ghostStateFromResult(result: JourneyResult | null, isRunning: boolean):
 }
 
 /** Build the checklist from the run's real focus trail and checker verdict. */
-function stepsFromResult(result: JourneyResult | null): TabStep[] {
+/** What the agent typed into the field whose selector hint has `hint`, from the type_text steps. */
+function typedInto(result: JourneyResult, hint: string): string | undefined {
+  const step = result.step_events.find(
+    (e) => e.tool === 'type_text' && (e.focused_before?.selector_hint ?? '').includes(hint),
+  );
+  const text = step ? (step.args as { text?: unknown }).text : undefined;
+  return typeof text === 'string' ? text : undefined;
+}
+function stepsFromResult(result: JourneyResult | null, runDetails: RecordedDetails | null = null): TabStep[] {
   if (result === null) return DEFAULT_STEPS;
+  // Typed values are shown only for a run whose details the tester typed (REQ-TD-05, 06).
+  const typed = (hint: string) => (runDetails ? typedInto(result, hint) : undefined);
   const reached = (hint: string) =>
     result.focus_trail.some((snap) => snap.selector_hint.includes(hint));
   const stuck =
@@ -84,14 +102,17 @@ function stepsFromResult(result: JourneyResult | null): TabStep[] {
         status: result.verdict === 'PASSED' && reached('#send-payment') ? 'pass' : 'pending',
       };
   return [
-    { label: 'Tab to Recipient', status: reached('#recipient') ? 'pass' : 'pending' },
-    { label: 'Tab to Amount',    status: reached('#amount') ? 'pass' : 'pending' },
+    { label: 'Tab to Recipient', status: reached('#recipient') ? 'pass' : 'pending', typed: typed('#recipient') },
+    { label: 'Tab to Amount',    status: reached('#amount') ? 'pass' : 'pending', typed: typed('#amount') },
+    ...(runDetails?.reference
+      ? [{ label: 'Tab to Reference', status: reached('#reference') ? 'pass' : 'pending', typed: typed('#reference') } as TabStep]
+      : []),
     last,
   ];
 }
 
 /** One row of the checklist. Status is icon + visible text, never colour alone. */
-function StepRow({ label, status }: TabStep) {
+function StepRow({ label, status, typed }: TabStep) {
   const statusText = status === 'pass' ? 'Passed' : status === 'fail' ? 'Failed' : 'Pending';
   const stuck = label.endsWith(' (stuck)');
   const main = stuck ? label.slice(0, -' (stuck)'.length) : label;
@@ -118,6 +139,11 @@ function StepRow({ label, status }: TabStep) {
             <span className="text-ghost-blocked">(stuck)</span>
           </>
         )}
+        {typed !== undefined && (
+          <span className="block text-ink-muted">
+            Typed: <span className="font-mono text-ink">{typed}</span>
+          </span>
+        )}
       </span>
       {/* sr-only status label: colour is never the sole carrier */}
       <span className="sr-only">{statusText}</span>
@@ -132,9 +158,10 @@ export function PossessionMode({
   result,
   isRunning = false,
   liveSteps,
+  runDetails = null,
 }: PossessionModeProps) {
   const ghostState = ghostStateFromResult(result, isRunning);
-  const steps = liveSteps ?? stepsFromResult(result);
+  const steps = liveSteps ?? stepsFromResult(result, runDetails);
   const isBlocked = result?.verdict === 'BLOCKED';
   // In fixed variant the demo button is a real <button>
   const isFixed = result?.variant === 'fixed';
@@ -259,6 +286,18 @@ export function PossessionMode({
                   type="text"
                   inputMode="decimal"
                   autoComplete="off"
+                  className={`h-11 w-full rounded-lg border border-bank-line bg-bank-input px-3 text-base font-ui text-ink ${FOCUS}`}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-base font-ui text-ink" htmlFor="pm-reference">
+                  Reference (optional)
+                </label>
+                <input
+                  id="pm-reference"
+                  type="text"
+                  autoComplete="off"
+                  maxLength={40}
                   className={`h-11 w-full rounded-lg border border-bank-line bg-bank-input px-3 text-base font-ui text-ink ${FOCUS}`}
                 />
               </div>
