@@ -15,7 +15,7 @@ import type { JourneyResult } from '../types';
 
 const BTN =
   'inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-base font-ui font-semibold ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon disabled:opacity-50 disabled:cursor-not-allowed';
+  'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon disabled:opacity-50 disabled:cursor-not-allowed';
 
 function Note({ children }: { children: React.ReactNode }) {
   return (
@@ -76,7 +76,7 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
           <p className="m-0 text-base font-ui text-ink">{fix.reason}</p>
           {fix.diff && <CodeBlock lines={diffLines(fix.diff)} ariaLabel="Proposed fix, as a diff" />}
           <p className="m-0 text-base font-ui text-ink-muted">
-            {fix.exorcist_mode} Exorcist · {fix.changed_lines} lines changed · tokens{' '}
+            {fix.exorcist_mode} Exorcist · {fix.changed_lines ?? '--'} lines changed · tokens{' '}
             {fix.input_tokens ?? '--'} in, {fix.output_tokens ?? '--'} out · cost {fix.cost_usd ?? '--'} USD ·{' '}
             {Math.round(fix.latency_ms)} ms
           </p>

@@ -12,7 +12,7 @@ function isStep(value: string | undefined): value is FixStep {
 
 const linkClass =
   'inline-flex min-h-11 items-center rounded-lg border border-base-line px-4 text-base font-ui text-ink ' +
-  'hover:border-violet-neon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon';
+  'hover:border-violet-neon focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon';
 
 /** One page per fix step: Find, Fix, Verify, Regression. Every link comes from the route table. */
 export default function Fixes() {

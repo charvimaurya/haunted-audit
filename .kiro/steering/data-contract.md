@@ -51,7 +51,7 @@ Unknown fields are rejected with `422`. Same rate limits and refusals as `POST /
 
 A voice run's `JourneyResult` has `agent_kind: "voice"`, `agent_mode: "scripted"` (rules, no model), an empty `focus_trail`, and one `StepEvent` per command:
 - `tool` is `voice_click`, `voice_type`, `voice_go_to`, `voice_not_understood` or `voice_error`.
-- `args` holds `command`, `name`, `outcome` (`"done"`, `"failed"` or `"not_understood"`), a plain-English `message`, and, when measured, `element` `{tag, text, bounding_box}`. `voice_type` also has `text`. `voice_not_understood` and `voice_error` have no `name` or `element` (there is no parsed control).
+- `args` holds `command`, `name`, `outcome` (`"done"`, `"failed"` or `"not_understood"`), a plain-English `message`, and, when measured, `element` `{tag, text, bounding_box}`. `voice_type` also has `text`. A step with a parsed command also has `said` (str), the command in plain English, for example `Click Send Payment`. `voice_not_understood` and `voice_error` have no `name` or `element` (there is no parsed control).
 - `verdict` comes from the checker: `PASSED` when the confirmation is visible, otherwise `BLOCKED` with `NO_ACTIVATION` (or `TIMEOUT`).
 
 ## Run record: `GET /runs/{run_id}`
