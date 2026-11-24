@@ -35,12 +35,17 @@ export interface Fix {
   agent_mode: string | null;
   verify: CopyRun | null;
   regression: CopyRun | null;
+  /** The voice-command simulation on the same copies (loop-evidence REQ-LE-03). Absent from older records. */
+  verify_voice?: CopyRun | null;
+  regression_voice?: CopyRun | null;
 }
 
 export interface FixValue {
   fix: Fix | null;
   /** The Verifier's finished keyboard run on the patched copy (its steps fill the checklist). */
   verifyResult: JourneyResult | null;
+  /** The Verifier's finished voice run on the patched copy (its steps fill the voice row). */
+  voiceVerifyResult?: JourneyResult | null;
   busy: boolean;
   /** One plain sentence when the last action was refused or the API did not answer. */
   error: string | null;

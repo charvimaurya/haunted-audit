@@ -3,10 +3,11 @@
  * Every state comes from GET /fixes/{id}. "Verified" and "caught" are shown only when the checker measured them
  * on a copy of the bank. Buttons are real <button>s; results are announced in a polite live region.
  */
-import { CheckCircle2, CircleDashed, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle2, CircleDashed, Loader2, Mic, XCircle } from 'lucide-react';
 import { CodeBlock } from './CodeBlock';
 import { GhostMascot } from './GhostMascot';
 import { ResultState } from './ResultState';
+import { VerifierEvidence } from './VerifierEvidence';
 import type { FixValue } from '../fixes/fixContext';
 import type { ApiStatus } from '../runs/runContext';
 import type { JourneyResult } from '../types';
@@ -126,6 +127,14 @@ function MarkRow({ mark, children }: { mark: Mark; children: React.ReactNode }) 
 }
 
 /** The v7 checklist, each line read from the Verifier's run on the patched copy (or Not run yet). */
+function voiceMark(fix: FixValue['fix'], run: FixValue['verifyResult'] | undefined): Mark {
+  const v = fix?.verify_voice;
+  if (v?.status === 'running') return 'busy';
+  if (v?.status !== 'complete' || !run) return 'pending';
+  const click = run.step_events.find((e) => e.args.name === 'Send Payment');
+  return click?.args.outcome === 'done' ? 'yes' : 'no';
+}
+
 function verifyMarks(fix: FixValue['fix'], run: FixValue['verifyResult']): { label: string; mark: Mark }[] {
   const v = fix?.verify;
   const started = Boolean(v);
@@ -146,15 +155,26 @@ function verifyMarks(fix: FixValue['fix'], run: FixValue['verifyResult']): { lab
 }
 
 export function VerificationPanel({ flow }: { flow: FixValue }) {
-  const { fix, busy, verifyResult } = flow;
+  const { fix, busy, verifyResult, voiceVerifyResult } = flow;
   const passed = fix?.verify?.verdict === 'PASSED';
+  const voicePassed = fix?.verify_voice?.status === 'complete' && fix.verify_voice.verdict === 'PASSED';
+  const marks = verifyMarks(fix, verifyResult);
   return (
     <div className={`panel p-4 flex flex-col gap-3 ${passed ? 'border-ghost-verified/70' : ''}`}>
       <p className="m-0 text-base font-ui text-ink">
         <span className="font-semibold">Verification</span> <span className="text-ink-muted">(by Verifier Agent)</span>
       </p>
       <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Verification steps" aria-live="polite">
-        {verifyMarks(fix, verifyResult).map((r) => (
+        {marks.slice(0, 3).map((r) => (
+          <MarkRow key={r.label} mark={r.mark}>{r.label}</MarkRow>
+        ))}
+        <MarkRow mark={voiceMark(fix, voiceVerifyResult)}>
+          <span className="inline-flex items-center gap-1">
+            <Mic size={16} className="shrink-0" aria-hidden="true" />
+            Say &quot;click Send Payment&quot;
+          </span>
+        </MarkRow>
+        {marks.slice(3).map((r) => (
           <MarkRow key={r.label} mark={r.mark}>{r.label}</MarkRow>
         ))}
       </ul>
@@ -170,10 +190,21 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
       ) : fix.verify.status === 'complete' && fix.verify.verdict ? (
         <div role="status" className="flex flex-col gap-2">
           {passed ? (
-            <p className="m-0 inline-flex w-fit items-center gap-2 rounded-lg border border-ghost-verified/60 bg-ghost-verified/15 px-4 py-2 text-base font-ui font-semibold text-ghost-verified">
-              <CheckCircle2 size={18} aria-hidden="true" />
-              Journey Verified
-            </p>
+            <>
+              <p className="m-0 flex flex-wrap items-center gap-2 text-xl font-ui font-bold text-ink">
+                <XCircle size={22} className="shrink-0 text-ghost-blocked" aria-hidden="true" />
+                <span>BLOCKED</span>
+                <span aria-hidden="true">→</span>
+                <span className="sr-only">then</span>
+                <CheckCircle2 size={22} className="shrink-0 text-ghost-verified" aria-hidden="true" />
+                <span>VERIFIED</span>
+              </p>
+              <p className="m-0 inline-flex w-fit items-center gap-2 rounded-lg border border-ghost-verified/60 bg-ghost-verified/15 px-4 py-2 text-base font-ui font-semibold text-ghost-verified">
+                <CheckCircle2 size={18} aria-hidden="true" />
+                Journey Verified
+              </p>
+              <p className="m-0 text-base font-ui text-ink-muted">{voicePassed ? 'Keyboard and voice' : 'Keyboard only'}</p>
+            </>
           ) : (
             <p className="m-0 text-base font-ui text-ink">Not verified: the payment still could not be sent on the patched copy.</p>
           )}
@@ -184,6 +215,7 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
       ) : fix.verify.status === 'error' ? (
         <Note>The run failed, so no result is shown. {fix.verify.error}</Note>
       ) : null}
+      {fix?.verify && <VerifierEvidence fix={fix} voiceResult={voiceVerifyResult} />}
     </div>
   );
 }
@@ -194,6 +226,8 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
   const g = fix?.regression;
   const caught = g?.verdict === 'BLOCKED';
   const reintroduced: Mark = g ? (g.status === 'running' ? 'busy' : 'yes') : 'pending';
+  const gv = fix?.regression_voice;
+  const voiceVerified = fix?.verify_voice?.status === 'complete' && fix.verify_voice.verdict === 'PASSED';
   return (
     <div className={`panel p-4 flex flex-col gap-3 ${caught ? 'border-ghost-blocked/70' : ''}`}>
       <div className="flex items-start justify-between gap-2">
@@ -215,7 +249,20 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
             </span>
           </MarkRow>
         )}
+        {gv?.status === 'running' && <MarkRow mark="busy">Voice-command check</MarkRow>}
+        {gv?.status === 'complete' && gv.verdict && voiceVerified && (
+          <MarkRow mark={gv.verdict === 'BLOCKED' ? 'no' : 'yes'}>
+            <span className={`font-mono ${gv.verdict === 'BLOCKED' ? 'text-ghost-blocked' : ''}`}>
+              {gv.verdict === 'BLOCKED'
+                ? `FAILED (voice): Send Payment could not be activated (${gv.reason_code})`
+                : 'PASSED (voice): the bug was not caught'}
+            </span>
+          </MarkRow>
+        )}
       </ul>
+      {gv?.status === 'complete' && !voiceVerified && (
+        <Note>Voice: not counted, the voice journey was not verified first.</Note>
+      )}
       {!verified ? (
         <Note>Runs after the fix is verified.</Note>
       ) : !g ? (

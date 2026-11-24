@@ -30,6 +30,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<JourneyResult | null>(null);
+  const [voiceVerifyResult, setVoiceVerifyResult] = useState<JourneyResult | null>(null);
   const runId = result?.run_id ?? null;
   const fixRef = useRef<Fix | null>(null);
   useEffect(() => {
@@ -40,6 +41,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     setFix(null);
     setError(null);
     setVerifyResult(null);
+    setVoiceVerifyResult(null);
   }, [runId]);
 
   // When the Verifier's run is finished, read its steps once for the checklist.
@@ -55,6 +57,20 @@ export function FixProvider({ children }: { children: ReactNode }) {
       live = false;
     };
   }, [verifyRunId]);
+
+  // The same for the voice run on the patched copy.
+  const voiceRunId = fix?.verify_voice?.status === 'complete' ? fix.verify_voice.run_id : null;
+  useEffect(() => {
+    if (!voiceRunId) return;
+    let live = true;
+    void call(`/runs/${voiceRunId}`).then((r) => {
+      const rec = r.data as { result?: JourneyResult | null } | null;
+      if (live && r.ok) setVoiceVerifyResult(rec?.result ?? null);
+    }).catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [voiceRunId]);
 
   const act = useCallback(async (path: string, body?: unknown, thenRead = false) => {
     setBusy(true);
@@ -99,7 +115,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   }, [act]);
 
   // Re-read while a copy run is going.
-  const running = fix?.verify?.status === 'running' || fix?.regression?.status === 'running';
+  const running = [fix?.verify, fix?.regression, fix?.verify_voice, fix?.regression_voice].some((r) => r?.status === 'running');
   useEffect(() => {
     if (!fix || !running) return;
     const timer = setInterval(async () => {
@@ -114,8 +130,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   }, [fix, running]);
 
   const value = useMemo<FixValue>(
-    () => ({ fix, verifyResult, busy, error, propose, approve, reject, verify, regression }),
-    [fix, verifyResult, busy, error, propose, approve, reject, verify, regression],
+    () => ({ fix, verifyResult, voiceVerifyResult, busy, error, propose, approve, reject, verify, regression }),
+    [fix, verifyResult, voiceVerifyResult, busy, error, propose, approve, reject, verify, regression],
   );
   return <FixContext.Provider value={value}>{children}</FixContext.Provider>;
 }
