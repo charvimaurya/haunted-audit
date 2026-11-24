@@ -1,8 +1,8 @@
 # Haunted Audit — Frontend Design
 
 **Spec version:** 1.0  
-**Stack:** Next.js 14 (App Router) · TypeScript 5 · Tailwind CSS 3 · Vercel  
-**Backend:** FastAPI at `NEXT_PUBLIC_API_URL`  
+**Stack:** Vite · React · React Router · TypeScript · Tailwind CSS · Vercel (static)  
+**Backend:** FastAPI at `VITE_API_URL`  
 **Design reference:** `design/Haunted_Audit_Final_UI_v7.png` (frozen)
 
 ---
@@ -11,7 +11,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Next.js App Router (app/)                                       │
+│  Vite + React Router (src/)                                     │
 │                                                                  │
 │  app/                                                            │
 │  ├── layout.tsx              ← RootLayout: fonts, nav, skip link │
@@ -50,7 +50,7 @@
 │  └── globals.css             ← Tailwind directives, CSS vars,    │
 │                                 reduced-motion block             │
 └─────────────────────────────────────────────────────────────────┘
-                          │ NEXT_PUBLIC_API_URL
+                          │ VITE_API_URL
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  FastAPI Backend                                                  │
@@ -58,7 +58,7 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The frontend is a **pure client of the backend API**. No Next.js API routes proxy backend calls — `lib/api.ts` calls `NEXT_PUBLIC_API_URL` directly from the browser. This avoids an extra hop, keeps SSE streaming simple, and matches Vercel's static-edge deployment model.
+The frontend is a **pure client of the backend API**. No server routes proxy backend calls — `src/runs/api.ts` calls `VITE_API_URL` directly from the browser. This avoids an extra hop, keeps SSE streaming simple, and matches Vercel's static-edge deployment model.
 
 Server Components are used **only** for static layout (RootLayout, page shells). Every panel that fetches live data is a Client Component (`'use client'`).
 
@@ -126,7 +126,7 @@ All animations are CSS `@keyframes` defined in `tailwind.config.ts` → emitted 
 
 ```typescript
 // Conceptual shape — not implementation
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
+const BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -423,7 +423,7 @@ URL input form + submit button. Rate-limit notice. Results panel (Skeleton → J
 
 ### `/demo`
 
-Full-screen guided tour. Progress dots (5 beats). Back/Next controls. Beat 4 (Approve Fix) requires `FixPanel` Approve action. Offline banner when `NEXT_PUBLIC_API_URL` is unreachable.
+Full-screen guided tour. Progress dots (5 beats). Back/Next controls. Beat 4 (Approve Fix) requires `FixPanel` Approve action. Offline banner when `VITE_API_URL` is unreachable.
 
 ---
 
@@ -458,7 +458,7 @@ No global state library. State is co-located:
 
 ## 10. Routing and Navigation
 
-All routes are Next.js App Router file-based routes. No dynamic segments needed except `app/bank/page.tsx` which reads `searchParams.variant` (a Server Component that passes the parsed value to the `BankPage` Client Component).
+All routes are React Router routes, declared in one route table. The bank is a static page in `fixtures/haunted_bank/` that reads `?variant=` itself.
 
 | Route | Page file | Key query params |
 |---|---|---|
@@ -502,7 +502,7 @@ Located at `e2e/`. Each test file maps to one route.
 | `e2e/demo.spec.ts` | Full tour completes; offline banner shows when API is mocked down |
 | `e2e/a11y.spec.ts` | `@axe-core/playwright` scan of every route; asserts zero violations |
 
-Playwright tests run against a local `next dev` server with the real FastAPI backend (or a mock server for offline scenarios). The offline mock is an `msw` (Mock Service Worker) handler that returns `net::ERR_CONNECTION_REFUSED`.
+Playwright tests run against a local `vite` dev server with the real FastAPI backend (or a mock server for offline scenarios). The offline mock is an `msw` (Mock Service Worker) handler that returns `net::ERR_CONNECTION_REFUSED`.
 
 ### Contrast and zoom
 
@@ -517,21 +517,19 @@ Manual verification checklist:
 
 ## 12. Deployment
 
-Vercel. Single `next.config.ts`:
+Vercel, as a static Vite build (`dashboard/vercel.json`). `vite.config.ts` needs no server routes:
 
 ```typescript
-const nextConfig = {
-  // No API routes needed; all calls go client-side to NEXT_PUBLIC_API_URL
-};
+// No API routes needed; all calls go client-side to VITE_API_URL
 ```
 
 Environment variables:
 
 | Variable | Scope | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | Client + Server | FastAPI base URL, e.g. `https://api.haunted-audit.example.com` |
+| `VITE_API_URL` | Client (build time) | FastAPI base URL, e.g. `https://api.haunted-audit.example.com` |
 
-The `/bank` page is a standalone HTML document. It must be served from the Next.js app (not a separate static file) so the `<GhostSVG>` component and Tailwind tokens are available. The Playwright test for `?variant=broken` verifies that `div.pay-btn` is not in the tab order by asserting that pressing Tab 20 times from `document.body` never moves focus to `#send-payment`.
+The `/bank` page is a standalone HTML document. It is served as a static file from the bundled bank, not from the dashboard. The Playwright test for `?variant=broken` verifies that `div.pay-btn` is not in the tab order by asserting that pressing Tab 20 times from `document.body` never moves focus to `#send-payment`.
 
 ---
 
@@ -621,7 +619,7 @@ styles/
   globals.css
 
 tailwind.config.ts
-next.config.ts
+vite.config.ts
 tsconfig.json
 
 e2e/
