@@ -234,3 +234,11 @@ def test_record_seed_asks_again_for_a_bad_amount(monkeypatch, capsys) -> None:
     monkeypatch.setattr(builtins, "input", lambda prompt="": next(answers))
     assert ask("Amount", True, check=clean_amount) == "100.00"
     assert "Use two decimals, like 10.00" in capsys.readouterr().out
+
+
+def test_the_verifier_voice_replay_types_the_original_details() -> None:
+    from agent.api.main import VOICE_REPLAY, RunCreate, _voice_commands
+
+    assert _voice_commands(RunCreate(**OWNER)) == [
+        'type "Test recipient" in Recipient', 'type "100.00" in Amount', 'type "Test reference" in Reference', "click Send Payment"]
+    assert _voice_commands(RunCreate()) == list(VOICE_REPLAY)  # no typed details: the existing replay
