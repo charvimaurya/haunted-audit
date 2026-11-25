@@ -8,7 +8,7 @@ Every v9 screen fits 1366 x 657 inside one framed panel. No app screen does (pag
 
 | Screen | Matches v9 | Differs from v9 | Owner / status |
 |---|---|---|---|
-| Home (`side-home.png`) | v7 picture, live title, Possess This App, four chips, two roaming ghosts | Title is a thin script font (v9: thick dripping lettering); no "Pause animation" button | Uncommitted Home work in the main checkout (owner unknown) touches `HeroSection.tsx` and `index.css`. Not changed here |
+| Home (`side-home.png`) | v7 picture, live title, Possess This App, four chips, two roaming ghosts | No "Pause animation" button on `ab6fdac`. **Correction (25 Nov, later):** the thin title in `side-home.png` was a fault of the audit set-up, not the app: the audit's dev server could not serve the self-hosted fonts (its `node_modules` was a link outside the worktree, so Vite answered 403) and every font fell back. With the fonts served, the title uses Rubik Wet Paint as in v9 | Uncommitted Home work in the main checkout (owner unknown) touches `HeroSection.tsx` and `index.css`. Not changed here |
 | Possession, Keyboard (`side-possession-keyboard.png`) | Keyboard / Voice switch, Tab steps, Run, red ghost beside Send Payment | v9 shows the bank and the Possession Mode panel together in one view with Variant in the panel top bar; the app puts a Test details form and selects above, and the bank below the fold; no "Journey Blocked" note or "Barrier Detected!" bar in view | Overlaps uncommitted voice work (`PossessionJourney.tsx`, `useVoiceRun.ts`). Not changed here |
 | Possession, Voice (`side-possession-voice.png`) | Voice switch, Run voice journey, Push to talk | Same layout gap as Keyboard; v9 shows the said commands as ticked steps beside the bank | Same as above |
 | Agents (`side-agents.png`) | Three cards, Critical Ghost card, real rows | v9 timeline is a row of chips under the cards; app has a "Live steps" column. Critical Ghost card is below the fold | Not changed |
@@ -28,3 +28,5 @@ Fitting each screen into 1366 x 657 needs this shell change first; it touches ev
 3. Possession (after the voice work in the main checkout is handed over).
 4. Home title font and Pause (after the Home work is handed over).
 5. Agents timeline chips; Kiro folder icons.
+
+All images in `v9-audit/` were taken with fallback fonts (see the correction in the Home row). Shapes, sizes and layout are still valid; letterforms are not.
