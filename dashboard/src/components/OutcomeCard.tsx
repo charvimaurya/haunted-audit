@@ -65,14 +65,14 @@ export function OutcomeCard({ result, apiStatus = 'online' }: OutcomeCardProps) 
   return (
     <div className="flex items-end gap-3">
       <article
-        className="flex-1 rounded-2xl p-5 shadow-xl"
+        className="v9-parch flex-1 p-6 shadow-xl"
         style={{
           background: 'linear-gradient(160deg, #f5e6c8 0%, #e8d0a0 100%)',
           color: '#3b2a0e',
         }}
         aria-label="The Outcome"
       >
-        <h3 className="text-base font-bold mb-3 font-ui" style={{ color: '#3b2a0e' }}>
+        <h3 className="text-[1.375rem] font-extrabold mb-3 font-ui" style={{ color: '#3b2a0e' }}>
           The Outcome
         </h3>
         <ul className="flex flex-col gap-3" aria-label="Journey outcomes">

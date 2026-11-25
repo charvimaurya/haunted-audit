@@ -11,11 +11,12 @@ interface PageHeadingProps {
 
 export function PageHeading({ page }: PageHeadingProps) {
   return (
-    <header className="pt-6 pb-4">
+    // App pages use the v9 panel title (21px bold, tight spacing); marketing pages keep the larger heading.
+    <header className={page.shell === 'app' ? 'pt-4 pb-3' : 'pt-6 pb-4'}>
       <h1
         data-page-title
         tabIndex={-1}
-        className="text-2xl font-bold font-ui text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
+        className={`${page.shell === 'app' ? 'text-[1.35rem] font-extrabold' : 'text-2xl font-bold'} font-ui text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded`}
       >
         {page.h1}
       </h1>

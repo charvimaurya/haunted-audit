@@ -45,19 +45,17 @@ export function ResultsSection({
       aria-labelledby="results-heading"
       className="flex flex-col gap-4"
     >
-      <h2 id="results-heading" className="flex items-center gap-2 text-base font-semibold font-ui text-ink">
-        <BarChart3 size={18} className="text-violet-neon" aria-hidden="true" />
+      <h2 id="results-heading" className="flex items-center gap-3 text-xl font-extrabold font-ui text-ink">
+        <BarChart3 size={26} className="text-white" aria-hidden="true" />
         Results
       </h2>
 
       <ResultState result={result} apiStatus={apiStatus} isRunning={isRunning} hint="Start one in Possession Mode." />
-      {/* Metric tiles */}
-      <div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-        aria-label="Audit metrics"
-      >
-        <div className="panel p-4 flex flex-col items-center gap-2">
-          <Target size={18} className="text-ghost-blocked" aria-hidden="true" />
+      {/* v9: four coloured tiles and the Outcome parchment in one row on wide screens */}
+      <div className="v9-rgrid grid grid-cols-2 gap-[14px] xl:mt-2">
+      <div className="contents" aria-label="Audit metrics" role="group">
+        <div className="v9-tile v9-t1">
+          <Target size={34} className="v9-tile-icon-1" aria-hidden="true" />
           <MetricValueDisplay
             value={barriersDetected}
             format={(n) => `${n} / 6`}
@@ -66,9 +64,9 @@ export function ResultsSection({
           />
         </div>
 
-        <div className="panel p-4 flex flex-col items-center gap-2">
+        <div className="v9-tile v9-t2">
           {/* Neutral icon: a tick beside "--" would read as a pass (no-mock-results REQ-NM-02) */}
-          <Wrench size={18} className="text-ink-muted" aria-hidden="true" />
+          <Wrench size={34} className="v9-tile-icon-2" aria-hidden="true" />
           <MetricValueDisplay
             value={fixesVerifiedPct}
             format={(n) => `${n}%`}
@@ -77,8 +75,8 @@ export function ResultsSection({
           />
         </div>
 
-        <div className="panel p-4 flex flex-col items-center gap-2">
-          <FlaskConical size={18} className="text-violet-neon" aria-hidden="true" />
+        <div className="v9-tile v9-t3">
+          <FlaskConical size={34} className="v9-tile-icon-3" aria-hidden="true" />
           <MetricValueDisplay
             value={testScenarios}
             label="Test scenarios evaluated"
@@ -86,8 +84,8 @@ export function ResultsSection({
           />
         </div>
 
-        <div className="panel p-4 flex flex-col items-center gap-2">
-          <Users size={18} className="text-sky-400" aria-hidden="true" />
+        <div className="v9-tile v9-t4">
+          <Users size={34} className="v9-tile-icon-4" aria-hidden="true" />
           <MetricValueDisplay
             value={userSessions}
             label="User sessions"
@@ -97,7 +95,10 @@ export function ResultsSection({
       </div>
 
       {/* Outcome card */}
-      <OutcomeCard result={result} apiStatus={apiStatus} />
+      <div className="v9-rgrid-parch">
+        <OutcomeCard result={result} apiStatus={apiStatus} />
+      </div>
+      </div>
 
       {/* Attribution */}
       <p className="text-base font-ui text-ink-faint text-right">
