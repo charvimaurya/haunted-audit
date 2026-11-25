@@ -85,7 +85,7 @@ Every number we show carries the mode that produced it, `scripted` or `llm`. If 
 | Agents | Python, Playwright, nine keyboard-only tools; scripted mode, or Strands Agents with Claude on Amazon Bedrock |
 | Verdict | Deterministic rule checker |
 | API | FastAPI, live steps over Server-Sent Events, SQLite evidence log, rate limits, an AI cost cap, a private-address URL guard |
-| Hosting | Docker on **Amazon ECS Express Mode**, dashboard (React, Vite, Tailwind) on Vercel <!-- IF: deployed (item 9). If not live: "Docker, ready for Amazon ECS Express Mode; dashboard built with React, Vite, Tailwind" --> |
+| Hosting | Docker, ready for **Amazon ECS Express Mode**; dashboard built with React, Vite, Tailwind <!-- Not deployed on 25 Nov 2026 (no AWS resources). Once item 9 is live, change to: "Docker on Amazon ECS Express Mode, dashboard (React, Vite, Tailwind) on Vercel" --> |
 | Proof | pytest and Hypothesis, Vitest with axe, Playwright journey tests in GitHub Actions |
 
 ## How we used Kiro
