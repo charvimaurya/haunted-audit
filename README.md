@@ -4,7 +4,7 @@ Kiroween 2026, Costume Contest. An accessibility engineer for AI-built applicati
 
 ## Project Overview
 
-Haunted Audit watches a keyboard-only agent try to send a payment, using made-up details you type yourself, on a small test bank called Haunted Bank. The agent can tab, type, and read what is focused. It cannot click. A fixed checker, not the AI, decides whether the payment journey passed.
+Haunted Audit watches a keyboard-only agent, and a voice-command simulation, try to send a payment, using made-up details you type yourself, on a small test bank called Haunted Bank. The keyboard agent can tab, type, and read what is focused. It cannot click. The voice simulation acts only on a control's accessible name. A fixed checker, not the AI, decides whether the payment journey passed.
 
 Two pages live in `fixtures/haunted_bank/index.html`:
 
@@ -200,8 +200,8 @@ API routes, once the first terminal is running:
 
 After a `broken` run ends `BLOCKED`, the fix loop runs on copies of the bank. No tracked file changes.
 
-1. **Fix.** The Exorcist proposes a diff. A person approves or rejects it. Without AWS the fix is a **Scripted repair demonstration** (one rule for the planted Send Payment barrier, 0 tokens). Only `exorcist_mode: "llm"` needs Amazon Bedrock.
-2. **Verify.** The keyboard agent, then the voice-command simulation, run on the patched copy, each with its own run ID. The checker decides both. Today the keyboard journey passes and the voice journey is still blocked: the Amount field has no label (barrier 2), which this fix does not touch. The screen says **Keyboard only**.
+1. **Fix.** The Exorcist proposes a diff. A person approves or rejects it. Without AWS the fix is a **Scripted repair demonstration** (0 tokens): one diff with two fixed rules, so Send Payment becomes a real button and the Amount caption becomes a label. The diff is 4 changed lines in 2 hunks (measured 25 Nov 2026 on `fixtures/haunted_bank/index.html`). Only `exorcist_mode: "llm"` needs Amazon Bedrock.
+2. **Verify.** The keyboard agent, then the voice-command simulation, run on the patched copy, each with its own run ID. The checker decides both. With the scripted fix both journeys pass on the patched copy, and with the bug put back both are blocked (25 Nov 2026: `agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy`, 1 passed). The screen then says **Keyboard and voice** (keyboard loop walk, `docs/pr/item-2-1-exorcist-closure.md`). Before 24 Nov the fix left the Amount field unlabelled and voice stayed blocked; that history is evals `fail-006`.
 3. **Prevent.** The journey test `tests/journeys/send-payment.spec.ts` presses Tab until Send Payment has focus, then Enter. It catches the barrier when it comes back.
 
 API routes for the loop:
