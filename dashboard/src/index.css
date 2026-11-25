@@ -177,6 +177,13 @@ html[data-calm='true'] *::after {
   animation-iteration-count: infinite;
 }
 
+/* Home's own "Pause animation" button (WCAG 2.2.2). Freezes only the two
+   roaming ghosts inside the hero; it is a local pause, not Calm mode. */
+.hero-paused .ambient-roam,
+.hero-paused .ambient-particle {
+  animation-play-state: paused;
+}
+
 /* Glow on the active breadcrumb (v7 panel 2). Static, so Calm mode needs no change. */
 .text-glow-violet { text-shadow: 0 0 10px var(--color-violet-neon); }
 
