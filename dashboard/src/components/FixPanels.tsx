@@ -272,7 +272,8 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
           <MarkRow mark={gv.verdict === 'BLOCKED' ? 'no' : 'yes'}>
             <span className={`font-mono ${gv.verdict === 'BLOCKED' ? 'text-ghost-blocked' : ''}`}>
               {gv.verdict === 'BLOCKED'
-                ? `FAILED (voice): ${voiceWhy ?? `Send Payment could not be activated (${gv.reason_code})`}`
+                ? // The run's own first failed step; until it has loaded, only the checker's code (no guessed control).
+                  `FAILED (voice): ${voiceWhy ?? `the voice journey was blocked (${gv.reason_code})`}`
                 : 'PASSED (voice): the bug was not caught'}
             </span>
           </MarkRow>

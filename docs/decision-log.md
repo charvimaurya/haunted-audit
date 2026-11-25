@@ -35,3 +35,8 @@ One entry per decision. Facts only. Each entry names the files that hold the evi
 **Why.** A deploy job that fails on every push to `main` hides real failures. The staging spec (`.kiro/specs/staging-deployment/`) names a different target. The dashboard is not published anywhere today.
 **Not known.** Whether Pages will be enabled later. If it is, add a new workflow then.
 **Revisit when.** The staging deploy exists or Pages is switched on.
+
+- 2026-11-25: Fixes buttons say "Replay both journeys" and "Put the bug back and run both tests", default from v9 and team rules; open for Shilpa's review.
+- 2026-11-25: The "we caught it" ghost on the Regression step is white, default from v9 and team rules; open for Shilpa's review.
+- 2026-11-25: The Regression card lists "Keyboard journey" and "Voice-command simulation" instead of v9's `send_payment.spec.ts` and `send_payment_voice.spec.ts`, because no such files run in this check; v9's layout kept, true names used (team rules: plain and true words); open for Shilpa's review.
+- 2026-11-25: The voice FAILED line on the Regression card shows the voice agent's own first failed step (today "Could not type in Amount: no accessible label", because the bug put back includes the Amount label), not v9's sample text "no button named Send Payment"; open for Shilpa's review.

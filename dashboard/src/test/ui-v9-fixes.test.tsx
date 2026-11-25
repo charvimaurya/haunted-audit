@@ -93,6 +93,11 @@ describe('regression card from real runs', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("before the voice run's steps load, the FAILED line names no control", () => {
+    panels(flowOf(done));
+    expect(screen.getByText('FAILED (voice): the voice journey was blocked (NO_ACTIVATION)')).toBeTruthy();
+  });
+
   it('no voice regression run: no voice lines', () => {
     const { container } = panels(flowOf({ ...done, regression_voice: null }));
     expect(container.textContent).not.toMatch(/Voice-command simulation(?!: )|FAILED \(voice\)/);
