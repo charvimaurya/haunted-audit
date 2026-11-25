@@ -26,8 +26,8 @@ Status words: DONE, BUILT_PENDING_REVIEW, IN_PROGRESS, BLOCKED_EXTERNAL, NOT_STA
 | # | Task | Plan status | Verified status | Remaining | Depends on | Acceptance | Evidence | Owner |
 |---|---|---|---|---|---|---|---|---|
 | 0 | Merge by PR | Done | DONE (per plan, PRs 1-14 merged) | keep using PRs | - | main has the branches | git log | Sukhda |
-| 1 | Exorcist, approve/reject | Built | BUILT_PENDING_REVIEW | TASK-07 devlog line and `scripts/qa_exorcist.py --runs 5` output are on main (990b469: scripted 5 of 5; llm not run, no AWS). Left: independent Reviewer sign-off | - | Reject leaves code unchanged; decisions stored | `agent/fixes/exorcist.py`, `agent/tests/test_exorcist.py` (pytest passes) | Sukhda |
-| 2 | Verifier keyboard + voice | Built | BUILT_PENDING_REVIEW | voice replay is on main (LE-01 to LE-03); `scripts/qa_verifier_outcomes.py` shows the four outcomes (990b469). Left: independent Reviewer sign-off | 1 | 4 Verifier results in real runs; bank fixtures unchanged | commits 06933b3, 774f08b, 16fbe46; `docs/evidence/loop-evidence-*.png` | Sukhda |
+| 1 | Exorcist, approve/reject | Built | BUILT_PENDING_REVIEW | TASK-07 devlog line and `scripts/qa_exorcist.py --runs 5` output are on main (616a79a on main; the earlier id 990b469 was rebased away: scripted 5 of 5; llm not run, no AWS). Left: independent Reviewer sign-off | - | Reject leaves code unchanged; decisions stored | `agent/fixes/exorcist.py`, `agent/tests/test_exorcist.py` (pytest passes) | Sukhda |
+| 2 | Verifier keyboard + voice | Built | BUILT_PENDING_REVIEW | voice replay is on main (LE-01 to LE-03); `scripts/qa_verifier_outcomes.py` shows the four outcomes (616a79a). Left: independent Reviewer sign-off | 1 | 4 Verifier results in real runs; bank fixtures unchanged | commits 06933b3, 774f08b, 16fbe46; `docs/evidence/loop-evidence-*.png` | Sukhda |
 | 3 | Journey test, regression guard, API | Due | BUILT_PENDING_REVIEW | `tests/journeys/send-payment.spec.ts` and guard exist (JG-01 to JG-03, "GUARD_WORKS 5 of 5" recorded in 663ce22). Re-run the guard here. Plan's endpoint names `POST /runs/{id}/exorcise`, `POST /regression/demo`, `GET /fixes/{id}/events` differ from the data contract (`/runs/{id}/fixes`, `/fixes/{id}/regression`); I will not rename shipped endpoints (Task 20) | 1, 2 | GUARD_WORKS 5 of 5 | `docs/pr/item-3-journey-guard.md` | Sukhda |
 | 4 | Wire loop to dashboard | Built | BUILT_PENDING_REVIEW | PR, devlog, two evidence rows with run IDs (LE-02 adds them) | 1, 2 | whole loop by keyboard; npm test passes | dashboard tests 132 pass | Sukhda |
 | 5 | Spooky moments | Due | BUILT_PENDING_REVIEW | SS-01, SS-02, SS-03 are on main with a review record (bfa8a1c, 28e8fec). Not checked by me: the returning-ghost moment on regression. Left: independent reviewer sign-off | 4 | 3 moments + no-motion version + tests | `.kiro/specs/spooky-steps/` |
@@ -56,7 +56,7 @@ Status words: DONE, BUILT_PENDING_REVIEW, IN_PROGRESS, BLOCKED_EXTERNAL, NOT_STA
 | 28 | Kiro forms test | Moved | BLOCKED_EXTERNAL | Charvi | 13 | - | - | Charvi |
 | 29 | Four skills | Due | IN_PROGRESS | 4 skills present in `.kiro/skills/`; 2 proven; prove exorcise-fix and journey-test-writer with screenshots | 1, 3 | screenshot each | skills-activation doc | Sukhda |
 | 30 | Kiro Web | Due | NOT_STARTED | run issue #8 in Kiro Web (needs the user's Kiro Web account) | - | linked PR | - | Sukhda |
-| 31 | Reference field | Due | NOT_STARTED | add field to both variants, PLANTED.md, seed, eval | - | 3 fields; 5-run pass | - | Sukhda |
+| 31 | Reference field | Due | BUILT_PENDING_REVIEW | On main since the 24 Nov integration (`5e4ac1f`): PR #20 combined with PR #15; scripted 5 of 5 on both variants after the merge. Left: independent review | - | 3 fields; 5-run pass | - | Sukhda |
 | 32 | Journey tests in CI | Due | IN_PROGRESS | `tests.yml` already installs the journey test; required-check setting needs Charvi | 3 | job fails when bug returns | `.github/workflows/tests.yml` | Sukhda + Charvi |
 | 33 | Assets and licences | Due | NOT_STARTED | audit fonts, icons, images, sounds, packages | - | README section | - | Sukhda |
 | 34 | Submission tag | Due | BLOCKED_EXTERNAL | only on Shilpa's confirmation | all | tag exists | - | Shilpa |
@@ -81,4 +81,4 @@ Levels: Implemented, Tested, Independently reviewed, PR approved, Done per plan.
 | Items | Implemented | Tested | Independently reviewed | PR approved | Done per plan |
 |---|---|---|---|---|---|
 | 1, 2, 3, 4, 5 (straight to main) | yes | yes (pytest and 137 dashboard tests pass on main) | no | no (no PR) | no |
-| 12 | yes | yes (same suites pass on the branch) | no | no (PR open) | no |
+| 12 | yes | yes (suites pass on main after the 24 Nov integration) | no | merged without a PR approval (owner's integration push) | no |
