@@ -196,6 +196,21 @@ html[data-contrast='high'] .v9-tile{box-shadow:none}
 .v9-thumb-line{display:block;height:8px;border-radius:4px;background:#2b3254}
 .v9-thumb-btn{border:2px solid #ff6b6b;color:#ffd5d5;background:#2a0f18}
 
+/* ── UI v9 Kiro (design/v9 .kgrid, .tree, .tabbar, .editor, .hook, .built) ── */
+@media (min-width:1024px){.v9-kgrid{grid-template-columns:minmax(0,2fr) minmax(300px,1fr)}}
+.v9-tree{width:190px;border-right:1px solid var(--v9-card-line)}
+.v9-tree-item{color:#d7dbef}.v9-tree-item svg{color:#cfd3ee}
+.v9-tree-on{background:#3a2479;color:#fff;box-shadow:0 0 14px #7c3aed66}.v9-tree-on svg{color:#d8b4fe}
+.v9-k-badge{display:inline-flex;width:24px;height:24px;border-radius:6px;background:#7c3aed;align-items:center;justify-content:center;font-size:.8125rem;font-weight:800;color:#fff}
+.v9-tabbar{border-bottom:1px solid var(--v9-card-line);background:#12162d}
+.v9-tab{padding:9px 14px;background:#1b2140;border-right:1px solid var(--v9-card-line);font-size:1rem;color:var(--v9-ink)}
+.v9-editor{padding:14px 16px;font-size:1rem;line-height:1.75;color:var(--v9-ink)}
+.v9-ln{display:inline-block;width:2ch;flex:none;text-align:right;margin-right:28px;color:#6f789e}
+.v9-fn{color:#7dd3fc}.v9-s{color:#fbbf24}
+.v9-hook{border-color:#7c4dff;box-shadow:0 0 22px #7c3aed55,inset 0 0 26px #7c3aed1a}
+.v9-icon-amber{color:#fb923c}
+.v9-built{background:linear-gradient(180deg,#3b1f86,#26135a);border:1.5px solid #b794ff;box-shadow:0 0 16px #8b5cf688}
+
 /* Decorative motion sits under the controls and cannot take clicks or focus. */
 .ambient-layer {
   position: absolute;

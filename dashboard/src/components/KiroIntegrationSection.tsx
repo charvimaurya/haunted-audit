@@ -14,7 +14,8 @@
  * - The code listing is a figure with a caption.
  * - Status is icon plus text. "Built with Kiro" is plain text.
  */
-import { AlertTriangle, Dot, FileSearch, Zap } from 'lucide-react';
+import { AlertTriangle, FileJson, FileSearch, Folder, FolderOpen, Hourglass, LogOut, Zap } from 'lucide-react';
+import { GhostGlyph } from './GhostGlyph';
 
 /** The real hook, as in .kiro/hooks/scan-on-save.json (description and matcher shortened). */
 const HOOK_CODE_LINES = [
@@ -54,102 +55,104 @@ const RECORDED_FINDING = {
 };
 
 export function KiroIntegrationSection() {
+  // v9 layout (design/v9 #p-kiro): an editor card (folder tree + the real hook file) and a hook card beside it.
   return (
-    <section id="kiro" aria-labelledby="kiro-integration-heading" className="panel overflow-hidden">
-      <div className="px-5 py-3 border-b border-base-line flex items-center gap-2">
-        <h2 id="kiro-integration-heading" className="text-base font-semibold font-ui text-ink">
-          Kiro Integration —{' '}
-          <span className="text-ink-muted font-normal">Accessibility in Your Workflow</span>
-        </h2>
-      </div>
+    <section id="kiro" aria-labelledby="kiro-integration-heading" className="flex flex-col gap-4">
+      <h2 id="kiro-integration-heading" className="flex items-center gap-3 text-[1.3rem] font-extrabold font-ui text-ink">
+        <Hourglass size={28} className="v9-icon-violet" aria-hidden="true" />
+        Kiro Integration — Accessibility in Your Workflow
+      </h2>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-0 divide-y xl:divide-y-0 xl:divide-x divide-base-line">
-        {/* ── Left: the real hook file ─────────────────────────────── */}
-        <div className="p-4 flex flex-col gap-3">
-          <div className="flex gap-3">
-            <nav aria-label="Kiro workspace folders" className="w-28 shrink-0">
-              <ul className="flex flex-col gap-0.5 list-none p-0 m-0" role="list">
-                {FILE_TREE.map(({ name, depth, active }) => (
+      <div className="v9-kgrid grid grid-cols-1 gap-4">
+        {/* ── Left: the folder tree and the real hook file ─────────────── */}
+        <div className="v9-card flex overflow-hidden">
+          <nav aria-label="Kiro workspace folders" className="v9-tree hidden shrink-0 px-2.5 py-3.5 sm:block">
+            <p className="m-0 mb-3 ml-1.5 flex items-center gap-2.5 text-base font-bold font-ui text-ink">
+              <span className="v9-k-badge" aria-hidden="true">K</span>Kiro
+            </p>
+            <ul className="m-0 flex list-none flex-col gap-1 p-0" role="list">
+              {FILE_TREE.map(({ name, depth, active }) => {
+                const Icon = depth === 0 ? LogOut : active ? FolderOpen : Folder;
+                return (
                   <li
                     key={name}
-                    className={[
-                      'text-base font-mono rounded px-1 py-0.5',
-                      active ? 'bg-violet-600/20 text-violet-300' : 'text-ink-faint',
-                    ].join(' ')}
-                    style={{ paddingLeft: `${depth * 10 + 4}px` }}
+                    className={`v9-tree-item flex min-h-[34px] items-center gap-2.5 rounded-[10px] px-2.5 text-base font-ui ${active ? 'v9-tree-on' : ''}`}
+                    style={{ paddingLeft: depth ? 28 : 10 }}
                     aria-current={active ? 'true' : undefined}
                   >
+                    <Icon size={18} aria-hidden="true" />
                     {name}
                   </li>
-                ))}
-              </ul>
-            </nav>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1 mb-2">
-                <div className="flex items-center gap-1 px-2 py-1 rounded-t-md text-base font-mono bg-base border-t border-l border-r border-base-line text-ink-muted">
-                  <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true" />
-                  <span>scan-on-save.json</span>
-                </div>
-              </div>
-              <figure className="code-block m-0" aria-label="scan-on-save.json, the real Kiro hook">
-                <figcaption className="sr-only">
-                  .kiro/hooks/scan-on-save.json: on save, Kiro runs python3 backend/scan_file.py --hook
-                </figcaption>
-                <pre className="m-0 whitespace-pre-wrap break-words">
-                  <code>
-                    {HOOK_CODE_LINES.map(({ n, text, muted, highlight }) => (
-                      <span
-                        key={n}
-                        className={[
-                          'flex gap-3 leading-relaxed',
-                          muted ? 'text-ink-faint' : '',
-                          highlight ? 'text-amber-300' : '',
-                          !muted && !highlight ? 'text-ink-muted' : '',
-                        ].filter(Boolean).join(' ')}
-                      >
-                        <span className="w-6 text-right text-ink-faint shrink-0 select-none" aria-hidden="true">{n}</span>
-                        <span>{text}</span>
-                      </span>
-                    ))}
-                  </code>
-                </pre>
-              </figure>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className="min-w-0 flex-1">
+            <div className="v9-tabbar">
+              <span className="v9-tab inline-flex items-center gap-2.5 font-mono">
+                <FileJson size={16} aria-hidden="true" />scan-on-save.json
+              </span>
             </div>
+            <figure className="m-0" aria-label="scan-on-save.json, the real Kiro hook">
+              <figcaption className="sr-only">
+                .kiro/hooks/scan-on-save.json: on save, Kiro runs python3 backend/scan_file.py --hook
+              </figcaption>
+              <pre className="v9-editor m-0 whitespace-pre-wrap break-words font-mono">
+                <code>
+                  {HOOK_CODE_LINES.map(({ n, text }) => (
+                    <span key={n} className="flex">
+                      <span className="v9-ln select-none" aria-hidden="true">{n}</span>
+                      <span>{colour(text)}</span>
+                    </span>
+                  ))}
+                </code>
+              </pre>
+            </figure>
           </div>
         </div>
 
-        {/* ── Right: the hook's events, as v7 lays them out; one real recorded finding ── */}
-        <div className="p-4 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Zap size={16} className="text-amber-400" aria-hidden="true" />
-            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook (recorded {RECORDED_FINDING.recorded})</h3>
-          </div>
-          <ul className="m-0 flex list-none flex-col gap-2 p-0 text-base font-ui" aria-label="Recorded hook events">
-            <li className="flex items-start gap-2 text-ink">
-              <FileSearch size={16} className="mt-1 shrink-0 text-ink-muted" aria-hidden="true" />
+        {/* ── Right: the hook card, one real recorded finding ─────────────── */}
+        <div className="v9-card v9-hook flex flex-col gap-3 p-4">
+          <h3 className="m-0 flex items-center gap-3 text-lg font-extrabold font-ui text-ink">
+            <Zap size={26} className="v9-icon-amber" aria-hidden="true" />
+            Kiro Hook (recorded {RECORDED_FINDING.recorded})
+          </h3>
+          <ul className="m-0 flex list-none flex-col gap-2.5 p-0 text-base font-ui" aria-label="Recorded hook events">
+            <li className="flex items-start gap-3 text-ink">
+              <FileSearch size={22} className="shrink-0 text-v9-mute" aria-hidden="true" />
               <span>File scanned: <span className="font-mono break-all">{RECORDED_FINDING.file}</span></span>
             </li>
-            <li className="flex items-start gap-2 text-ink">
-              <Dot size={16} className="mt-1 shrink-0 text-violet-neon" aria-hidden="true" />
+            <li className="flex items-start gap-3 text-ink">
+              <span className="text-ghost-caught shrink-0" aria-hidden="true"><GhostGlyph size={22} /></span>
               <span>Haunted Audit scan triggered (<span className="font-mono">scan_page</span>)</span>
             </li>
-            <li className="flex items-start gap-2 text-ink">
-              <AlertTriangle size={16} className="mt-1 shrink-0 text-ghost-blocked" aria-hidden="true" />
+            <li className="flex items-start gap-3 text-ink">
+              <span className="v9-dot v9-dot-bad"><AlertTriangle size={13} aria-hidden="true" /></span>
               <span>
                 <span className="sr-only">Finding: </span>Accessibility issue found:{' '}
-                <span className="text-ghost-blocked">Missing accessible label</span>{' '}
+                <span className="font-bold text-v9-bad-hi">Missing accessible label</span>{' '}
                 (<span className="font-mono">{RECORDED_FINDING.element}</span>, line {RECORDED_FINDING.line})
               </span>
             </li>
           </ul>
-          <p className="m-0 text-base font-ui text-ink-muted">
+          <p className="m-0 text-base font-ui text-v9-mute">
             Recorded, not live: this page cannot see the hook run in your editor. Source: {RECORDED_FINDING.source}
           </p>
-          <p className="mt-auto ml-auto inline-flex w-fit items-center rounded-lg border border-violet-neon/60 bg-violet-600/25 px-3 py-1 text-base font-ui font-semibold text-ink">
+          <p className="v9-built mt-auto ml-auto inline-flex w-fit items-center rounded-[14px] px-3.5 py-2 text-base font-ui font-extrabold text-white">
             Built with Kiro
           </p>
         </div>
       </div>
     </section>
+  );
+}
+
+/** v9 code colours: JSON keys light blue, strings amber. Text only; the meaning is in the figcaption. */
+function colour(line: string) {
+  const parts = line.split(/("[^"]*")(\s*:)?/g).filter((s) => s !== undefined && s !== '');
+  return parts.map((s, i) =>
+    /^"/.test(s)
+      ? <span key={i} className={parts[i + 1]?.trim().startsWith(':') ? 'v9-fn' : 'v9-s'}>{s}</span>
+      : <span key={i}>{s}</span>,
   );
 }
