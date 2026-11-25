@@ -80,5 +80,5 @@ Levels: Implemented, Tested, Independently reviewed, PR approved, Done per plan.
 
 | Items | Implemented | Tested | Independently reviewed | PR approved | Done per plan |
 |---|---|---|---|---|---|
-| 1, 2, 3, 4, 5 (straight to main) | yes | yes (pytest and 137 dashboard tests pass on main) | no | no (no PR) | no |
+| 1, 2, 3, 4, 5 (straight to main) | yes | yes (25 Nov, on `f39d344`: pytest 506 passed, dashboard 169 passed) | no | not needed: under `team-rules.md` a Reviewer report in `docs/pr/` counts instead of a PR; none signed off yet | no (Built, not Done) |
 | 12 | yes | yes (suites pass on main after the 24 Nov integration) | no | merged without a PR approval (owner's integration push) | no |
