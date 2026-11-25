@@ -99,3 +99,19 @@ def test_old_database_gets_the_new_columns_and_keeps_its_rows(tmp_path):
     row = store.get("old-fix")
     assert row["regression_run_id"] == "kb2" and row["regression_voice_run_id"] == "voice2"
     FixStore(db)  # opening again does not try to add the columns twice
+
+
+def test_fail_006_is_fixed_voice_passes_on_the_patched_copy(client):
+    """evals fail-006 (historical, kept): the voice replay was BLOCKED on the patched copy because Amount had no
+    label. The scripted Exorcist now also labels Amount, so the same voice replay must PASS on the patched copy
+    and must still be BLOCKED with the bug put back. The checker decides both."""
+    fid = _approved_fix(client)
+    v = client.post(f"/fixes/{fid}/verify").json()
+    voice = _wait(client, v["voice_run_id"])
+    assert (voice["verdict"], voice["reason_code"]) == ("PASSED", None)
+    typed = [e["args"] for e in voice["result"]["step_events"] if e["tool"] == "voice_type"]
+    assert len(typed) == 2  # the replay types Recipient, then Amount (the field fail-006 was about)
+    assert typed and all(a["outcome"] == "done" for a in typed)  # Recipient and Amount found by their labels
+    g = client.post(f"/fixes/{fid}/regression").json()
+    assert _wait(client, g["voice_run_id"])["verdict"] == "BLOCKED"
+    assert client.get(f"/fixes/{fid}").json()["verify_voice"]["verdict"] == "PASSED"

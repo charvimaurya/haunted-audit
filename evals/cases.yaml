@@ -144,7 +144,7 @@ cases:
       - scripts/keyboard_loop_walk.py output in docs/pr/item-4-loop-evidence.md
       - docs/evidence/loop-evidence-verify.png
     label_source: bank/PLANTED.md (barrier 2) and .kiro/specs/loop-evidence/requirements.md
-    status: resolved
+    status: open
     next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
     recorded: 2026-11-24
     resolution:
@@ -160,7 +160,14 @@ cases:
         still fails for voice (NO_ACTIVATION), as expected with the bug put back.
       evidence:
         - docs/pr/item-2-1-exorcist-closure.md (QA agent, keyboard loop walk, autoloop walk)
+        - agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy (passes on main; fails with the old one-change Exorcist)
       resolved: 2026-11-24
+      note: >-
+        Two different things are recorded here. The fields above "resolution" are the historical failure as observed on
+        2026-11-24 (status open, voice BLOCKED / NO_ACTIVATION on the patched copy) and are kept unchanged. This
+        resolution block is the current result: with today's Exorcist the voice replay is PASSED on the patched copy and
+        BLOCKED with the bug put back, proved by the regression test listed above. The original "status: open" was
+        restored on 2026-11-24 after it had been changed to "resolved" in the integration merge 77586ab.
   - id: fail-008
     kind: failure
     target: Fixed bank variant with typed test details (scripts/record_seed.py, POST /runs with amount)
