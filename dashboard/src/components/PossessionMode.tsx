@@ -168,7 +168,7 @@ export function PossessionMode({
     <section
       id="journeys"
       aria-labelledby="possession-heading"
-      className="panel-glow overflow-hidden"
+      className="v9-card overflow-hidden"
     >
       {/* ── Visually hidden heading ──────────────────────────────────────── */}
       <h2 id="possession-heading" className="sr-only">
@@ -219,7 +219,7 @@ export function PossessionMode({
         <div className="grid gap-4 md:grid-cols-[minmax(0,28fr)_minmax(0,72fr)]">
           {/* Haunted Bank sidebar card */}
           <aside
-            className="rounded-xl border border-bank-line bg-bank-sidebar p-4"
+            className="v9-card p-4"
             aria-label="Haunted Bank navigation"
           >
             <div className="mb-4 flex items-start gap-3">
@@ -367,7 +367,7 @@ export function PossessionMode({
 
         {/* Right: Possession Mode checklist card */}
         <aside
-          className="rounded-xl border border-bank-line bg-bank-rail p-5"
+          className="v9-card p-5"
           aria-label="Possession Mode tab step results"
         >
           <div className="mb-3 flex items-start gap-3">

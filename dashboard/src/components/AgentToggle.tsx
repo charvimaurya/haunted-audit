@@ -23,13 +23,13 @@ export function AgentToggle({ value, onChange, disabled }: AgentToggleProps) {
       <legend className="mb-0.5 p-0 text-base font-ui uppercase tracking-wider text-ink-faint">
         Agent
       </legend>
-      <div className="inline-flex rounded-lg border border-violet-neon/60 p-0.5">
+      <div className="v9-seg inline-flex rounded-xl p-1">
         {OPTIONS.map(({ id, label, Icon }) => (
           <label
             key={id}
-            className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-4 text-base font-ui
+            className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-5 text-base font-ui font-semibold
                         has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-violet-neon
-                        ${value === id ? 'bg-violet-600 text-white' : 'text-ink-muted hover:text-ink'}`}
+                        ${value === id ? 'v9-seg-on' : 'text-v9-mute hover:text-white'}`}
           >
             <input
               type="radio"

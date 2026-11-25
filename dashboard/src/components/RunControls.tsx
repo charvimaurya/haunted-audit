@@ -77,8 +77,7 @@ export function RunControls({
   };
   return (
     <div
-      className="flex flex-wrap items-end gap-3 px-5 py-3
-                 bg-base-surface/60 border-b border-base-line"
+      className="v9-card flex flex-wrap items-end gap-3 px-4 py-3"
       role="group"
       aria-label="Run controls"
     >
@@ -142,9 +141,8 @@ export function RunControls({
         }}
         aria-disabled={isRunning || undefined}
         aria-describedby="run-status"
-        className="flex min-h-11 items-center gap-2 px-4 rounded-lg text-base font-ui font-semibold
-                   bg-violet-600 text-white border border-violet-neon/50
-                   hover:bg-violet-500 motion-safe:active:scale-95
+        className="v9-btn v9-btn-violet flex min-h-11 items-center gap-2 px-4 text-base font-ui
+                   motion-safe:active:scale-95
                    motion-safe:transition-all motion-safe:duration-150
                    aria-disabled:opacity-50 aria-disabled:cursor-not-allowed"
       >

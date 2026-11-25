@@ -31,7 +31,7 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
   const areaId = useId();
   const commands = commandsFrom(commandText);
   return (
-    <section aria-labelledby="voice-commands-heading" className="panel grid gap-4 p-5 md:grid-cols-[1fr_16rem]">
+    <section aria-labelledby="voice-commands-heading" className="v9-card grid gap-4 p-5 md:grid-cols-[1fr_16rem]">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-violet-600/25 text-violet-neon" aria-hidden="true">
