@@ -72,6 +72,26 @@ describe('fix panels', () => {
     expect(calls.find((c) => c.startsWith('POST /fixes/f1/approve'))).toContain(`"diff_sha256":"${'a'.repeat(64)}"`);
   });
 
+  it('Verify never runs automatically after Approve; it waits for its own button press (owner rule: Verify starts when a person presses it)', async () => {
+    const approved = { ...base, status: 'approved' as const, decided_by: 'demo user', decided_at: '2026-11-22T10:00:00Z' };
+    const { calls, container } = renderWithApi({
+      'POST /runs/r1/fixes': base,
+      'POST /fixes/f1/approve': approved,
+      'POST /fixes/f1/verify': { ...approved,
+        verify: { run_id: 'v', status: 'running' as const, verdict: null, reason_code: null, agent_mode: 'scripted', error: null } },
+    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Propose a fix (scripted Exorcist)' }));
+    await user.click(await screen.findByRole('button', { name: 'Approve Fix' }));
+    expect(await screen.findByRole('button', { name: 'Verify on a patched copy' })).toBeTruthy();
+    // Approve alone must not have started a verify run: no POST to /fixes/f1/verify yet.
+    expect(calls.some((c) => c.startsWith('POST /fixes/f1/verify'))).toBe(false);
+    expect(await axe(container)).toHaveNoViolations();
+    await user.click(screen.getByRole('button', { name: 'Verify on a patched copy' }));
+    // Only after the explicit click does the verify call happen.
+    expect(calls.some((c) => c.startsWith('POST /fixes/f1/verify'))).toBe(true);
+  });
+
   it('reject records the decision and offers nothing to verify', async () => {
     renderWithApi({ 'POST /runs/r1/fixes': base, 'POST /fixes/f1/reject': { ...base, status: 'rejected', decided_by: 'demo user', decided_at: '2026-11-22T10:00:00Z' } });
     const user = userEvent.setup();

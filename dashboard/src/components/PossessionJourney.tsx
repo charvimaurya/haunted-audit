@@ -4,7 +4,6 @@ import { Page } from './Page';
 import { PossessionMode } from './PossessionMode';
 import { RunControls } from './RunControls';
 import { RunNotice } from './RunNotice';
-import { AutoLoopCard } from './AutoLoopCard';
 import { SafariTabTip } from './SafariTabTip';
 import { VoiceCommandsCard } from './VoiceCommandsCard';
 import type { AgentKind } from './AgentToggle';
@@ -135,7 +134,6 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
           <PossessionMode result={result} isRunning={isRunning} runDetails={runDetails} />
         )}
       </div>
-      {pageId === 'possession' && <AutoLoopCard recipient="" />}
     </Page>
   );
 }
