@@ -125,7 +125,7 @@ describe('Regression panel voice line', () => {
 
   it('voice verified first and blocked with the bug back: FAILED (voice)', () => {
     panels({ ...base, ...kb, verify_voice: run('vv', 'PASSED'), regression_voice: run('gv', 'BLOCKED') });
-    expect(screen.getByText('FAILED (voice): Send Payment could not be activated (NO_ACTIVATION)')).toBeTruthy();
+    expect(screen.getByText('FAILED (voice): the voice journey was blocked (NO_ACTIVATION)')).toBeTruthy();
   });
 });
 

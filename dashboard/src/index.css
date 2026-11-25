@@ -16,6 +16,7 @@
   --color-ghost-ready:   #c9b6ff;
   --color-ghost-blocked: #ef4444;
   --color-ghost-verified:#22c55e;
+  --color-ghost-caught:  #ffffff;
 
   --color-parchment:     #f5e6c8;
   --color-parchment-ink: #3b2a0e;
@@ -104,6 +105,14 @@ html[data-calm='true'] *::after {
 @keyframes split-reveal {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Fix pages: a done row is also ticked after its text (v9). Empty alt text: the row already says "Done". */
+.row-tick::after {
+  content: " \2713";
+  content: " \2713" / "";
+  color: var(--color-ghost-verified);
+  font-weight: 700;
 }
 
 /* Decorative motion sits under the controls and cannot take clicks or focus. */

@@ -66,9 +66,11 @@ def main() -> int:
         pg.wait_for_selector("h1")
         pg.wait_for_load_state("networkidle")
 
-        print("1. Possession: type the recipient, Run Journey with Enter")
-        tab_to(pg, "Recipient name")
+        print("1. Possession: type the test details, Run Journey with Enter")
+        tab_to(pg, "Recipient")  # the Test details form comes before the bank drawing's own Recipient field
         pg.keyboard.type("Test Recipient")
+        tab_to(pg, "Amount (EUR)")
+        pg.keyboard.type("10.00")
         tab_to(pg, "Run Journey")
         pg.keyboard.press("Enter")
         pg.get_by_role("button", name="Running…").wait_for(timeout=10_000)

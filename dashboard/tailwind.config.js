@@ -30,6 +30,7 @@ export default {
           ready:    '#c9b6ff',  // purple — waiting
           blocked:  '#ef4444',  // red    — barrier found
           verified: '#22c55e',  // green  — checker passed
+          caught:   '#ffffff',  // white  — the returning ghost, caught (v9 Fixes)
         },
         // ── Parchment (The Outcome card) ──────────────────────────────────────
         parchment: {

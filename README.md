@@ -201,14 +201,14 @@ API routes, once the first terminal is running:
 After a `broken` run ends `BLOCKED`, the fix loop runs on copies of the bank. No tracked file changes.
 
 1. **Fix.** The Exorcist proposes a diff. A person approves or rejects it. Without AWS the fix is a **Scripted repair demonstration** (0 tokens): one diff with two fixed rules, so Send Payment becomes a real button and the Amount caption becomes a label. The diff is 4 changed lines in 2 hunks (measured 25 Nov 2026 on `fixtures/haunted_bank/index.html`). Only `exorcist_mode: "llm"` needs Amazon Bedrock.
-2. **Verify.** The keyboard agent, then the voice-command simulation, run on the patched copy, each with its own run ID. The checker decides both. With the scripted fix both journeys pass on the patched copy, and with the bug put back both are blocked (25 Nov 2026: `agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy`, 1 passed). The screen then says **Keyboard and voice** (keyboard loop walk, `docs/pr/item-2-1-exorcist-closure.md`). Before 24 Nov the fix left the Amount field unlabelled and voice stayed blocked; that history is evals `fail-006`.
+2. **Verify.** A person presses **Replay both journeys**. The keyboard agent, then the voice-command simulation, run on the patched copy, each with its own run ID. The checker decides both. With the scripted fix both journeys pass on the patched copy, and with the bug put back both are blocked (25 Nov 2026: `agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy`, 1 passed). The screen then says **Keyboard and voice** (keyboard loop walk, `docs/pr/item-2-1-exorcist-closure.md`). Before 24 Nov the fix left the Amount field unlabelled and voice stayed blocked; that history is evals `fail-006`.
 3. **Prevent.** The journey test `tests/journeys/send-payment.spec.ts` presses Tab until Send Payment has focus, then Enter. It catches the barrier when it comes back.
 
 API routes for the loop:
 
 - `POST /runs/{id}/fixes`, `GET /fixes/{id}`
 - `POST /fixes/{id}/approve` (with the `diff_sha256` you reviewed) and `POST /fixes/{id}/reject`
-- `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy). Each returns `run_id` (keyboard) and `voice_run_id`.
+- `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy, from **Put the bug back and run both tests**). Each returns `run_id` (keyboard) and `voice_run_id`.
 
 The regression guard, from the repo root. Node.js is needed once for the journey test:
 
