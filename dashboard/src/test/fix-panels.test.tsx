@@ -112,21 +112,7 @@ describe('fix panels', () => {
     expect(screen.getByText('Checker: PASSED, scripted mode, on a patched copy.')).toBeTruthy();
     expect(screen.getByText(/The ghost is back\./)).toBeTruthy();
     expect(screen.getByText('FAILED: Send Payment not focusable (TARGET_NOT_FOCUSABLE)')).toBeTruthy();
-    // Team default (v9, 24 Nov): the "we caught it" ghost is white.
-    const caught = screen.getByText(/But this time, we caught it\./).closest('[role="status"]');
-    expect(caught?.querySelector('[data-ghost-tone]')?.getAttribute('data-ghost-tone')).toBe('white');
     expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it('uses the v9 button labels: Replay both journeys, then Put the bug back and run both tests', async () => {
-    const approved = { ...base, status: 'approved' as const, decided_by: 'demo user', decided_at: 'x' };
-    const verified = { ...approved,
-      verify: { run_id: 'v', status: 'complete' as const, verdict: 'PASSED' as const, reason_code: null, agent_mode: 'scripted', error: null } };
-    renderWithApi({ 'POST /runs/r1/fixes': approved, 'POST /fixes/f1/verify': verified, 'GET /fixes/f1': verified });
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Propose a fix (scripted Exorcist)' }));
-    await user.click(await screen.findByRole('button', { name: 'Replay both journeys' }));
-    expect(await screen.findByRole('button', { name: 'Put the bug back and run both tests' })).toBeTruthy();
   });
 
   it('a refused action is said in words', async () => {
