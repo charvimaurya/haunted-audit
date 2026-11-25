@@ -12,7 +12,7 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 **REQ-TD-01: Run setup form.**
 - Before a run, Possession Mode and the Try page show a "Test details" group with three labelled, empty fields: Recipient, Amount, Reference. The hint "Use made-up details. This is a test bank." is under the group heading.
 - Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 10.00", "Optional, e.g. Test payment". No placeholder looks like a real person.
-- No field is ever filled in by the app.
+- No field is ever filled in by the app, except the one case in REQ-TD-11 (text a voice run actually typed into the bank).
 - Reference is optional. Recipient and Amount are required.
 - Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-008: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
 
@@ -56,6 +56,15 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 - `docs/user-typed-test-details-audit.md` lists every hit as visible or internal.
 - Every visible hit is removed: the unused drawing, the design pages, the README, docs and seed data. Recorded output that cannot be re-run honestly is redacted with a visible marker, not rewritten.
 - Internal hits (tests, eval scripts, the constant) stay. The README "Known issues" says so.
+
+**REQ-TD-11: A voice run fills the form with what it typed (owner, 25 Nov 2026).**
+- On Possession Mode and the Try page, a voice run fills Recipient, Amount or Reference with the text it typed into the bank.
+- Only a `voice_type` step with `outcome: "done"` fills a field. A failed step never does, even though its `args.text` is set (`agent/voice_agent/runner.py`, `_type`). Evidence: run `ff6c5937`, Amount failed with "no accessible label" and `text` "10.00".
+- Each step is used once and each field is filled at most once per run. The final run record replays the same steps and goes through the same rules.
+- A field the tester edits is theirs for the rest of that run: no later step and no final record overwrites it. Today the form is locked while a run is going (`RunControls`), so in practice the edit comes after the run.
+- A new voice run starts with empty tracking and may fill the fields again.
+- Every fill is a functional update of only the fields it changes. A reply that belongs to an earlier run (a late step, a late "done", a late fetch) is dropped (`useVoiceRun`, `runSeq`).
+- Tests: the real runs `ff6c5937` and `c98da1a2` in the `GET /runs/{id}` shape (`dashboard/src/test/fixtures/`), the precedence rules, and the Possession page with mocked speech reading the inputs' real values.
 
 **REQ-TD-10: Tests.**
 - Browser test with the real API: on first load no field holds a value; Run Journey with Recipient empty shows the error and moves focus to the field; a typed name is what the agent typed and what the checklist shows; the flow works by keyboard only.

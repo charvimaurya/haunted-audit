@@ -14,6 +14,7 @@ import type { VoiceInputSource } from '../voice/interpretVoiceCommand';
 import { commandsFrom, useVoiceRun } from '../voice/useVoiceRun';
 import { useSpeechInput } from '../voice/useSpeechInput';
 import { commandsFromDetails } from '../voice/commandsFromDetails';
+import { useVoiceDetailsFill } from '../voice/useVoiceDetailsFill';
 
 const VOICE_LEAD =
   'A voice-command run of one user journey (sending a payment) on the Haunted Bank test site. A ghost is an accessibility barrier.';
@@ -36,6 +37,8 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
   const [source, setSource] = useState<VoiceInputSource>('typed');
   const [emptyNotice, setEmptyNotice] = useState<string | null>(null);
   const voice = useVoiceRun();
+  // Text the voice agent typed into the bank fills the form; the tester's own edits win (REQ-TD-11).
+  const onDetailsChange = useVoiceDetailsFill(voice.state, details, setDetails);
   const speech = useSpeechInput((text) => {
     // Listen, then act: what was heard replaces the commands and runs at once (voice-agent REQ-VA-12).
     setCommandText(text);
@@ -89,7 +92,7 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
         onVariantChange={setVariant}
         onModeChange={setMode}
         details={details}
-        onDetailsChange={setDetails}
+        onDetailsChange={onDetailsChange}
         requireDetails={!(isVoice && editedText !== null)}
         onRun={isVoice ? runVoice : runKeyboard}
         agent={agent}
