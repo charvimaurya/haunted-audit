@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Page } from './Page';
 import { PossessionMode } from './PossessionMode';
@@ -13,7 +13,7 @@ import type { VoiceInputSource } from '../voice/interpretVoiceCommand';
 import { commandsFrom, useVoiceRun } from '../voice/useVoiceRun';
 import { useSpeechInput } from '../voice/useSpeechInput';
 import { commandsFromDetails } from '../voice/commandsFromDetails';
-import { detailsFromSteps, withoutHandTypedFields } from '../voice/detailsFromSteps';
+import { useVoiceDetailsFill } from '../voice/useVoiceDetailsFill';
 
 const VOICE_LEAD =
   'A voice-command run of one user journey (sending a payment) on the Haunted Bank test site. A ghost is an accessibility barrier.';
@@ -36,6 +36,8 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
   const [source, setSource] = useState<VoiceInputSource>('typed');
   const [emptyNotice, setEmptyNotice] = useState<string | null>(null);
   const voice = useVoiceRun();
+  // Text the voice agent typed into the bank fills the form; the tester's own edits win (REQ-TD-11).
+  const onDetailsChange = useVoiceDetailsFill(voice.state, details, setDetails);
   const speech = useSpeechInput((text) => {
     // Listen, then act: what was heard replaces the commands and runs at once (voice-agent REQ-VA-12).
     setCommandText(text);
@@ -57,28 +59,6 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
         : undefined;
   const isVoice = agent === 'voice';
 
-  // Which fields the tester has typed by hand. A voice-filled field never overwrites one of these
-  // (owner decision, 25 Nov 2026: manual edits are never overwritten by streamed events or final records).
-  const touchedByHandRef = useRef<Set<keyof typeof details>>(new Set());
-  const handleDetailsChange = (next: typeof details) => {
-    for (const field of Object.keys(next) as (keyof typeof details)[]) {
-      if (next[field] !== details[field]) touchedByHandRef.current.add(field);
-    }
-    setDetails(next);
-  };
-
-  // What the voice agent typed, and completed, fills the Test details form as its steps arrive
-  // (owner request, 24 Nov 2026), but only for a field the tester has not already typed by hand,
-  // and only from a voice_type step whose outcome was "done" (detailsFromSteps.ts).
-  const spoken = detailsFromSteps(voice.state.steps);
-  const spokenKey = JSON.stringify(spoken);
-  useEffect(() => {
-    const fill = JSON.parse(spokenKey) as Partial<typeof details>;
-    const untouched = withoutHandTypedFields(fill, touchedByHandRef.current);
-    if (Object.keys(untouched).length === 0) return;
-    setDetails({ ...details, ...untouched });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run only when the spoken values change
-  }, [spokenKey]);
   // A finished voice run feeds the status badge in the app bar.
   useEffect(() => {
     if (voice.state.phase === 'finished' && voice.state.result) setVoiceResult(voice.state.result);
@@ -111,7 +91,7 @@ export function PossessionJourney({ pageId }: { pageId: 'possession' | 'try' }) 
         onVariantChange={setVariant}
         onModeChange={setMode}
         details={details}
-        onDetailsChange={handleDetailsChange}
+        onDetailsChange={onDetailsChange}
         requireDetails={!(isVoice && editedText !== null)}
         onRun={isVoice ? runVoice : runKeyboard}
         agent={agent}

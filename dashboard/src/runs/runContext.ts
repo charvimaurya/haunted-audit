@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
 import type { RunNoticeProps } from '../components/RunNotice';
 import type { AgentMode, JourneyResult, RecordedDetails, RunStatus, StepEvent, TestDetails, Variant } from '../types';
 
@@ -22,7 +22,8 @@ export interface RunValue {
   runError: string | null;
   setVariant: (v: Variant) => void;
   setMode: (m: AgentMode) => void;
-  setDetails: (d: TestDetails) => void;
+  /** A plain setter: pass a value, or a function of the latest details (used by the voice fill). */
+  setDetails: Dispatch<SetStateAction<TestDetails>>;
   run: () => Promise<void>;
   /** The last finished voice run, so the status badge can show it. Null when a keyboard run is newer. */
   voiceResult: JourneyResult | null;

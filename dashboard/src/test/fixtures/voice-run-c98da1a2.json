@@ -1,0 +1,118 @@
+{
+  "run_id": "c98da1a2-fa27-4fc8-89c0-ae06f0c5244f",
+  "variant": "broken",
+  "mode": "scripted",
+  "status": "complete",
+  "verdict": "PASSED",
+  "reason_code": null,
+  "result": {
+    "run_id": "c98da1a2-fa27-4fc8-89c0-ae06f0c5244f",
+    "verdict": "PASSED",
+    "reason_code": null,
+    "focus_trail": [],
+    "step_events": [
+      {
+        "step": 1,
+        "tool": "voice_type",
+        "args": {
+          "command": "type \"Test Recipient\" in Recipient",
+          "name": "Recipient",
+          "text": "Test Recipient",
+          "said": "Type \"Test Recipient\" in Recipient",
+          "outcome": "done",
+          "message": "Type \"Test Recipient\" in Recipient: done.",
+          "element": {
+            "tag": "input",
+            "text": "",
+            "bounding_box": {
+              "x": 37,
+              "y": 332,
+              "width": 730.359375,
+              "height": 48
+            }
+          }
+        },
+        "focused_before": null,
+        "focused_after": null,
+        "timestamp": "2026-11-24T12:02:59.005332+00:00",
+        "screenshot_path": null
+      },
+      {
+        "step": 2,
+        "tool": "voice_type",
+        "args": {
+          "command": "type 10.00 in Amount",
+          "name": "Amount",
+          "text": "10.00",
+          "said": "Type \"10.00\" in Amount",
+          "outcome": "done",
+          "message": "Type \"10.00\" in Amount: done.",
+          "element": {
+            "tag": "input",
+            "text": "",
+            "bounding_box": {
+              "x": 37,
+              "y": 442,
+              "width": 730.359375,
+              "height": 48
+            }
+          }
+        },
+        "focused_before": null,
+        "focused_after": null,
+        "timestamp": "2026-11-24T12:02:59.032478+00:00",
+        "screenshot_path": null
+      },
+      {
+        "step": 3,
+        "tool": "voice_click",
+        "args": {
+          "command": "click Send Payment",
+          "name": "Send Payment",
+          "said": "Click Send Payment",
+          "outcome": "done",
+          "message": "Click Send Payment: done.",
+          "element": {
+            "tag": "button",
+            "text": "Send Payment",
+            "bounding_box": {
+              "x": 37,
+              "y": 506,
+              "width": 147.65625,
+              "height": 40
+            }
+          }
+        },
+        "focused_before": null,
+        "focused_after": null,
+        "timestamp": "2026-11-24T12:02:59.416888+00:00",
+        "screenshot_path": null
+      }
+    ],
+    "screenshots": [],
+    "blocked_element": null,
+    "agent_mode": "scripted",
+    "tokens": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0
+    },
+    "latency_ms": 1024.5695419725962,
+    "cost_usd": 0.0,
+    "agent_claim": null,
+    "agent_claim_reason": null,
+    "agent_claim_mismatch": false,
+    "target_ever_focused": false,
+    "last_focused_element": null,
+    "skipped_element": null,
+    "variant": "broken",
+    "goal": "Voice commands: type \"Test Recipient\" in Recipient / type 10.00 in Amount / click Send Payment",
+    "stop_reason": "completed",
+    "error": null,
+    "agent_kind": "voice",
+    "input_source": "typed"
+  },
+  "seeded": false,
+  "recorded_at": null,
+  "test_details": null
+}

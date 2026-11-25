@@ -84,7 +84,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
       const res = await fetch(`${API_BASE}/runs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Exactly what the tester typed; the app never fills a value in (user-typed-test-details REQ-TD-03).
+        // The form's current values: what the tester typed, or text a voice run typed into the bank
+        // (only a voice_type step with outcome "done", user-typed-test-details REQ-TD-11). Nothing is made up.
         body: JSON.stringify({
           variant, mode,
           recipient: details.recipient.trim(),
