@@ -60,15 +60,16 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
   const alreadyStopped = calm || reducedMotion;
 
   return (
-    <div className="mx-auto max-w-[1360px] px-3 pt-4 sm:px-6">
+    <div className="mx-auto max-w-[1360px] px-3 pt-1 sm:px-4">
     <section
       ref={hostRef}
       id="home"
       aria-labelledby="hero-heading"
       className={[
         'relative flex flex-col items-center justify-start lg:justify-center text-center',
-        'lg:min-h-[580px] px-4 pt-12 pb-[460px] lg:py-16 lg:pl-[34%] lg:pr-[18%] overflow-hidden',
-        'rounded-2xl border-2 border-violet-neon/70 shadow-glow',
+        // v9 Home: the hero fills the laptop screen; the text block is centred a little right of the ghost.
+        'lg:min-h-[min(46vw,calc(100vh-72px))] px-4 pt-12 pb-[460px] lg:pt-6 lg:pb-16 lg:pl-[22%] lg:pr-[8%] overflow-hidden',
+        'v9-hero-frame rounded-[22px]',
         paused ? 'hero-paused' : '',
       ]
         .filter(Boolean)
@@ -92,8 +93,8 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
           type="button"
           onClick={() => setPaused((p) => !p)}
           aria-pressed={paused}
-          className="absolute right-3 top-3 z-[2] flex items-center gap-1.5 rounded-full border
-                     border-[var(--hero-pill-edge)] bg-[var(--hero-pill)] px-3 py-1.5 text-sm font-ui
+          className="absolute right-4 bottom-4 z-[2] flex min-h-11 items-center gap-1.5 rounded-full border
+                     border-[var(--hero-pill-edge)] bg-[var(--hero-pill)] px-4 py-1.5 text-base font-ui
                      font-semibold text-ink focus-visible:outline-none focus-visible:ring-[3px]
                      focus-visible:ring-violet-neon"
         >
@@ -109,16 +110,16 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
         data-page-title
         tabIndex={-1}
         className="mb-3 whitespace-nowrap leading-tight text-ink wordmark-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
-        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.25rem, 6vw, 4.75rem)', letterSpacing: '0.02em' }}
+        style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.75rem, 7.4vw, 7rem)', lineHeight: 1, letterSpacing: '3px' }}
       >
         <span className="wordmark-haunted">Haunted</span>{' '}<span className="wordmark-audit">Audit</span>
       </h1>
 
       {/* Tagline */}
-      <p className="text-xl font-semibold text-ink max-w-xl mb-2 font-ui">
+      <p className="v9-hero-text mt-3 max-w-3xl font-ui font-bold text-white" style={{ fontSize: 'clamp(1.125rem, 1.8vw, 1.625rem)' }}>
         The accessibility guardrail for AI-built applications.
       </p>
-      <p className="text-base text-ink mb-8 font-ui">
+      <p className="v9-hero-text v9-hero-sub mt-3 font-ui" style={{ fontSize: 'clamp(1rem, 1.3vw, 1.1875rem)' }}>
         Feel the barrier. Fix the cause. Prove the journey.
       </p>
 
@@ -128,8 +129,8 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
       <Link
         to={to}
         className={[
-          'flex items-center gap-3 px-12 py-4 rounded-full font-ui font-bold text-xl text-white',
-          'bg-[linear-gradient(var(--hero-cta-top),var(--hero-cta-bottom))] border-2 border-violet-neon',
+          'mt-8 flex min-h-[66px] items-center gap-4 px-11 rounded-[20px] font-ui font-bold text-2xl text-white',
+          'v9-cta',
           'hover:brightness-110 active:scale-95 transition-all duration-150 shadow-glow',
           // Only add the pulse class when motion is allowed
           reducedMotion ? '' : 'animate-glow-pulse',
@@ -146,13 +147,13 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
       {/* Audit pipeline pills — static labels, not interactive.
           Using <ul>/<li> so AT understands list semantics without hover confusion. */}
       <ul
-        className="flex flex-wrap items-center justify-center gap-2 mt-8 list-none p-0 m-0"
+        className="flex flex-wrap items-center justify-center gap-4 mt-8 list-none p-0 m-0"
         aria-label="Audit pipeline steps"
       >
         {PILL_STEPS.map(({ icon: Icon, label, tone }) => (
           <li
             key={label}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-ui font-semibold
+            className={`flex min-h-12 items-center gap-2.5 px-5 rounded-2xl text-lg font-ui font-semibold v9-chip-shadow
                        bg-[var(--hero-pill)] border text-ink ${label === 'Prevent' ? 'border-violet-neon shadow-glow' : 'border-[var(--hero-pill-edge)]'}`}
           >
             <Icon size={16} className={tone} aria-hidden="true" data-icon-role="step" />
