@@ -5,7 +5,7 @@
  * Shows the agent name, icon, and a list of outcomes (pass/fail rows).
  */
 
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 export interface AgentOutcome {
@@ -28,19 +28,15 @@ interface AgentCardProps {
 export function AgentCard({ name, icon, outcomes, isRunning = false, ariaLabel }: AgentCardProps) {
   return (
     <article
-      className="panel flex flex-col gap-3 p-4"
+      className="v9-card flex flex-col gap-3 p-4"
       aria-label={ariaLabel ?? `${name} results`}
     >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <span
-          className="w-7 h-7 flex items-center justify-center rounded-md
-                     bg-violet-600/20 border border-violet-600/40 text-base"
-          aria-hidden="true"
-        >
+        <span className="v9-agent-icon flex h-7 w-7 items-center justify-center" aria-hidden="true">
           {icon}
         </span>
-        <h3 className="text-base font-semibold font-ui text-ink">{name}</h3>
+        <h3 className="text-[1.0625rem] font-bold font-ui text-ink">{name}</h3>
         {isRunning && (
           <Loader2
             size={13}
@@ -57,23 +53,16 @@ export function AgentCard({ name, icon, outcomes, isRunning = false, ariaLabel }
         </p>
       )}
       {outcomes.length > 0 && (
-      <ul className="flex flex-col gap-1.5" aria-label={`${name} outcome list`}>
+      <ul className="flex flex-col gap-3" aria-label={`${name} outcome list`}>
         {outcomes.map((o, i) => (
-          <li key={i} className="flex items-start gap-2 text-base font-ui">
+          <li key={i} className="flex items-start gap-2.5 text-base font-ui">
+            {/* v9 status dots: filled green with a tick, filled red with a cross; the word is the label */}
             {o.passed ? (
-              <CheckCircle2
-                size={13}
-                className="text-ghost-verified shrink-0 mt-0.5"
-                aria-label="passed"
-              />
+              <span className="v9-dot v9-dot-ok"><Check size={14} strokeWidth={3} aria-label="passed" /></span>
             ) : (
-              <XCircle
-                size={13}
-                className="text-ghost-blocked shrink-0 mt-0.5"
-                aria-label="failed"
-              />
+              <span className="v9-dot v9-dot-bad"><X size={14} strokeWidth={3} aria-label="failed" /></span>
             )}
-            <span className={o.passed ? 'text-ink-muted' : 'text-ghost-blocked'}>
+            <span className={o.passed ? 'text-ink' : 'text-ink'}>
               {o.label}
               {o.detail && (
                 <span className="block text-base text-ink-faint mt-0.5">{o.detail}</span>

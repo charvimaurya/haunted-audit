@@ -5,7 +5,7 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Ghost, Ban, Mic } from 'lucide-react';
+import { Keyboard, Crosshair, Ban, Mic } from 'lucide-react';
 import { Link, useInRouterContext } from 'react-router-dom';
 import { to } from '../routes';
 import { ResultState } from './ResultState';
@@ -38,6 +38,17 @@ const TOOL_COLOR: Record<string, string> = {
 
 function toolColor(tool: string) {
   return TOOL_COLOR[tool] ?? 'text-ink-muted';
+}
+
+/** Voice steps for the timeline chips, from the voice run's own args: "type Recipient", "click Send Payment". */
+function voiceEvents(voice: JourneyResult | null): { step: number; text: string; ok: boolean }[] {
+  if (!voice) return [];
+  return voice.step_events.slice(-3).map((e) => {
+    const a = e.args as Record<string, unknown>;
+    const verb = e.tool === 'voice_type' ? 'type' : e.tool === 'voice_click' ? 'click' : e.tool === 'voice_go_to' ? 'go to' : 'say';
+    const name = typeof a.name === 'string' ? a.name : typeof a.command === 'string' ? a.command : '';
+    return { step: e.step, text: `${verb} ${name}`.trim(), ok: a.outcome === 'done' };
+  });
 }
 
 
@@ -89,32 +100,30 @@ export function GhostHuntSection({
     <section
       id="scans"
       aria-labelledby="ghost-hunt-heading"
-      className="panel overflow-hidden"
     >
-      {/* ── Header ──────────────────────────────────────────────────── */}
-      <div className="px-5 py-3 border-b border-base-line">
+      {/* ── Header (v9 panel title) ─────────────────────────────────── */}
+      <div className="pb-3">
         <h2
           id="ghost-hunt-heading"
-          className="text-base font-semibold font-ui text-ink"
+          className="text-[1.3rem] font-extrabold font-ui text-ink"
         >
-          The Ghost Hunt —{' '}
-          <span className="text-ink-muted font-normal">Agent Investigation</span>
+          The Ghost Hunt — Agent Investigation
         </h2>
         <div className="mt-1">
           <ResultState result={result} apiStatus={apiStatus} isRunning={isRunning} hint="Run a journey to see what each agent found." />
         </div>
       </div>
 
-      <div className="p-4 grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_auto] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ── Agent cards ─────────────────────────────────────────── */}
         <AgentCard
           name="Keyboard Agent"
-          icon={<Keyboard size={14} />}
+          icon={<Keyboard size={26} className="v9-icon-violet" />}
           isRunning={isRunning}
           outcomes={keyboardOutcomes(result)}
         />
         <div className="flex flex-col gap-2">
-          <AgentCard name="Voice Agent" ariaLabel="Voice Agent" icon={<Mic size={14} />} outcomes={voiceOutcomes(voiceResult)} />
+          <AgentCard name="Voice Agent" ariaLabel="Voice Agent" icon={<Mic size={26} className="v9-icon-violet" />} outcomes={voiceOutcomes(voiceResult)} />
           <p className="m-0 px-1 text-base font-ui text-ink-muted">
             Commands are spoken or typed on{' '}
             {inRouter ? (
@@ -132,66 +141,67 @@ export function GhostHuntSection({
         </div>
         <AgentCard
           name="Ghost Hunter"
-          icon={<Ghost size={14} />}
+          icon={<Crosshair size={26} className="v9-icon-violet" />}
           outcomes={hunterOutcomes(result)}
         />
 
-        {/* ── Live step timeline ───────────────────────────────────── */}
-        <div
-          className="panel p-3 min-w-[160px]"
-          aria-label="Live step timeline"
-          aria-live="polite"
-          aria-atomic="false"
-        >
-          <p className="text-base font-ui text-ink-faint uppercase tracking-widest mb-2">
-            Live steps
-          </p>
-          {displayEvents.length === 0 ? (
-            <p className="text-base text-ink-faint font-ui">
-              {isRunning ? 'Waiting…' : 'No steps yet'}
-            </p>
-          ) : (
-            <ol className="flex flex-col gap-1">
-              {displayEvents.map((ev) => (
-                <li key={ev.step} className="flex items-center gap-1.5 text-base font-mono">
-                  <span className="text-ink-faint tabular-nums w-5 text-right shrink-0">
-                    {ev.step}
-                  </span>
-                  <span className={toolColor(ev.tool)}>{ev.tool}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+      </div>
+
+      {/* ── Live timeline (v9: one row of chips under the cards; keyboard steps, then voice steps) ── */}
+      <div
+        className="mt-3 flex flex-wrap items-center gap-2"
+        aria-label="Live step timeline"
+        aria-live="polite"
+        aria-atomic="false"
+      >
+        <span className="text-base font-ui text-v9-mute">Live timeline:</span>
+        {displayEvents.length === 0 && voiceEvents(voiceResult).length === 0 ? (
+          <span className="text-base text-ink-faint font-ui">{isRunning ? 'Waiting…' : 'No steps yet'}</span>
+        ) : (
+          <ol className="m-0 flex list-none flex-wrap gap-2 p-0">
+            {displayEvents.slice(-4).map((ev) => (
+              <li key={`k${ev.step}`} className="v9-tl-chip flex items-center gap-1.5 font-mono">
+                <Keyboard size={14} aria-hidden="true" />
+                <span className="sr-only">Keyboard step {ev.step}: </span>
+                <span className={toolColor(ev.tool)}>{ev.tool}</span>
+              </li>
+            ))}
+            {voiceEvents(voiceResult).map((v) => (
+              <li key={`v${v.step}`} className={`v9-tl-chip flex items-center gap-1.5 font-mono ${v.ok ? 'v9-tl-ok' : 'v9-tl-bad'}`}>
+                <Mic size={14} aria-hidden="true" />
+                <span className="sr-only">Voice step {v.step}{v.ok ? '' : ', did not work'}: </span>
+                <span>{v.text}</span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
       {/* ── Critical Ghost Detected: only for a BLOCKED finding, every line from the run ── */}
       {finding && result?.blocked_element && (
         <div
-          className="mx-4 mb-4 flex items-start gap-3 px-4 py-3 rounded-xl
-                     bg-ghost-blocked/10 border border-ghost-blocked/50"
+          className="v9-crit mt-4 flex items-center gap-5 px-5 py-4 rounded-2xl"
           role="alert"
           aria-live="assertive"
         >
-          <GhostMascot state="blocked" size={36} animate className="mt-0.5 shrink-0" />
+          <GhostMascot state="blocked" size={84} animate className="shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold font-ui text-ghost-blocked mb-0.5">Critical Ghost Detected</p>
-            <p className="text-base font-ui text-ink-muted">Barrier: {finding.barrier}</p>
-            <p className="text-base font-ui text-ink-muted">Impact: {finding.impact}</p>
-            <p className="text-base font-mono text-ink-muted mt-1">WCAG: {finding.wcag}</p>
+            <p className="text-xl font-extrabold font-ui text-v9-bad-hi mb-1">Critical Ghost Detected</p>
+            <p className="text-base font-ui text-ink">Barrier: {finding.barrier}</p>
+            <p className="text-base font-ui text-ink">Impact: {finding.impact}</p>
+            <p className="text-base font-ui text-ink">WCAG: {finding.wcag}</p>
             <p className="text-base font-ui text-ink-faint mt-1">
               From the checker, {result.agent_mode} mode, {result.variant} page.
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span
-              className="px-3 py-1 rounded-full text-base font-ui font-medium
-                         bg-ghost-blocked/20 border border-ghost-blocked/50 text-ghost-blocked"
-            >
-              <span className="sr-only">Blocked element: </span>
-              {finding.element}
+          {/* v9: a small picture of the blocked control */}
+          <div className="v9-thumb hidden shrink-0 flex-col justify-end gap-2 rounded-xl p-3 sm:flex">
+            <span className="v9-thumb-line" aria-hidden="true" />
+            <span className="v9-thumb-line w-3/4" aria-hidden="true" />
+            <span className="v9-thumb-btn flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-base font-ui font-bold">
+              <span><span className="sr-only">Blocked element: </span>{finding.element}</span>
+              <Ban size={20} aria-hidden="true" />
             </span>
-            <Ban size={20} className="text-ghost-blocked" aria-hidden="true" />
           </div>
         </div>
       )}

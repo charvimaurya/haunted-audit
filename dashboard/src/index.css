@@ -185,6 +185,17 @@ body{background:radial-gradient(90% 60% at 50% -10%,#1c1240 0%,var(--v9-page) 60
 html[data-contrast='high'] .v9-parch{clip-path:none}
 html[data-contrast='high'] .v9-tile{box-shadow:none}
 
+/* ── UI v9 Agents (design/v9 .acard, .tl, .crit, .thumb) ── */
+.v9-agent-icon{color:var(--v9-violet-neon)}
+.v9-icon-violet{color:var(--v9-violet-neon);filter:drop-shadow(0 0 6px #a855f7aa)}
+.v9-tl-chip{min-height:32px;padding:0 10px;border-radius:999px;background:#151a33;border:1px solid var(--v9-card-line);font-size:1rem;color:#cfd3f5}
+.v9-tl-ok{color:#86efac;border-color:#22c55e55}
+.v9-tl-bad{color:#ff8a8a;border-color:#ff6b6b55}
+.v9-crit{background:linear-gradient(90deg,#3a0d18,#200a14);border:1.5px solid #ef4444aa;box-shadow:0 0 24px #ef444444}
+.v9-thumb{width:220px;background:linear-gradient(180deg,#1a1f38,#121630);border:1px solid var(--v9-card-line)}
+.v9-thumb-line{display:block;height:8px;border-radius:4px;background:#2b3254}
+.v9-thumb-btn{border:2px solid #ff6b6b;color:#ffd5d5;background:#2a0f18}
+
 /* Decorative motion sits under the controls and cannot take clicks or focus. */
 .ambient-layer {
   position: absolute;
