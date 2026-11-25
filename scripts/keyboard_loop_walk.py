@@ -66,9 +66,11 @@ def main() -> int:
         pg.wait_for_selector("h1")
         pg.wait_for_load_state("networkidle")
 
-        print("1. Possession: type the recipient, Run Journey with Enter")
-        tab_to(pg, "Recipient name")
+        print("1. Possession: type the test details, Run Journey with Enter")
+        tab_to(pg, "Recipient")  # the Test details form comes before the bank drawing's own Recipient field
         pg.keyboard.type("Test Recipient")
+        tab_to(pg, "Amount (EUR)")
+        pg.keyboard.type("10.00")
         tab_to(pg, "Run Journey")
         pg.keyboard.press("Enter")
         pg.get_by_role("button", name="Running…").wait_for(timeout=10_000)
@@ -95,7 +97,7 @@ def main() -> int:
             fail("the exorcism animates with reduced motion on")
 
         print("3. Verify with Enter: keyboard and voice on the patched copy")
-        tab_to(pg, "Verify on a patched copy")
+        tab_to(pg, "Replay both journeys")
         pg.keyboard.press("Enter")
         pg.wait_for_function(
             "() => /Voice-command simulation: (VERIFIED|Not verified|The run failed)/.test(document.body.innerText)",
@@ -120,7 +122,7 @@ def main() -> int:
         pg.keyboard.press("Tab")
 
         print("5. Regression with Enter: the bug put back on a copy")
-        tab_to(pg, "Put the bug back and check")
+        tab_to(pg, "Put the bug back and run both tests")
         pg.keyboard.press("Enter")
         pg.wait_for_function(
             "() => /(Voice: not counted|FAILED \\(voice\\)|PASSED \\(voice\\))/.test(document.body.innerText)",
