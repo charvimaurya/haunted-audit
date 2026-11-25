@@ -50,6 +50,8 @@ export interface FixValue {
   verifyResult: JourneyResult | null;
   /** The Verifier's finished voice run on the patched copy (its steps fill the voice row). */
   voiceVerifyResult?: JourneyResult | null;
+  /** The finished voice run on the copy with the bug put back (its failed step gives the FAILED line). */
+  regressionVoiceResult?: JourneyResult | null;
   busy: boolean;
   /** One plain sentence when the last action was refused or the API did not answer. */
   error: string | null;

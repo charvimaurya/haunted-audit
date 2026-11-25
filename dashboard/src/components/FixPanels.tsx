@@ -8,7 +8,8 @@ import { CodeBlock } from './CodeBlock';
 import { GhostMascot } from './GhostMascot';
 import { ExorcismMoment } from './ExorcismMoment';
 import { ResultState } from './ResultState';
-import { VerifierEvidence } from './VerifierEvidence';
+import { VerifierEvidence, firstVoiceFailure } from './VerifierEvidence';
+import { GhostGlyph } from './GhostGlyph';
 import type { FixValue } from '../fixes/fixContext';
 import type { ApiStatus } from '../runs/runContext';
 import type { JourneyResult } from '../types';
@@ -126,7 +127,8 @@ function MarkRow({ mark, children }: { mark: Mark; children: React.ReactNode }) 
       {mark === 'busy' && <Loader2 size={18} className="mt-0.5 shrink-0 motion-safe:animate-spin" aria-hidden="true" />}
       {mark === 'pending' && <CircleDashed size={18} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />}
       <span className="sr-only">{word}: </span>
-      <span>{children}</span>
+      {/* v9 also ticks a done row after its text; the tick is CSS with empty alt text, so it is not read out twice. */}
+      <span className={mark === 'yes' ? 'row-tick' : undefined}>{children}</span>
     </li>
   );
 }
@@ -190,7 +192,7 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
       ) : !fix.verify ? (
         <button type="button" onClick={() => void flow.verify()} disabled={busy}
           className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
-          Verify on a patched copy
+          Replay both journeys
         </button>
       ) : fix.verify.status === 'complete' && fix.verify.verdict ? (
         <div role="status" className="flex flex-col gap-2">
@@ -225,14 +227,26 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
   );
 }
 
+/** The returning ghost, caught: white as in v9 (team-rules default, 24 Nov). Decorative; the words say it. */
+function CaughtGhost() {
+  return (
+    <span className="inline-flex shrink-0 text-ghost-caught" data-ghost-caught="true" aria-hidden="true"
+      style={{ filter: 'drop-shadow(0 0 6px currentColor)' }}>
+      <GhostGlyph size={36} />
+    </span>
+  );
+}
+
 export function RegressionPanel({ flow }: { flow: FixValue }) {
-  const { fix, busy } = flow;
+  const { fix, busy, regressionVoiceResult } = flow;
   const verified = fix?.verify?.verdict === 'PASSED';
   const g = fix?.regression;
   const caught = g?.verdict === 'BLOCKED';
   const reintroduced: Mark = g ? (g.status === 'running' ? 'busy' : 'yes') : 'pending';
   const gv = fix?.regression_voice;
   const voiceVerified = fix?.verify_voice?.status === 'complete' && fix.verify_voice.verdict === 'PASSED';
+  const ran = (r: typeof g): Mark => (r ? (r.status === 'running' ? 'busy' : 'yes') : 'pending');
+  const voiceWhy = firstVoiceFailure(regressionVoiceResult);
   return (
     <div className={`panel p-4 flex flex-col gap-3 ${caught ? 'border-ghost-blocked/70' : ''}`}>
       <div className="flex items-start justify-between gap-2">
@@ -240,13 +254,13 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
           <span className="font-semibold text-ghost-blocked">Regression Guard</span>{' '}
           <span className="text-ink-muted">(The Returning Ghost)</span>
         </p>
-        {caught && <GhostMascot state="blocked" size={44} animate={false} className="shrink-0" />}
+        {caught && <GhostMascot state="blocked" size={56} animate={false} className="shrink-0" />}
       </div>
       <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Regression steps" aria-live="polite">
         <MarkRow mark={reintroduced}>Bug reintroduced on purpose</MarkRow>
-        <MarkRow mark={reintroduced}>
-          <span className="font-mono">reintroduced.html</span> (a copy of the bank)
-        </MarkRow>
+        {/* What ran on the copy with the bug put back. v9 shows test file names; these are the real journeys. */}
+        <MarkRow mark={ran(g)}>Keyboard journey</MarkRow>
+        {gv && <MarkRow mark={ran(gv)}>Voice-command simulation</MarkRow>}
         {g?.status === 'complete' && g.verdict && (
           <MarkRow mark={caught ? 'no' : 'yes'}>
             <span className={`font-mono ${caught ? 'text-ghost-blocked' : ''}`}>
@@ -254,12 +268,11 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
             </span>
           </MarkRow>
         )}
-        {gv?.status === 'running' && <MarkRow mark="busy">Voice-command check</MarkRow>}
         {gv?.status === 'complete' && gv.verdict && voiceVerified && (
           <MarkRow mark={gv.verdict === 'BLOCKED' ? 'no' : 'yes'}>
             <span className={`font-mono ${gv.verdict === 'BLOCKED' ? 'text-ghost-blocked' : ''}`}>
               {gv.verdict === 'BLOCKED'
-                ? `FAILED (voice): Send Payment could not be activated (${gv.reason_code})`
+                ? `FAILED (voice): ${voiceWhy ?? `Send Payment could not be activated (${gv.reason_code})`}`
                 : 'PASSED (voice): the bug was not caught'}
             </span>
           </MarkRow>
@@ -273,13 +286,13 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
       ) : !g ? (
         <button type="button" onClick={() => void flow.regression()} disabled={busy}
           className={`${BTN} border-ghost-blocked/60 bg-ghost-blocked/15 text-ink hover:bg-ghost-blocked/25`}>
-          Put the bug back and check
+          Put the bug back and run both tests
         </button>
       ) : g.status === 'error' ? (
         <Note>The run failed, so no result is shown. {g.error}</Note>
       ) : caught ? (
         <div role="status" className="flex items-center gap-3 rounded-lg border border-base-line p-3">
-          <GhostMascot state="ready" size={36} animate={false} />
+          <CaughtGhost />
           <p className="m-0 text-base font-ui font-bold text-ink">
             The ghost is back.
             <br />

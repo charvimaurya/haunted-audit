@@ -68,7 +68,7 @@ describe('fix panels', () => {
     await user.keyboard(' ');
     expect(await screen.findByText(/Approved by demo user/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Approve Fix' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Verify on a patched copy' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Replay both journeys' })).toBeTruthy();
     expect(calls.find((c) => c.startsWith('POST /fixes/f1/approve'))).toContain(`"diff_sha256":"${'a'.repeat(64)}"`);
   });
 

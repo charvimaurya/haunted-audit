@@ -31,6 +31,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<JourneyResult | null>(null);
   const [voiceVerifyResult, setVoiceVerifyResult] = useState<JourneyResult | null>(null);
+  const [regressionVoiceResult, setRegressionVoiceResult] = useState<JourneyResult | null>(null);
   const runId = result?.run_id ?? null;
   const fixRef = useRef<Fix | null>(null);
   useEffect(() => {
@@ -42,6 +43,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     setError(null);
     setVerifyResult(null);
     setVoiceVerifyResult(null);
+    setRegressionVoiceResult(null);
   }, [runId]);
 
   // When the Verifier's run is finished, read its steps once for the checklist.
@@ -71,6 +73,20 @@ export function FixProvider({ children }: { children: ReactNode }) {
       live = false;
     };
   }, [voiceRunId]);
+
+  // And for the voice run on the copy with the bug put back.
+  const regressionVoiceRunId = fix?.regression_voice?.status === 'complete' ? fix.regression_voice.run_id : null;
+  useEffect(() => {
+    if (!regressionVoiceRunId) return;
+    let live = true;
+    void call(`/runs/${regressionVoiceRunId}`).then((r) => {
+      const rec = r.data as { result?: JourneyResult | null } | null;
+      if (live && r.ok) setRegressionVoiceResult(rec?.result ?? null);
+    }).catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [regressionVoiceRunId]);
 
   const act = useCallback(async (path: string, body?: unknown, thenRead = false) => {
     setBusy(true);
@@ -130,8 +146,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   }, [fix, running]);
 
   const value = useMemo<FixValue>(
-    () => ({ fix, verifyResult, voiceVerifyResult, busy, error, propose, approve, reject, verify, regression }),
-    [fix, verifyResult, voiceVerifyResult, busy, error, propose, approve, reject, verify, regression],
+    () => ({ fix, verifyResult, voiceVerifyResult, regressionVoiceResult, busy, error, propose, approve, reject, verify, regression }),
+    [fix, verifyResult, voiceVerifyResult, regressionVoiceResult, busy, error, propose, approve, reject, verify, regression],
   );
   return <FixContext.Provider value={value}>{children}</FixContext.Provider>;
 }
