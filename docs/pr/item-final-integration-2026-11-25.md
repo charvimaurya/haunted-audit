@@ -50,3 +50,7 @@ Reviewer agent (read-only, different model), range `ab6fdac..a3b7af7`. Verdict b
 
 Not Done: nothing in this integration is marked Done. Items 1 to 5 are Built, not Done; item 12 and PR #17 wait
 for their review; the Reference field waits for Shilpa's written approval.
+
+**Re-review** of the fixes (`dd11fd2`, `fde2af2`), Reviewer agent, read-only: all four fixed findings resolved;
+every number in this file traced to its log; the 20-page count matches `routes.ts` and `axe-pages.e2e.ts`.
+Verdict: **No serious issue open.**
