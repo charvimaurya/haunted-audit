@@ -62,17 +62,14 @@ function StepTab({
       tabIndex={0}
       onClick={() => onSelect?.(step)}
       className={[
-        'flex items-center gap-2 px-4 py-2 rounded-full text-base font-ui font-medium',
+        'flex min-h-11 items-center gap-2.5 px-5 rounded-full text-base font-ui font-semibold',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-        active
-          ? 'bg-violet-600 text-white shadow-glow'
-          : 'bg-base-surface text-ink-muted border border-base-line',
+        active ? 'v9-step-on' : 'v9-step',
       ].join(' ')}
     >
       <span
         className={[
-          'w-5 h-5 rounded-full flex items-center justify-center text-base font-bold shrink-0',
-          active ? 'bg-white/20' : 'bg-base-line',
+          'v9-step-n w-6 h-6 rounded-full flex items-center justify-center text-base font-bold shrink-0',
         ].join(' ')}
         aria-hidden="true"
       >
@@ -136,14 +133,16 @@ export function PipelineSection({
   return (
     <section id="fixes" aria-labelledby="pipeline-heading" className="flex flex-col gap-4">
       {/* Visible section heading at small size (not sr-only, helps orientation) */}
-      <h2 id="pipeline-heading" className="text-base font-ui font-semibold text-ink-faint uppercase tracking-widest">
+      {/* v9 has no visible label here; the heading stays for screen readers and the region name. */}
+      <h2 id="pipeline-heading" className="sr-only">
         Audit Pipeline
       </h2>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Audit pipeline steps">
         {([1, 2, 3, 4] as PipelineStep[]).map((s) => (
           <span key={s} className="flex items-center gap-2">
-            {s > 1 && <ArrowRight size={18} className="text-ink-faint" aria-hidden="true" />}
+            {s > 1 && <span className="v9-step-arrow hidden sm:block" aria-hidden="true" />}
+            {s > 1 && <ArrowRight size={18} className="text-ink-faint sm:hidden" aria-hidden="true" />}
             <StepTab step={s} active={s === activeStep} onSelect={onSelectStep} />
           </span>
         ))}

@@ -3,7 +3,7 @@
  * Every state comes from GET /fixes/{id}. "Verified" and "caught" are shown only when the checker measured them
  * on a copy of the bank. Buttons are real <button>s; results are announced in a polite live region.
  */
-import { CheckCircle2, CircleDashed, Loader2, Mic, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, CircleDashed, Loader2, Mic, X, XCircle } from 'lucide-react';
 import { CodeBlock } from './CodeBlock';
 import { GhostMascot } from './GhostMascot';
 import { ExorcismMoment } from './ExorcismMoment';
@@ -45,9 +45,9 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
   const { fix, busy } = flow;
   const blocked = result && !isRunning && result.verdict === 'BLOCKED' && (result.agent_kind ?? 'keyboard') === 'keyboard';
   return (
-    <div className="panel p-4 flex flex-col gap-3">
-      <p className="m-0 text-base font-ui text-ink">
-        <span className="font-semibold">Proposed Fix</span> <span className="text-ink-muted">(by Exorcist Agent)</span>
+    <div className="v9-card v9-fcard flex flex-col gap-3 px-4 pb-4">
+      <p className="v9-fhead m-0 -mx-4 px-4 py-3 text-base font-ui text-ink">
+        <span className="font-bold">Proposed Fix</span> <span className="text-v9-mute">(by Exorcist Agent)</span>
       </p>
       {blocked && result?.blocked_element && (
         <p className="m-0 text-base font-ui text-ink-muted">
@@ -63,7 +63,7 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
         <>
           <Note>No fix proposed yet for this run.</Note>
           <button type="button" onClick={() => void flow.propose()} disabled={busy}
-            className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
+            className={`${BTN} v9-btn v9-btn-violet`}>
             Propose a fix (scripted Exorcist)
           </button>
         </>
@@ -75,7 +75,8 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
       ) : (
         <>
           <p className="m-0 text-base font-ui text-ink">{fix.reason}</p>
-          {fix.diff && <CodeBlock lines={diffLines(fix.diff)} ariaLabel="Proposed fix, as a diff" />}
+          {/* v9 shows only the lines that change; the unchanged context lines are left out (the change is the same). */}
+          {fix.diff && <CodeBlock lines={diffLines(fix.diff).filter((l) => l.type !== ' ')} ariaLabel="Proposed fix, as a diff" />}
           <p className="m-0 text-base font-ui text-ink-muted">
             {fix.exorcist_mode} Exorcist · {fix.changed_lines ?? '--'} lines changed · tokens{' '}
             {fix.input_tokens ?? '--'} in, {fix.output_tokens ?? '--'} out · cost {fix.cost_usd ?? '--'} USD ·{' '}
@@ -84,12 +85,12 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow }: Props) 
           {fix.status === 'proposed' ? (
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => void flow.approve()} disabled={busy}
-                className={`${BTN} border-ghost-verified/60 bg-ghost-verified/15 text-ghost-verified hover:bg-ghost-verified/25`}>
+                className={`${BTN} v9-btn v9-btn-green`}>
                 <CheckCircle2 size={16} aria-hidden="true" />
                 Approve Fix
               </button>
               <button type="button" onClick={() => void flow.reject()} disabled={busy}
-                className={`${BTN} border-base-line bg-base-surface text-ink hover:border-violet-neon`}>
+                className={`${BTN} v9-btn v9-btn-grey`}>
                 <XCircle size={16} aria-hidden="true" />
                 Reject
               </button>
@@ -122,10 +123,11 @@ function MarkRow({ mark, children }: { mark: Mark; children: React.ReactNode }) 
   const word = mark === 'yes' ? 'Done' : mark === 'no' ? 'Not done' : mark === 'busy' ? 'Running' : 'Not run yet';
   return (
     <li className="flex items-start gap-2 text-base font-ui text-ink">
-      {mark === 'yes' && <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-ghost-verified" aria-hidden="true" />}
-      {mark === 'no' && <XCircle size={18} className="mt-0.5 shrink-0 text-ghost-blocked" aria-hidden="true" />}
-      {mark === 'busy' && <Loader2 size={18} className="mt-0.5 shrink-0 motion-safe:animate-spin" aria-hidden="true" />}
-      {mark === 'pending' && <CircleDashed size={18} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />}
+      {/* v9 status dots; the sr-only word says the state */}
+      {mark === 'yes' && <span className="v9-dot v9-dot-ok" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
+      {mark === 'no' && <span className="v9-dot v9-dot-bad" aria-hidden="true"><X size={14} strokeWidth={3} /></span>}
+      {mark === 'busy' && <Loader2 size={22} className="shrink-0 motion-safe:animate-spin" aria-hidden="true" />}
+      {mark === 'pending' && <span className="v9-dot v9-dot-wait" aria-hidden="true" />}
       <span className="sr-only">{word}: </span>
       {/* v9 also ticks a done row after its text; the tick is CSS with empty alt text, so it is not read out twice. */}
       <span className={mark === 'yes' ? 'row-tick' : undefined}>{children}</span>
@@ -167,9 +169,9 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
   const voicePassed = fix?.verify_voice?.status === 'complete' && fix.verify_voice.verdict === 'PASSED';
   const marks = verifyMarks(fix, verifyResult);
   return (
-    <div className={`panel p-4 flex flex-col gap-3 ${passed ? 'border-ghost-verified/70' : ''}`}>
-      <p className="m-0 text-base font-ui text-ink">
-        <span className="font-semibold">Verification</span> <span className="text-ink-muted">(by Verifier Agent)</span>
+    <div className={`v9-card v9-fcard flex flex-col gap-3 px-4 pb-4 ${passed ? 'v9-fcard-ok' : ''}`}>
+      <p className="v9-fhead m-0 -mx-4 px-4 py-3 text-base font-ui text-ink">
+        <span className="font-bold">Verification</span> <span className="text-v9-mute">(by Verifier Agent)</span>
       </p>
       <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Verification steps" aria-live="polite">
         {marks.slice(0, 3).map((r) => (
@@ -191,7 +193,7 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
         <Note>The fix was {fix.status === 'rejected' ? 'rejected' : 'not proposed'}, so there is nothing to verify.</Note>
       ) : !fix.verify ? (
         <button type="button" onClick={() => void flow.verify()} disabled={busy}
-          className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
+          className={`${BTN} v9-btn v9-btn-violet`}>
           Replay both journeys
         </button>
       ) : fix.verify.status === 'complete' && fix.verify.verdict ? (
@@ -248,11 +250,11 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
   const ran = (r: typeof g): Mark => (r ? (r.status === 'running' ? 'busy' : 'yes') : 'pending');
   const voiceWhy = firstVoiceFailure(regressionVoiceResult);
   return (
-    <div className={`panel p-4 flex flex-col gap-3 ${caught ? 'border-ghost-blocked/70' : ''}`}>
-      <div className="flex items-start justify-between gap-2">
+    <div className={`v9-card v9-fcard flex flex-col gap-3 px-4 pb-4 ${caught ? 'v9-fcard-bad' : ''}`}>
+      <div className="v9-fhead -mx-4 flex items-start justify-between gap-2 px-4 py-3">
         <p className="m-0 text-base font-ui text-ink">
-          <span className="font-semibold text-ghost-blocked">Regression Guard</span>{' '}
-          <span className="text-ink-muted">(The Returning Ghost)</span>
+          <span className="font-bold text-v9-bad-hi">Regression Guard</span>{' '}
+          <span className="text-ink">(The Returning Ghost)</span>
         </p>
         {caught && <GhostMascot state="blocked" size={56} animate={false} className="shrink-0" />}
       </div>
@@ -286,7 +288,7 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
         <Note>Runs after the fix is verified.</Note>
       ) : !g ? (
         <button type="button" onClick={() => void flow.regression()} disabled={busy}
-          className={`${BTN} border-ghost-blocked/60 bg-ghost-blocked/15 text-ink hover:bg-ghost-blocked/25`}>
+          className={`${BTN} v9-btn v9-btn-danger`}>
           Put the bug back and run both tests
         </button>
       ) : g.status === 'error' ? (

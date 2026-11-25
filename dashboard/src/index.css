@@ -211,6 +211,17 @@ html[data-contrast='high'] .v9-tile{box-shadow:none}
 .v9-icon-amber{color:#fb923c}
 .v9-built{background:linear-gradient(180deg,#3b1f86,#26135a);border:1.5px solid #b794ff;box-shadow:0 0 16px #8b5cf688}
 
+/* ── UI v9 Fixes (design/v9 .strip, .fcard, .fbtns) ── */
+.v9-fhead{border-bottom:1px solid var(--v9-card-line);background:#ffffff06;border-radius:16px 16px 0 0}
+.v9-fcard-ok{border-color:#a78bfa;box-shadow:0 0 22px #7c3aed55}
+.v9-fcard-bad{border-color:#ff6b6b;box-shadow:0 0 22px #ef444455,inset 0 0 30px #ef444418}
+.v9-step{background:#121731;border:1.5px solid #343c66;color:#dfe3ff}
+.v9-step .v9-step-n{border:1.5px solid #c4b5fd;color:#e9e2ff}
+.v9-step-on{background:linear-gradient(180deg,#5b2fd0,#3d1ba0);border:1.5px solid #c4b5fd;color:#fff;box-shadow:0 0 18px #8b5cf6aa}
+.v9-step-on .v9-step-n{background:#ffffff26;border:1.5px solid #fff}
+.v9-step-arrow{width:44px;height:2px;background:#4b5280;position:relative}
+.v9-step-arrow::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid #4b5280}
+
 /* Decorative motion sits under the controls and cannot take clicks or focus. */
 .ambient-layer {
   position: absolute;
