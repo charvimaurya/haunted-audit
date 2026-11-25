@@ -22,7 +22,7 @@ Meet Emma (a persona, not a real customer). She can't use a mouse: some days she
 
 Focus jumps straight past it. She tries her voice instead and says "click Send Payment". Nothing happens. The button looks perfect. It just isn't a button, and it has no name a voice command can find. Emma can't pay.
 
-Emma is not rare. In 2026, WebAIM tested the top one million home pages and found detectable WCAG failures on **95.9%** of them, about **56 errors** per page. And AI now writes more and more of the code that ships those pages, faster than anyone can test by hand.
+Emma is not rare. In 2026, WebAIM tested the top one million home pages and found detectable WCAG failures on **95.9%** of them, about **56 errors** per page. (Source: [WebAIM Million, February 2026](https://webaim.org/projects/million/): "95.9% of home pages had detected WCAG 2 failures", "an average of 56.1 errors per page"; checked 25 Nov 2026.) And AI now writes more and more of the code that ships those pages, faster than anyone can test by hand.
 
 So we built a test bank and planted **six** real barriers in it. Then we ran an industry-standard scanner (axe-core) on it. It found three:
 
