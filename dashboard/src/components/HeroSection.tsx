@@ -93,7 +93,7 @@ export function HeroSection({ to = routeTo('try') }: HeroSectionProps) {
           onClick={() => setPaused((p) => !p)}
           aria-pressed={paused}
           className="absolute right-3 top-3 z-[2] flex items-center gap-1.5 rounded-full border
-                     border-[var(--hero-pill-edge)] bg-[var(--hero-pill)] px-3 py-1.5 text-sm font-ui
+                     border-[var(--hero-pill-edge)] bg-[var(--hero-pill)] px-3 py-1.5 text-base font-ui
                      font-semibold text-ink focus-visible:outline-none focus-visible:ring-[3px]
                      focus-visible:ring-violet-neon"
         >
