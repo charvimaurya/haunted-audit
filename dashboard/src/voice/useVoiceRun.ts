@@ -16,6 +16,10 @@ export interface VoiceStep {
   message: string;
   outcome: VoiceStepOutcome;
   element?: { tag?: string; text?: string } | null;
+  /** From the step's args (data-contract.md, voice run): the tool, the field or control name, and typed text. */
+  tool?: string;
+  name?: string;
+  text?: string;
 }
 
 export type VoiceRunPhase = 'idle' | 'running' | 'finished' | 'failed' | 'refused' | 'offline';
@@ -38,6 +42,9 @@ function toStep(e: StepEvent): VoiceStep {
     message: typeof a.message === 'string' ? a.message : e.tool,
     outcome: outcome === 'done' || outcome === 'not_understood' ? outcome : 'failed',
     element: (a.element as VoiceStep['element']) ?? null,
+    tool: e.tool,
+    name: typeof a.name === 'string' ? a.name : undefined,
+    text: typeof a.text === 'string' ? a.text : undefined,
   };
 }
 

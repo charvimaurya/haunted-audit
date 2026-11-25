@@ -216,6 +216,8 @@ from agent.voice_agent.grammar import expand_payment  # noqa: E402
     ("send money to Ann and one hundred and fifty dollars", ['type "Ann" in Recipient', "type 150.00 in Amount", "click Send Payment"]),
     ("pay twenty-five euros to Ann", ['type "Ann" in Recipient', "type 25.00 in Amount", "click Send Payment"]),
     ("send money to Sam and Ann", ['type "Sam and Ann" in Recipient']),  # "and" alone is not a number
+    ("Send money to Sam hundred.00", ['type "Sam" in Recipient', "type 100.00 in Amount", "click Send Payment"]),  # seen from Chrome
+    ("send fifty.50 to Ann", ['type "Ann" in Recipient', "type 50.50 in Amount", "click Send Payment"]),
 ])
 def test_expand_payment(text, expected):
     assert expand_payment(text) == expected

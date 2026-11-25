@@ -12,7 +12,7 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 **REQ-TD-01: Run setup form.**
 - Before a run, Possession Mode and the Try page show a "Test details" group with three labelled, empty fields: Recipient, Amount, Reference. The hint "Use made-up details. This is a test bank." is under the group heading.
 - Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 10.00", "Optional, e.g. Test payment". No placeholder looks like a real person.
-- No field is ever filled in by the app.
+- No field is ever filled in by the app. One exception (owner, 24 Nov 2026): as a voice run's steps arrive, a field shows the text the voice agent typed into it, read only from that run's successful (`outcome: "done"`) `voice_type` steps (what the tester said and the page accepted; a failed `voice_type` step never fills a field). Once the tester has typed into a field by hand, no later voice step may overwrite it for the rest of that page visit (owner, 25 Nov 2026: manual edits are never overwritten by streamed events or a final run record).
 - Reference is optional. Recipient and Amount are required.
 - Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-008: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
 

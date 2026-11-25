@@ -177,7 +177,8 @@ def _words_value(words: list[str]) -> int | None:
 def _number_words_to_digits(text: str) -> str:
     """Rewrite each run of spoken number words as digits: 'Sam Lee hundred dollars' -> 'Sam Lee 100 dollars'.
     A run must hold at least one number word; 'a', 'an' and 'and' only count inside a run."""
-    tokens = text.split()
+    # Chrome sometimes writes "hundred.00" or "fifty.50": keep the cents, read the words.
+    tokens = re.sub(r"\b([A-Za-z]+(?:-[A-Za-z]+)*)\.(\d{1,2})\b", r"\1 .\2", text).split()
     out: list[str] = []
     i = 0
     number = set(_ONES) | set(_TENS) | set(_SCALES)
@@ -196,8 +197,9 @@ def _number_words_to_digits(text: str) -> str:
             j -= 1
         value = _words_value(run) if run else None
         if value is not None and any(w in number for w in run):
-            out.append(str(value))
-            i = j
+            cents = tokens[j] if j < len(tokens) and re.fullmatch(r"\.\d{1,2}", tokens[j]) else ""
+            out.append(f"{value}{cents}")
+            i = j + (1 if cents else 0)
         else:
             out.append(tokens[i])
             i += 1
