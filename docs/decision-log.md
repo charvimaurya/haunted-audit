@@ -35,3 +35,9 @@ One entry per decision. Facts only. Each entry names the files that hold the evi
 **Why.** A deploy job that fails on every push to `main` hides real failures. The staging spec (`.kiro/specs/staging-deployment/`) names a different target. The dashboard is not published anywhere today.
 **Not known.** Whether Pages will be enabled later. If it is, add a new workflow then.
 **Revisit when.** The staging deploy exists or Pages is switched on.
+
+## 2026-11-25: Team defaults applied (`.kiro/steering/team-rules.md`)
+
+- 2026-11-25: Fix-step buttons read "Replay both journeys" (Verify) and "Put the bug back and run both tests" (regression check), default from v9 (`design/v9/05-fixes.html`); open for Shilpa's review.
+- 2026-11-25: The "we caught it" ghost is white (it already rendered `GhostFigure` tone white; a test in `dashboard/src/test/fix-panels.test.tsx` now guards it), default from v9; open for Shilpa's review.
+- 2026-11-25: Verify starts only when a person presses it; the AutoLoopCard is no longer rendered on Possession Mode (commit `f39d344`; its source and tests are kept), default from team rules; open for Shilpa's review.
