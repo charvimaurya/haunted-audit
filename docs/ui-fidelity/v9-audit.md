@@ -15,7 +15,7 @@ Every v9 screen fits 1366 x 657 inside one framed panel. No app screen does (pag
 | Fixes, Fix / Verify / Regression (`side-fixes*.png`) | Three cards side by side, step strip, Approve and Reject, voice row | Before this branch: old button names, purple caught ghost, no journey lines. **Fixed in `feature/ui-v9-fixes` (`side-after-fixes.png`).** Still different: long real diff (v9 shows a 3-line excerpt), extra evidence rows with run IDs, BLOCKED → VERIFIED line and Before and after panel (from plan items 4 and 5; v9 silent, kept) | This branch |
 | Kiro (`side-kiro.png`) | Folder tree, real hook file, recorded finding with date | v9 has folder icons and a "Built with Kiro" button in the hook card; app tree is plain text | Not changed |
 | Results (`side-results.png`) | Four tiles, Outcome parchment, measured numbers or `--` | v9 tiles are coloured (red, green, purple, blue) and sit in one row with the parchment and a large mascot; app tiles are plain, the parchment is below. Third tile: v9 "Journeys passing (keyboard + voice)", app "Test scenarios evaluated" | Not changed |
-| Scans (`side-scans.png`) | | See image | Not changed |
+| Scans (`side-scans.png`) | Page exists in the menu | v9 shows "Scan a public URL (scan only)" with a Scan page button; the app says "Not available yet" because there is no scan endpoint. A public-URL scan also conflicts with the product rule that agents run only on the bundled Haunted Bank | **Owner decision needed** before any build. Not changed |
 
 ## Shell (every app page)
 v9 frames each screen in one panel with a top bar: breadcrumb ("Kiro > Journey: Send Payment > Possession Mode"),
