@@ -49,17 +49,17 @@ export function SettingsMenu() {
         aria-expanded={open}
         aria-controls="settings-panel"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
-                   text-ink border border-base-line hover:bg-base-surface/60 transition-colors duration-150
+        aria-label="Settings"
+        className="v9-gear inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-150
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
       >
-        <Settings size={16} aria-hidden="true" />
-        <span>Settings</span>
+        {/* v9: an icon-only gear button. Its name is "Settings" (aria-label). */}
+        <Settings size={18} aria-hidden="true" />
       </button>
       <div
         id="settings-panel"
         hidden={!open}
-        className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-base-line bg-base p-3 shadow-xl z-50"
+        className="v9-settings absolute right-0 top-full mt-2 w-64 rounded-xl p-3 z-50"
       >
         <SenseControls />
       </div>

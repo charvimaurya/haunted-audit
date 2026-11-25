@@ -17,9 +17,13 @@ export function RunStateBadge() {
       ? `Verified: last run passed (${result.agent_mode})`
       : `Blocked: last run found a barrier (${result.agent_mode})`;
   return (
-    <p className="relative z-[1] m-0 ml-auto flex items-center gap-2 text-base font-ui text-ink" data-run-state={state}>
-      <GhostMascot state={state} size={28} animate={false} />
-      <span>{text}</span>
+    // v9 head-bar chip. "Live Test" only while a run is going (design/v9/README.md); else the last run's state.
+    <p
+      className={`relative z-[1] m-0 ml-auto v9-chip ${run?.isRunning ? 'v9-chip-live' : state === 'verified' ? 'v9-chip-pass' : state === 'blocked' ? 'v9-chip-bad' : 'v9-chip-idle'}`}
+      data-run-state={state}
+    >
+      <GhostMascot state={state} size={22} animate={false} />
+      <span>{run?.isRunning ? `Live Test · ${text}` : text}</span>
     </p>
   );
 }

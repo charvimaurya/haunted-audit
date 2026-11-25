@@ -5,8 +5,7 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Ghost, Menu, X } from 'lucide-react';
-import { GhostShieldIcon } from './GhostShieldIcon';
+import { Ghost, Hourglass, Menu, X } from 'lucide-react';
 import { SenseControls } from '../immersion/SenseControls';
 import { SettingsMenu } from './SettingsMenu';
 import { NAV, to } from '../routes';
@@ -51,33 +50,29 @@ export function TopNav() {
     [
       'inline-flex min-h-11 items-center font-ui text-base transition-colors duration-150 rounded px-2',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-      isActive ? 'text-ink font-bold underline underline-offset-4' : 'text-ink-muted hover:text-ink',
+      isActive ? 'v9-nav-current' : 'text-v9-nav hover:text-white',
     ].join(' ');
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-base/95 border-b border-base-line backdrop-blur-sm"
+      className="v9-topnav fixed top-0 left-0 right-0 z-50"
       aria-label="Primary navigation"
     >
-      <div className="flex items-center justify-between px-4 sm:px-6 h-14 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between gap-4 px-4 sm:px-7 h-14">
         <Link
           to={to('home')}
           className="flex items-center gap-2 shrink-0
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
           aria-label="Haunted Audit — home"
         >
-          <span className="text-violet-neon" aria-hidden="true">
-            <Ghost size={22} />
+          <span className="text-white" aria-hidden="true">
+            <Ghost size={26} />
           </span>
-          <span
-            className="text-[1.1rem] leading-none text-ink"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            Haunted Audit
-          </span>
+          {/* v9 brand: bold Inter, white. The dripping display font is for the Home wordmark only. */}
+          <span className="text-[1.2rem] font-extrabold leading-none text-white tracking-[0.01em]">Haunted Audit</span>
         </Link>
 
-        <ul className="hidden lg:flex items-center gap-3 list-none m-0 p-0" role="list">
+        <ul className="hidden lg:flex flex-1 items-center justify-center gap-8 list-none m-0 p-0" role="list">
           {NAV.map((link) => (
             <li key={link.label}>
               <Link
@@ -98,13 +93,11 @@ export function TopNav() {
           </div>
           <Link
             to={to('kiro')}
-            className="hidden sm:flex min-h-11 items-center gap-1.5 px-3 rounded-full text-base font-semibold
-                       bg-[var(--hero-pill)] text-ink border-2 border-violet-neon
-                       hover:bg-violet-600/40 transition-colors duration-150 shrink-0
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+            className="v9-kiropill hidden sm:flex min-h-11 items-center gap-2 px-4 rounded-xl text-base font-bold text-white
+                       shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
             aria-label="Built with Kiro"
           >
-            <GhostShieldIcon size={18} />
+            <Hourglass size={18} aria-hidden="true" />
             <span>Kiro</span>
           </Link>
           <button

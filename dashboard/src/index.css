@@ -146,6 +146,23 @@ html[data-calm='true'] *::after {
 .v9-dot svg{color:#fff}
 html[data-contrast='high'] .v9-frame,html[data-contrast='high'] .v9-card{box-shadow:none;border-color:var(--v9-ink)}
 
+/* ── UI v9 shell: top menu, app frame, head bar, sidebar ─────────────────────────────────────── */
+.v9-topnav{background:linear-gradient(180deg,#0c0919f2,#08060fe6);backdrop-filter:blur(6px)}
+.v9-nav-current{color:#fff;font-weight:700;text-shadow:0 0 12px #c4b5fd}
+.v9-kiropill{background:linear-gradient(180deg,#3b1f86,#26135a);border:1.5px solid #a78bfa;box-shadow:0 0 14px #8b5cf688}
+.v9-gear{border:1px solid #3a3363;background:#140f2a;color:#cfc6ff}
+.v9-gear:hover{background:#1d1640}
+.v9-settings{background:#151a33;border:1px solid var(--v9-card-line);box-shadow:0 16px 40px #000a}
+.v9-appframe{margin:4px auto 16px;width:min(100% - 24px,1360px)}
+.v9-apphead{border-bottom:1px solid var(--v9-head-line)}
+.v9-crumbs li+li::before{content:"\203A";content:"\203A" / "";color:#7d74a8;font-size:1.25rem;margin-right:10px}
+.v9-side{border-right:1px solid var(--v9-head-line)}
+.v9-side-link{color:#d6d9f0}
+.v9-side-link svg{color:#c4b5fd}
+.v9-side-link:hover{background:#1d1640;color:#fff}
+.v9-side-current{background:linear-gradient(90deg,#3a2479,#2a1a5c);color:#fff;font-weight:700;box-shadow:inset 3px 0 0 #b794ff,0 0 16px #7c3aed55}
+body{background:radial-gradient(90% 60% at 50% -10%,#1c1240 0%,var(--v9-page) 60%) fixed}
+
 /* Decorative motion sits under the controls and cannot take clicks or focus. */
 .ambient-layer {
   position: absolute;

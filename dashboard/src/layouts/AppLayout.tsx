@@ -4,20 +4,20 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { ChartColumn, Ghost, LayoutGrid, Menu, Send, ShieldCheck, Shield, TriangleAlert, Users, Wrench, X, type LucideIcon } from 'lucide-react';
+import { ChartColumn, Code2, FileSearch, Ghost, Hourglass, House, Menu, RefreshCw, Send, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
 import { RunStateBadge } from '../components/RunStateBadge';
-import { SiteBand } from '../components/SiteBand';
 import { APP_NAV, NOT_FOUND_TITLE, pageFor, to, trailFor } from '../routes';
 
 const ICONS: Record<string, LucideIcon> = {
-  Overview: LayoutGrid,
+  // The same icons as the v9 sidebar.
+  Overview: House,
   Journeys: Send,
   Agents: Users,
-  Findings: TriangleAlert,
-  Fixes: Wrench,
-  Verification: ShieldCheck,
-  Regression: Shield,
-  Kiro: Ghost,
+  Findings: FileSearch,
+  Fixes: Code2,
+  Verification: ShieldCheck, // v9 draws a circle tick; a tick before any run reads as a pass (no-mock-results guard)
+  Regression: RefreshCw,
+  Kiro: Hourglass,
   Reports: ChartColumn,
 };
 
@@ -46,11 +46,9 @@ export function AppLayout() {
 
   const linkClass = (isActive: boolean) =>
     [
-      'flex min-h-11 w-full items-center rounded-lg px-3 text-base font-ui transition-colors',
+      'flex min-h-11 w-full items-center rounded-xl px-3 text-base font-ui font-medium transition-colors',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-      isActive
-        ? 'bg-violet-600/25 font-bold text-ink'
-        : 'text-ink-muted hover:bg-base-surface/60 hover:text-ink',
+      isActive ? 'v9-side-current' : 'v9-side-link',
     ].join(' ');
 
   const navList = (
@@ -75,13 +73,48 @@ export function AppLayout() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col pt-14 md:flex-row">
+    // v9 app shell: one framed panel with a head bar (breadcrumb, run chip) and a sidebar.
+    <div className="min-h-screen pt-[60px]">
+    <div className="v9-frame v9-appframe flex flex-col">
+      <div className="v9-apphead relative flex flex-wrap items-center gap-3 px-5 py-2">
+        <nav aria-label="Breadcrumb" className="relative z-[1] text-base font-ui text-v9-crumb">
+          <ol className="v9-crumbs m-0 flex list-none flex-wrap items-center gap-[10px] p-0">
+            <li className="flex items-center gap-2">
+              <Ghost size={22} className="text-white" aria-hidden="true" />
+              <Link
+                to={to('app-home')}
+                className="inline-flex min-h-11 items-center rounded font-bold text-white hover:text-v9-here focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+              >
+                App
+              </Link>
+            </li>
+            {(current ? trail.filter((p) => p.id !== 'app-home') : [null]).map((p, i, all) => (
+              <li key={p?.id ?? 'not-found'} className="flex items-center">
+                {p && i < all.length - 1 ? (
+                  <Link
+                    to={to(p.id)}
+                    className="inline-flex min-h-11 items-center rounded hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                  >
+                    {p.h1}
+                  </Link>
+                ) : (
+                  <span aria-current="page" className="font-bold text-v9-here [text-shadow:0_0_10px_#a78bfa88]">
+                    {p ? p.h1 : NOT_FOUND_TITLE}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <RunStateBadge />
+      </div>
+    <div className="flex min-h-0 flex-1 flex-col md:flex-row">
       {/* Desktop sidebar */}
       <aside
-        className="hidden w-56 shrink-0 border-r border-base-line bg-base-panel md:block"
+        className="v9-side hidden w-[200px] shrink-0 md:block"
         aria-label="App"
       >
-        <nav aria-label="App" className="sticky top-14 p-3">
+        <nav aria-label="App" className="sticky top-[64px] px-2.5 py-3">
           {navList}
         </nav>
       </aside>
@@ -115,48 +148,17 @@ export function AppLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="relative flex flex-wrap items-center gap-3 border-b border-base-line px-4 py-2 sm:px-6">
-        <SiteBand />
-        <nav aria-label="Breadcrumb" className="relative z-[1] text-base font-ui text-ink-muted">
-          <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
-            <li>
-              <Link
-                to={to('app-home')}
-                className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-              >
-                App
-              </Link>
-            </li>
-            {(current ? trail.filter((p) => p.id !== 'app-home') : [null]).map((p, i, all) => (
-              <li key={p?.id ?? 'not-found'} className="flex items-center gap-2">
-                <span aria-hidden="true">/</span>
-                {p && i < all.length - 1 ? (
-                  <Link
-                    to={to(p.id)}
-                    className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-                  >
-                    {p.h1}
-                  </Link>
-                ) : (
-                  <span aria-current="page" className="font-semibold text-ink">
-                    {p ? p.h1 : NOT_FOUND_TITLE}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
-        <RunStateBadge />
-        </div>
         <main
           id="main-content"
           tabIndex={-1}
           aria-label="Haunted Audit app"
-          className="relative z-[1] flex-1 px-4 py-4 sm:px-6 pb-16 focus-visible:outline-none"
+          className="relative z-[1] flex-1 px-5 pb-5 focus-visible:outline-none"
         >
           <Outlet />
         </main>
       </div>
+    </div>
+    </div>
     </div>
   );
 }
