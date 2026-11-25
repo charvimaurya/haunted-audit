@@ -25,6 +25,15 @@ export default {
           900: '#3d1080',
           neon: '#a855f7',  // hover / focus ring
         },
+        // ── UI v9 palette (design/v9/index.html :root) ───────────────────────────
+        v9: {
+          page: '#08060f', 'frame-a': '#15102b', 'frame-b': '#0c0919',
+          'card-a': '#171c34', 'card-b': '#10142a', 'card-line': '#2b3254', 'head-line': '#2a2350',
+          violet: '#8b5cf6', 'violet-hi': '#b794ff', 'violet-neon': '#c084fc', 'violet-deep': '#2a1a5c',
+          ink: '#eef0ff', mute: '#a9afcc', dim: '#7f86a8',
+          ok: '#22c55e', 'ok-hi': '#4ade80', bad: '#ef4444', 'bad-hi': '#ff6b6b', amber: '#f59e0b',
+          nav: '#d6d9f3', side: '#d6d9f0', crumb: '#d2d5ee', 'crumb-sep': '#7d74a8', here: '#c9b5ff',
+        },
         // ── Ghost state ───────────────────────────────────────────────────────
         ghost: {
           ready:    '#c9b6ff',  // purple — waiting

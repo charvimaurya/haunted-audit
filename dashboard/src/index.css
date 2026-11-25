@@ -29,6 +29,12 @@
   --color-ink:           #f0e8ff;
   --color-ink-muted:     #9d89b8;
 
+  /* UI v9 palette (design/v9/index.html :root, 25 Nov) */
+  --v9-page:#08060f; --v9-frame-a:#15102b; --v9-frame-b:#0c0919;
+  --v9-card-a:#171c34; --v9-card-b:#10142a; --v9-card-line:#2b3254; --v9-head-line:#2a2350;
+  --v9-violet:#8b5cf6; --v9-violet-hi:#b794ff; --v9-violet-neon:#c084fc; --v9-violet-deep:#2a1a5c;
+  --v9-ink:#eef0ff; --v9-mute:#a9afcc; --v9-dim:#7f86a8;
+  --v9-ok:#22c55e; --v9-ok-hi:#4ade80; --v9-bad:#ef4444; --v9-bad-hi:#ff6b6b; --v9-amber:#f59e0b;
   --font-display: "Rubik Wet Paint", fantasy;
   --font-ui:      "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, monospace;
@@ -114,6 +120,31 @@ html[data-calm='true'] *::after {
   color: var(--color-ghost-verified);
   font-weight: 700;
 }
+
+/* ── UI v9 building blocks (design/v9/index.html "shared building blocks" and COMPACT rules) ───────── */
+.v9-frame{position:relative;border-radius:18px;background:linear-gradient(180deg,var(--v9-frame-a),var(--v9-frame-b));
+  border:1.5px solid #7c4dff;box-shadow:0 0 0 1px #a78bfa22,0 0 26px #7c3aed77,0 0 70px #7c3aed2a,inset 0 0 40px #7c3aed1f}
+.v9-card{border-radius:16px;background:linear-gradient(180deg,var(--v9-card-a),var(--v9-card-b));border:1px solid var(--v9-card-line);
+  box-shadow:inset 0 1px 0 #ffffff0d,0 8px 24px #0006}
+.v9-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;font-size:1rem;font-weight:600}
+.v9-chip i{width:9px;height:9px;border-radius:50%}
+.v9-chip-live{background:#3a1222;color:#ff8a8a;border:1px solid #ff6b6b55}.v9-chip-live i{background:#ff5a5a;box-shadow:0 0 8px #ff5a5a}
+.v9-chip-idle{background:#1d2140;color:var(--v9-mute);border:1px solid var(--v9-card-line)}.v9-chip-idle i{background:var(--v9-dim)}
+.v9-chip-pass{background:#0f2a1b;color:#6ee7a0;border:1px solid #22c55e55}.v9-chip-pass i{background:#22c55e;box-shadow:0 0 8px #22c55e}
+.v9-chip-bad{background:#3a1222;color:#ff8a8a;border:1px solid #ff6b6b55}.v9-chip-bad i{background:#ff5a5a}
+.v9-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 18px;border-radius:12px;
+  font-weight:700;font-size:1rem;border:1.5px solid transparent;text-decoration:none}
+.v9-btn:disabled,.v9-btn[aria-disabled='true']{opacity:.55;cursor:not-allowed}
+.v9-btn-green{background:linear-gradient(180deg,#14532d,#0f3d22);border-color:#22c55e;color:#dcfce7;box-shadow:0 0 16px #22c55e55,inset 0 1px 0 #ffffff22}
+.v9-btn-grey{background:#1e2340;border-color:#353c60;color:#dfe3ff}
+.v9-btn-violet{background:linear-gradient(180deg,#3b1f86,#2a1466);border-color:#a78bfa;color:#fff;box-shadow:0 0 18px #8b5cf688,inset 0 1px 0 #ffffff22}
+.v9-btn-danger{background:linear-gradient(180deg,#4a1220,#3a0f1a);border-color:#ff6b6b;color:#ffd5d5;box-shadow:0 0 16px #ef444455}
+.v9-dot{display:inline-flex;flex:none;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;box-shadow:0 0 10px currentColor}
+.v9-dot-ok{background:radial-gradient(circle at 35% 30%,#5ef08f,#16a34a);color:#22c55e}
+.v9-dot-bad{background:radial-gradient(circle at 35% 30%,#ff8080,#dc2626);color:#ef4444}
+.v9-dot-wait{background:#252b46;color:transparent;box-shadow:none;border:1px dashed #4b5375}
+.v9-dot svg{color:#fff}
+html[data-contrast='high'] .v9-frame,html[data-contrast='high'] .v9-card{box-shadow:none;border-color:var(--v9-ink)}
 
 /* Decorative motion sits under the controls and cannot take clicks or focus. */
 .ambient-layer {
