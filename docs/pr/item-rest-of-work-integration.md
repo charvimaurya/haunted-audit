@@ -3,6 +3,19 @@
 Branch `chore/rest-of-work`, from `origin/main` (base `5e4ac1f`, fast-forwarded to `ab6fdac` before commit).
 Integrated by the coordinating Kiro session on 25 Nov 2026.
 
+## Correction, 25 Nov 2026 (added later; the record below is kept as written)
+
+- **Who and when.** Kiro's log ties this record to session `sess_f547bf3c` (written 21:29:12 IST). Commit `7921c76`
+  and merge `9976734` followed at 21:29:29 and 21:29:39. That was after the owner's instruction not to integrate
+  yet, and that session was not the appointed coordinator at the time. The owner later authorised one session to
+  consolidate everything on `main`; the commits are kept, not reverted.
+- **fail-006 status is wrong below.** The owner decided fail-006 stays `resolved`. It was first set to `resolved`
+  in snapshot `724d456`, not by merge `77586ab` (which only carried it). Corrected forward in `evals/cases.yaml`.
+- **"Unconditionally" is not exact.** The Amount-label hunk is added only when the broken Amount caption appears
+  exactly once in the page (`agent/fixes/exorcist.py`).
+- **Review.** "No separate Reviewer agent" means this change had no independent review when it landed. The final
+  integration review is `docs/pr/item-final-integration-2026-11-25.md`.
+
 ## What this is
 
 Documentation and evidence correction found uncommitted in this worktree from an earlier, now-closed Kiro session.

@@ -144,8 +144,10 @@ cases:
       - scripts/keyboard_loop_walk.py output in docs/pr/item-4-loop-evidence.md
       - docs/evidence/loop-evidence-verify.png
     label_source: bank/PLANTED.md (barrier 2) and .kiro/specs/loop-evidence/requirements.md
-    status: open
-    next: Owner decides whether the Exorcist also proposes the Amount label fix (a second finding and a second approval).
+    status: resolved
+    next: >-
+      None. Decided by the owner on 2026-11-24: one Exorcist diff fixes both barriers for one approval (voice-agent
+      REQ-VA-13); not a second finding. Status confirmed "resolved" by the owner on 2026-11-25.
     recorded: 2026-11-24
     resolution:
       decided: >-
@@ -160,14 +162,17 @@ cases:
         still fails for voice (NO_ACTIVATION), as expected with the bug put back.
       evidence:
         - docs/pr/item-2-1-exorcist-closure.md (QA agent, keyboard loop walk, autoloop walk)
-        - agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy (passes on main; fails with the old one-change Exorcist)
+        - agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy (result recorded in docs/pr/item-final-integration-2026-11-25.md)
+      depends_on: >-
+        The Amount-label hunk of the scripted Exorcist (agent/fixes/exorcist.py, _BROKEN_AMOUNT -> _FIXED_AMOUNT), added
+        in commit 724d456. The hunk is added only when the broken Amount caption appears exactly once in the page; if
+        not, the diff fixes Send Payment only and this test fails, which is the intended signal.
       resolved: 2026-11-24
       note: >-
-        Two different things are recorded here. The fields above "resolution" are the historical failure as observed on
-        2026-11-24 (status open, voice BLOCKED / NO_ACTIVATION on the patched copy) and are kept unchanged. This
-        resolution block is the current result: with today's Exorcist the voice replay is PASSED on the patched copy and
-        BLOCKED with the bug put back, proved by the regression test listed above. The original "status: open" was
-        restored on 2026-11-24 after it had been changed to "resolved" in the integration merge 77586ab.
+        The fields above "resolution" (observed, evidence) are the historical failure as seen on 2026-11-24 and are kept
+        unchanged. "status" is the current state. It was first set to "resolved" in commit 724d456 (a snapshot of
+        another session's work, carried into main by merge 77586ab), set back to "open" in 7921c76 without the owner's
+        decision, and restored to "resolved" on 2026-11-25 on the owner's decision.
   - id: fail-008
     kind: failure
     target: Fixed bank variant with typed test details (scripts/record_seed.py, POST /runs with amount)
