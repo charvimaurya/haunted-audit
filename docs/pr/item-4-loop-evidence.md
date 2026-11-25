@@ -4,6 +4,14 @@ Owner rule (23 Nov): everything on `main`, no feature branches, so there is no p
 the PR template would hold. Spec `.kiro/specs/loop-evidence/`. Commits: `1f063e7` (spec), `06933b3` LE-01,
 `774f08b` LE-02, `16fbe46` LE-03, `57d642a` LE-01 review fixes.
 
+> **Correction, 25 Nov 2026.** The voice result below is the state on 24 Nov before the owner's decision, and is
+> kept as history. Since commit `724d456` the scripted Exorcist also labels Amount, so on the patched copy the
+> voice-command simulation is **PASSED** as well as the keyboard journey, and both are BLOCKED with the bug put
+> back. Evidence: `docs/pr/item-2-1-exorcist-closure.md` (keyboard loop walk: keyboard VERIFIED and voice VERIFIED,
+> "Keyboard and voice") and `agent/tests/test_loop_evidence.py::test_fail_006_is_fixed_voice_passes_on_the_patched_copy`
+> (1 passed, 25 Nov). evals `fail-006` is `resolved`. "No PR" below is also out of date: under
+> `.kiro/steering/team-rules.md` this record counts instead of a PR once a Reviewer report is added.
+
 ## What changed
 - `POST /fixes/{id}/verify` and `/regression` run the keyboard journey, then the voice-command simulation, on the
   same copy of the bank. Each run has its own run ID (`run_id`, `voice_run_id`). One limiter slot for both.
@@ -19,7 +27,7 @@ the PR template would hold. Spec `.kiro/specs/loop-evidence/`. Commits: `1f063e7
 On the patched copy the keyboard journey is PASSED and the voice-command simulation is BLOCKED (NO_ACTIVATION):
 "Could not type in Amount: no accessible label". The fix repairs barrier 1 only; barrier 2 (Amount has no label)
 still stops a voice user. So the screens say "Keyboard only" and "Voice-command simulation: Not verified".
-Recorded as evals `fail-006`. Owner decision open in `team-private/waiting-on.md`.
+Recorded as evals `fail-006`. (25 Nov: decided and resolved; see the correction at the top.)
 
 ## Tests
 | | Before (`305832e`) | After (`57d642a`) |
@@ -62,5 +70,6 @@ One note left as is: `fix.pop("verify_voice_run_id", None)` has a defensive defa
   until the v9 items (35 to 41).
 
 ## Claims affected
-The deck or video must not say the voice journey is verified after the fix. Today the checker says voice is
-blocked by the unlabelled Amount field.
+On 24 Nov this said the deck or video must not claim the voice journey is verified after the fix. Since `724d456`
+(both barriers fixed in one approved diff) the checker returns PASSED for voice on the patched copy, so that claim
+is now allowed, as long as it cites a current run.
