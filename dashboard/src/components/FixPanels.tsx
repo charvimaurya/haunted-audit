@@ -279,6 +279,11 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
           </MarkRow>
         )}
       </ul>
+      {g?.status === 'complete' && g.verdict && (
+        <p className="m-0 text-base font-ui text-ink-muted">
+          Checker: {g.verdict}{g.reason_code ? ` (${g.reason_code})` : ''}, {g.agent_mode} mode, bug put back on a copy.
+        </p>
+      )}
       {gv?.status === 'complete' && !voiceVerified && (
         <Note>Voice: not counted, the voice journey was not verified first.</Note>
       )}

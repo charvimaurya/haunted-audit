@@ -112,6 +112,7 @@ describe('fix panels', () => {
     expect(screen.getByText('Checker: PASSED, scripted mode, on a patched copy.')).toBeTruthy();
     expect(screen.getByText(/The ghost is back\./)).toBeTruthy();
     expect(screen.getByText('FAILED: Send Payment not focusable (TARGET_NOT_FOCUSABLE)')).toBeTruthy();
+    expect(screen.getByText('Checker: BLOCKED (TARGET_NOT_FOCUSABLE), scripted mode, bug put back on a copy.')).toBeTruthy();
     expect(await axe(container)).toHaveNoViolations();
   });
 
