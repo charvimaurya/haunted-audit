@@ -89,3 +89,4 @@ A spoken or typed command acts on the real Haunted Bank in a browser, by accessi
 **REQ-VA-13: Run the whole loop (owner asked for it).**
 - One button on Possession Mode runs the broken page, shows the checker's verdict and the Exorcist's one-line cause, then waits for a person to approve the diff. After approval it runs the keyboard and voice replays on the patched copy and shows the checker's verdicts. Approve changes no tracked file.
 - The scripted Exorcist fixes both planted barriers: Send Payment becomes a button and the Amount caption becomes a label (4 changed lines, limit 10).
+- **Note, 25 Nov 2026:** the card is not rendered on Possession Mode (commit `f39d344`). Its `approve()` started Verify straight after Approve, and the team rule is that Verify starts when a person presses it. Verify runs from the Fix steps ("Replay both journeys"). The component, its hook and its test are kept; `scripts/keyboard_autoloop_walk.py` is deprecated.

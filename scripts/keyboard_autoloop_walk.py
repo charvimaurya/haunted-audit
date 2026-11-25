@@ -1,4 +1,10 @@
 """Keyboard-only walk of the "Run the whole loop" card (voice-agent REQ-VA-13).
+
+DEPRECATED (25 Nov 2026), kept on purpose. The card is no longer rendered on Possession Mode (commit f39d344,
+team rule "Verify starts when a person presses it"), so this walk cannot reach it and will fail at the first
+step. Use scripts/keyboard_loop_walk.py, which walks the manual Fix steps. Kept for history and in case the card
+is shown again; AutoLoopCard.tsx, useAutoLoop.ts and auto-loop.test.tsx are kept too.
+
 Only Tab, Shift+Tab, Enter and Space. No clicks. Every stop must show a focus ring.
 Usage: DASHBOARD_URL=http://127.0.0.1:5180 .venv/bin/python scripts/keyboard_autoloop_walk.py   (API on the port the dashboard uses)
 Checks: Tab reaches Run the whole loop; Enter starts it; the diff and Approve appear and nothing runs on the fixed copy until
