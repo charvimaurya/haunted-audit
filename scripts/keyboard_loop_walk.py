@@ -94,8 +94,8 @@ def main() -> int:
         if REDUCED and moment["running"] != 0:
             fail("the exorcism animates with reduced motion on")
 
-        print("3. Verify with Enter: keyboard and voice on the patched copy")
-        tab_to(pg, "Verify on a patched copy")
+        print("3. Verify with Enter (Replay both journeys): keyboard and voice on the patched copy")
+        tab_to(pg, "Replay both journeys")
         pg.keyboard.press("Enter")
         pg.wait_for_function(
             "() => /Voice-command simulation: (VERIFIED|Not verified|The run failed)/.test(document.body.innerText)",
@@ -120,7 +120,7 @@ def main() -> int:
         pg.keyboard.press("Tab")
 
         print("5. Regression with Enter: the bug put back on a copy")
-        tab_to(pg, "Put the bug back and check")
+        tab_to(pg, "Put the bug back and run both tests")
         pg.keyboard.press("Enter")
         pg.wait_for_function(
             "() => /(Voice: not counted|FAILED \\(voice\\)|PASSED \\(voice\\))/.test(document.body.innerText)",

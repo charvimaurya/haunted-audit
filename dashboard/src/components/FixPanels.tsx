@@ -190,7 +190,7 @@ export function VerificationPanel({ flow }: { flow: FixValue }) {
       ) : !fix.verify ? (
         <button type="button" onClick={() => void flow.verify()} disabled={busy}
           className={`${BTN} border-violet-neon/60 bg-violet-600 text-white hover:bg-violet-500`}>
-          Verify on a patched copy
+          Replay both journeys
         </button>
       ) : fix.verify.status === 'complete' && fix.verify.verdict ? (
         <div role="status" className="flex flex-col gap-2">
@@ -273,7 +273,7 @@ export function RegressionPanel({ flow }: { flow: FixValue }) {
       ) : !g ? (
         <button type="button" onClick={() => void flow.regression()} disabled={busy}
           className={`${BTN} border-ghost-blocked/60 bg-ghost-blocked/15 text-ink hover:bg-ghost-blocked/25`}>
-          Put the bug back and check
+          Put the bug back and run both tests
         </button>
       ) : g.status === 'error' ? (
         <Note>The run failed, so no result is shown. {g.error}</Note>
