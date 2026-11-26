@@ -17,7 +17,7 @@ from playwright.sync_api import Page, sync_playwright
 from agent.keyboard_agent.checker import check_voice_journey, observe_voice_page
 from agent.keyboard_agent.models import JourneyResult, StepEvent
 from agent.keyboard_agent.runner import _launch_args, _only_bundled_fixture, build_journey_config
-from agent.voice_agent.grammar import Command, describe, expand_payment, parse_natural as parse
+from agent.voice_agent.grammar import Command, describe, parse_natural as parse, plan_commands
 
 STEP_TIMEOUT_MS = 5_000
 RUN_TIMEOUT_S = 60.0
@@ -152,7 +152,7 @@ def run_voice_journey(
     start_url is set only by the Verifier, for a copy of the bank under artifacts/verify/."""
     run_id = run_id or str(uuid.uuid4())
     config = build_journey_config(variant, "scripted", **({"start_url": start_url} if start_url else {}))
-    commands = [step for text in list(commands)[:MAX_COMMANDS] for step in expand_payment(text)][:MAX_STEPS]
+    commands = plan_commands(commands, MAX_COMMANDS, MAX_STEPS)  # split, expand, no repeat (REQ-VA-21)
     goal = "Voice commands: " + " / ".join(c.strip() for c in commands)
     started = time.perf_counter()
     browser = None

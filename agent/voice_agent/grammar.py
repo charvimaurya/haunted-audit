@@ -228,3 +228,66 @@ def expand_payment(text: str) -> list[str]:
             return [text]
         steps += [f"type {amount} in {AMOUNT_FIELD}", f"click {PAYMENT_BUTTON}"]
     return steps
+
+
+# ── Several commands in one breath (voice-agent REQ-VA-21) ──────────────────
+# Speech recognition often returns "type X in recipient type 100 and click send payment" as one sentence.
+# Split it at command words, but only when every part is understood; otherwise keep it as said.
+MAX_PARTS = 10
+_STARTS = (r"type|enter|write|put|fill\s+in|set|click|press|tap|hit|push|select|choose|activate|submit|"
+           r"go\s+to|open|visit|navigate\s+to|take\s+me\s+to|show\s+me|send|pay|transfer|make")
+_START_RE = re.compile(rf"(?<![\w'\"-])(?:{_STARTS})\b", re.IGNORECASE)
+_QUOTED_RE = re.compile(r"\"[^\"]*\"|(?<!\w)'[^']*'(?!\w)")
+_JOINERS = re.compile(r"(?:[\s,;.]|\b(?:and\s+then|and|then|after\s+that)\b)+$", re.IGNORECASE)
+_BARE_TYPE = re.compile(r"^(?:type|enter|write|put)\s+(?P<value>.+)$", re.IGNORECASE)
+_AMOUNT_ONLY = re.compile(r"^[$\u20ac]?\s*(?P<n>\d[\d,]*(?:\.\d{1,2})?)\s*(?:dollars?|euros?|usd|eur|[$\u20ac])?$", re.IGNORECASE)
+
+
+def _understood(text: str) -> bool:
+    return parse_natural(text) is not None or expand_payment(text) != [text]
+
+
+def _repair(part: str) -> str | None:
+    """The part as a command, or None. 'type 100' (no field) becomes 'type 100.00 in Amount'; a name is never guessed."""
+    part = _JOINERS.sub("", part).strip()
+    if not part:
+        return None
+    if _understood(part):
+        return part
+    if m := _BARE_TYPE.match(_clean(part)):
+        if a := _AMOUNT_ONLY.match(_number_words_to_digits(m["value"]).strip()):
+            if (amount := _normal_amount(a["n"])) is not None:
+                return f"type {amount} in {AMOUNT_FIELD}"
+    return None
+
+
+def split_chained(text: str) -> list[str]:
+    """The commands in one spoken sentence. [text] when it is one command or cannot be split into understood parts."""
+    if not isinstance(text, str) or len(text) > MAX_COMMAND_CHARS or "\n" in text.strip():
+        return [text]
+    t = _POLITE.sub("", text.strip()).strip()
+    quoted = [m.span() for m in _QUOTED_RE.finditer(t)]
+    starts = [m.start() for m in _START_RE.finditer(t) if not any(a < m.start() < b for a, b in quoted)]
+    if len(starts) < 2 or starts[0] != 0:
+        return [text]
+    starts = starts[: MAX_PARTS + 1]
+    inner = starts[1:]
+    # Try choices of cut points (at most 2^10), most cuts first; the first whose parts are all understood wins.
+    for mask in sorted(range(1, 1 << len(inner)), key=lambda m: (-bin(m).count("1"), m)):
+        cuts = [0] + [p for i, p in enumerate(inner) if mask >> i & 1] + [len(t)]
+        parts = [_repair(t[a:b]) for a, b in zip(cuts, cuts[1:])]
+        if all(parts):
+            return parts  # type: ignore[return-value]
+    return [text]
+
+
+def plan_commands(commands: list[str], max_in: int = 10, max_out: int = 30) -> list[str]:
+    """What the runner runs: split each sentence, expand payment phrases, drop a repeat of the command just before."""
+    out: list[str] = []
+    for text in list(commands)[:max_in]:
+        for part in split_chained(text):
+            for step in expand_payment(part):
+                if out and step.strip().lower() == out[-1].strip().lower():
+                    continue
+                out.append(step)
+    return out[:max_out]

@@ -232,3 +232,55 @@ def test_spoken_payment_completes_on_fixed_page():
     result = run_voice_journey("fixed", ["send money to Alex Carter and 50 dollars"], "speech")
     assert result.verdict == "PASSED"
     assert [e.args["outcome"] for e in result.step_events] == ["done", "done", "done"]
+
+
+# ── REQ-VA-21: several commands in one breath ───────────────────────────────
+from agent.voice_agent.grammar import plan_commands, split_chained  # noqa: E402
+
+CHAIN = 'Type "Test Recipient" in recipient type 100.00 and click send payment'  # the shape Chrome returned
+
+
+@pytest.mark.parametrize("text,expected", [
+    (CHAIN, ['Type "Test Recipient" in recipient', "type 100.00 in Amount", "click send payment"]),
+    ("Type TestRecipient in recipient type 100.00 and click send payment",
+     ["Type TestRecipient in recipient", "type 100.00 in Amount", "click send payment"]),
+    ('Type "Test Recipient" in Recipient. Type 50. Click Send Payment.',
+     ['Type "Test Recipient" in Recipient', "type 50.00 in Amount", "Click Send Payment"]),
+    ("please type TestRecipient in recipient, then type a hundred, and click send payment",
+     ["type TestRecipient in recipient", "type 100.00 in Amount", "click send payment"]),
+    ('type "Test Recipient" in Recipient and type $25 dollars and press Send Payment',
+     ['type "Test Recipient" in Recipient', "type 25.00 in Amount", "press Send Payment"]),
+])
+def test_split_chained(text, expected):
+    assert split_chained(text) == expected
+
+
+@pytest.mark.parametrize("text", [
+    'type "Test Recipient" in recipient and dance',   # one part not understood: kept as said
+    "type TestRecipient in recipient type Bob",       # a name with no field is never guessed
+    "type Click in Recipient",                        # one command that contains a command word
+    'type "Send Payment" in Reference',               # quoted text is never split
+    "click Send Payment", "go to See offer", "hello there", "",
+])
+def test_split_chained_keeps_text_as_said(text):
+    assert split_chained(text) == [text]
+
+
+def test_plan_commands_clicks_once_and_keeps_limits():
+    assert plan_commands(["send 100 dollars to TestRecipient and click send payment"]) == [
+        'type "TestRecipient" in Recipient', "type 100.00 in Amount", "click Send Payment"]
+    assert len(plan_commands([CHAIN] * 20)) <= 30
+
+
+def test_spoken_chain_completes_on_fixed_page():
+    result = run_voice_journey("fixed", [CHAIN], "speech")
+    assert result.verdict == "PASSED"
+    assert [e.args["command"] for e in result.step_events] == [
+        'Type "Test Recipient" in recipient', "type 100.00 in Amount", "click send payment"]
+    assert [e.args["outcome"] for e in result.step_events] == ["done", "done", "done"]
+
+
+def test_spoken_chain_is_still_blocked_on_haunted_page():
+    result = run_voice_journey("broken", [CHAIN], "speech")
+    assert result.verdict == "BLOCKED" and result.reason_code == "NO_ACTIVATION"
+    assert [e.args["outcome"] for e in result.step_events] == ["done", "failed", "failed"]
