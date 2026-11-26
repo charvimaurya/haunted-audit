@@ -13,3 +13,4 @@
 - [x] TASK-11 Run the whole loop (REQ-VA-13): `AutoLoopCard` and `useAutoLoop` on Possession Mode. Broken run, cause, one Approve click, fixed copy with keyboard and voice. The scripted Exorcist now also labels Amount (4 changed lines), so the voice replay passes on the patched copy (closes fail-006).
 - [x] TASK-10 Try page shares the Keyboard / Voice journey with Possession Mode (`PossessionJourney`); the Recipient name field is removed from both pages (owner request).
 - [x] TASK-12 Several commands in one breath (REQ-VA-21): `split_chained`, `plan_commands`, runner uses them, 16 tests. Review record `docs/pr/item-voice-chained-commands.md`
+- [x] TASK-13 What Chrome writes down (REQ-VA-22): amounts read in Amount, missing "in" before a field name, field name joined to "and", hint text without a name; 19 tests. Review record `docs/pr/item-voice-speech-quirks.md`
