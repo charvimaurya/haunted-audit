@@ -90,3 +90,25 @@ A spoken or typed command acts on the real Haunted Bank in a browser, by accessi
 - One button on Possession Mode runs the broken page, shows the checker's verdict and the Exorcist's one-line cause, then waits for a person to approve the diff. After approval it runs the keyboard and voice replays on the patched copy and shows the checker's verdicts. Approve changes no tracked file.
 - The scripted Exorcist fixes both planted barriers: Send Payment becomes a button and the Amount caption becomes a label (4 changed lines, limit 10).
 - **Note, 25 Nov 2026:** the card is not rendered on Possession Mode (commit `f39d344`). Its `approve()` started Verify straight after Approve, and the team rule is that Verify starts when a person presses it. Verify runs from the Fix steps ("Replay both journeys"). The component, its hook and its test are kept; `scripts/keyboard_autoloop_walk.py` is deprecated.
+
+**REQ-VA-21: Several commands in one breath (owner asked for it, 25 Nov 2026).**
+REQ-VA-14 to REQ-VA-20 are held for the voice-payment draft, so this is 21.
+- Speech recognition often returns several commands as one sentence, for example
+  `Type "Test Recipient" in recipient type 100.00 and click send payment`. Before this, the whole sentence was
+  one `type` command whose field was "recipient type 100.00 and click send payment", so nothing was typed.
+- `split_chained(text)` in `agent/voice_agent/grammar.py` splits a sentence at command words (type, enter, click,
+  press, go to, open, send, pay and the other verbs in REQ-VA-11 and REQ-VA-12). Rules decide, never a model.
+- A split is used only when every part is a command that `parse_natural` or `expand_payment` understands.
+  Otherwise the sentence is kept as said, so it is "not understood" or one command, as before. Quoted text is
+  never split. The words "and", "then", "and then" and the marks `,` `;` `.` between parts are dropped.
+- Of all the splits whose parts are all understood, the one with the most parts is used.
+- A part `type <amount>` with no field, where the value is an amount (digits or number words, an optional
+  `$`, `€`, "dollars" or "euros"), means `type <amount with two decimals> in Amount`. A part `type <name>` with
+  no field is not guessed: the whole sentence is kept as said.
+- `plan_commands(commands)` gives the runner's command list: split, then expand payment phrases, then drop a
+  command that repeats the one just before it (so "send 100 dollars to X and click send payment" clicks once).
+  The limits stay: 10 sentences in, 30 steps out.
+- Each step's `args.command` is now the part it ran, not the whole sentence.
+- Tests: the owner's sentence shape, a missing field for an amount, number words, punctuation from speech,
+  a polite start, a chain with one unknown part (kept as said), single commands that contain a command word
+  (not split), and a real run on the fixed bank (PASSED) and the haunted bank (BLOCKED).
