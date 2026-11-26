@@ -20,7 +20,7 @@ export function SiteFooter() {
                   aria-current={item.isCurrent(pathname) ? 'page' : undefined}
                   className="inline-flex min-h-11 items-center rounded px-1 text-ink-muted underline-offset-4
                              hover:text-ink hover:underline aria-[current=page]:font-bold aria-[current=page]:text-ink
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                             focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
                 >
                   {item.label}
                 </Link>

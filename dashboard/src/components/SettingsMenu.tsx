@@ -51,7 +51,7 @@ export function SettingsMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Settings"
         className="v9-gear inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-150
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                   focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
       >
         {/* v9: an icon-only gear button. Its name is "Settings" (aria-label). */}
         <Settings size={18} aria-hidden="true" />

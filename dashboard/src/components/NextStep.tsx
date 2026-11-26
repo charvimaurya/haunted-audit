@@ -13,7 +13,7 @@ export function NextStep({ page }: NextStepProps) {
       <p className="m-0 text-base font-ui text-ink-muted">Next step</p>
       <Link
         to={to(page.next.page)}
-        className="mt-1 inline-flex min-h-11 items-center rounded font-ui text-base font-semibold text-violet-300 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+        className="mt-1 inline-flex min-h-11 items-center rounded font-ui text-base font-semibold text-violet-300 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
       >
         {page.next.label}
       </Link>

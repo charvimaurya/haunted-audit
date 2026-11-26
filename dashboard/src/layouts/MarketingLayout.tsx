@@ -27,7 +27,7 @@ export function MarketingLayout() {
               <li>
                 <Link
                   to={to('home')}
-                  className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                  className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
                 >
                   Home
                 </Link>

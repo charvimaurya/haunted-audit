@@ -49,7 +49,7 @@ export function TopNav() {
   const linkClass = (isActive: boolean) =>
     [
       'inline-flex min-h-11 items-center font-ui text-base transition-colors duration-150 rounded px-2',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
+      'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon',
       isActive ? 'v9-nav-current' : 'text-v9-nav hover:text-white',
     ].join(' ');
 
@@ -62,7 +62,7 @@ export function TopNav() {
         <Link
           to={to('home')}
           className="flex items-center gap-2 shrink-0
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded"
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon rounded"
           aria-label="Haunted Audit — home"
         >
           <span className="text-white" aria-hidden="true">
@@ -94,7 +94,7 @@ export function TopNav() {
           <Link
             to={to('kiro')}
             className="v9-kiropill hidden sm:flex min-h-11 items-center gap-2 px-4 rounded-xl text-base font-bold text-white
-                       shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                       shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
             aria-label="Built with Kiro"
           >
             <Hourglass size={18} aria-hidden="true" />
@@ -105,7 +105,7 @@ export function TopNav() {
             type="button"
             className="lg:hidden flex items-center justify-center w-11 h-11 rounded-lg
                        text-ink-muted hover:text-ink hover:bg-base-surface/60
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon
+                       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon
                        transition-colors"
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={menuOpen}

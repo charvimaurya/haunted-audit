@@ -150,7 +150,7 @@ function StepRow({ label, status, typed }: TabStep) {
 }
 
 const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon';
+  'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon';
 
 export function PossessionMode({
   result,

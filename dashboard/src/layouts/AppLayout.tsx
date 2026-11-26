@@ -47,7 +47,7 @@ export function AppLayout() {
   const linkClass = (isActive: boolean) =>
     [
       'flex min-h-11 w-full items-center rounded-xl px-3 text-base font-ui font-medium transition-colors',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
+      'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon',
       isActive ? 'v9-side-current' : 'v9-side-link',
     ].join(' ');
 
@@ -83,7 +83,7 @@ export function AppLayout() {
               <Ghost size={22} className="text-white" aria-hidden="true" />
               <Link
                 to={to('app-home')}
-                className="inline-flex min-h-11 items-center rounded font-bold text-white hover:text-v9-here focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                className="inline-flex min-h-11 items-center rounded font-bold text-white hover:text-v9-here focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
               >
                 App
               </Link>
@@ -93,7 +93,7 @@ export function AppLayout() {
                 {p && i < all.length - 1 ? (
                   <Link
                     to={to(p.id)}
-                    className="inline-flex min-h-11 items-center rounded hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                    className="inline-flex min-h-11 items-center rounded hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
                   >
                     {p.h1}
                   </Link>
@@ -126,7 +126,7 @@ export function AppLayout() {
           type="button"
           className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-base font-ui text-ink-muted
                      hover:bg-base-surface/60 hover:text-ink
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon"
           aria-expanded={menuOpen}
           aria-controls="app-mobile-nav"
           onClick={() => setMenuOpen((o) => !o)}

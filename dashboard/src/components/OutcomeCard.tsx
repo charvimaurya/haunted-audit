@@ -67,17 +67,17 @@ export function OutcomeCard({ result, apiStatus = 'online' }: OutcomeCardProps) 
       <article
         className="v9-parch flex-1 p-6 shadow-xl"
         style={{
-          background: 'linear-gradient(160deg, #f5e6c8 0%, #e8d0a0 100%)',
-          color: '#3b2a0e',
+          background: 'linear-gradient(160deg, var(--color-parchment) 0%, var(--color-parchment-dark) 100%)',
+          color: 'var(--color-parchment-ink)',
         }}
         aria-label="The Outcome"
       >
-        <h3 className="text-[1.375rem] font-extrabold mb-3 font-ui" style={{ color: '#3b2a0e' }}>
+        <h3 className="text-[1.375rem] font-extrabold mb-3 font-ui" style={{ color: 'var(--color-parchment-ink)' }}>
           The Outcome
         </h3>
         <ul className="flex flex-col gap-3" aria-label="Journey outcomes">
           {rows(result, apiStatus, runError, regression).map((r) => (
-            <li key={r.text} className="flex items-start gap-2 text-base font-ui" style={{ color: '#3b2a0e' }}>
+            <li key={r.text} className="flex items-start gap-2 text-base font-ui" style={{ color: 'var(--color-parchment-ink)' }}>
               <RowIcon state={r.state} />
               <span>
                 <span className="font-semibold">{r.text}</span>

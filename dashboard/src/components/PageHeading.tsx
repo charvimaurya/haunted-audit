@@ -16,7 +16,7 @@ export function PageHeading({ page }: PageHeadingProps) {
       <h1
         data-page-title
         tabIndex={-1}
-        className={`${page.shell === 'app' ? 'text-[1.35rem] font-extrabold' : 'text-2xl font-bold'} font-ui text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon rounded`}
+        className={`${page.shell === 'app' ? 'text-[1.35rem] font-extrabold' : 'text-2xl font-bold'} font-ui text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet-neon rounded`}
       >
         {page.h1}
       </h1>

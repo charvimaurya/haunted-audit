@@ -5,7 +5,7 @@
  * Three agent cards + "Critical Ghost Detected" alert + live step timeline.
  */
 
-import { Keyboard, Crosshair, Ban, Mic } from 'lucide-react';
+import { Keyboard, Crosshair, Ban, Mic, Check, X } from 'lucide-react';
 import { Link, useInRouterContext } from 'react-router-dom';
 import { to } from '../routes';
 import { ResultState } from './ResultState';
@@ -171,6 +171,12 @@ export function GhostHuntSection({
                 <Mic size={14} aria-hidden="true" />
                 <span className="sr-only">Voice step {v.step}{v.ok ? '' : ', did not work'}: </span>
                 <span>{v.text}</span>
+                {/* Not colour alone: a tick or a cross after the text. Hidden from screen readers, which hear the words above. */}
+                {v.ok ? (
+                  <Check size={14} strokeWidth={3} aria-hidden="true" data-voice-step-mark="ok" />
+                ) : (
+                  <X size={14} strokeWidth={3} aria-hidden="true" data-voice-step-mark="failed" />
+                )}
               </li>
             ))}
           </ol>
