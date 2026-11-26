@@ -112,3 +112,21 @@ REQ-VA-14 to REQ-VA-20 are held for the voice-payment draft, so this is 21.
 - Tests: the owner's sentence shape, a missing field for an amount, number words, punctuation from speech,
   a polite start, a chain with one unknown part (kept as said), single commands that contain a command word
   (not split), and a real run on the fixed bank (PASSED) and the haunted bank (BLOCKED).
+
+**REQ-VA-22: What Chrome writes down (owner's real speech runs, 25-26 Nov 2026).**
+Seen in real speech runs on the local demo (run IDs in `docs/pr/item-voice-speech-quirks.md`):
+`type hundred in amount` typed the word "hundred"; `Type <name> recipient ...` had no "in"; `amountAnd` was one word.
+- A value typed into Amount is read as an amount first (number words, an optional `$`, `€`, "dollars" or "euros"),
+  then written with two decimals: `type hundred in amount` types `100.00`. A value that is not an amount is typed as
+  said, so the bank's own check refuses it and the step says so.
+- `type <value> <field>` with no "in" means `type <value> in <field>`, only when `<field>` is the last word and is one
+  of the bank's field names: Recipient, Amount, Reference. A value of several words is quoted. Nothing else is guessed.
+- A field name joined to "and" (`amountAnd`, `recipientand`) is split back into two words before anything else.
+- Speech never has quotes. Before one of those field names, a value of several words is quoted for the grammar
+  (`type Test Recipient in recipient` types "Test Recipient"); into Amount it is read as an amount
+  (`type one hundred and fifty in amount` types `150.00`). REQ-VA-11's "two-word text still needs quotes" still holds
+  for any other field name, and `parse` (REQ-VA-01) is unchanged.
+- These rules run on every sentence and every part, so they work for one command and for several in one breath.
+- Not fixed by rules: a misheard name (the step shows what was typed) and speech that stops early (the steps show
+  what was said).
+- The voice card's hints use no person's name (REQ-TD-09): "send 100 dollars to" and then a made-up name.

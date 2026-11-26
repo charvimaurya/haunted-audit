@@ -254,6 +254,8 @@ def _repair(part: str) -> str | None:
         return None
     if _understood(part):
         return part
+    if (fixed := _fix_type(part)) is not None:
+        return fixed
     if m := _BARE_TYPE.match(_clean(part)):
         if a := _AMOUNT_ONLY.match(_number_words_to_digits(m["value"]).strip()):
             if (amount := _normal_amount(a["n"])) is not None:
@@ -281,12 +283,67 @@ def split_chained(text: str) -> list[str]:
     return [text]
 
 
+# ── What Chrome writes down (voice-agent REQ-VA-22) ────────────────────────
+_FIELD_NAMES = r"recipient|amount|reference"  # the bank's field labels (fixtures/haunted_bank/index.html)
+_GLUED_AND = re.compile(rf"\b({_FIELD_NAMES})and\b", re.IGNORECASE)
+_FIX_TYPE = re.compile(
+    rf"^(?P<verb>type|enter|write|put)\s+(?P<value>.+?)(?:\s+(?P<in>in|into)(?:\s+the)?)?\s+"
+    rf"(?P<field>{_FIELD_NAMES})(?:\s+(?:field|box))?$", re.IGNORECASE)
+
+
+def _unglue(text: str) -> str:
+    """'amountAnd click' -> 'amount And click'."""
+    return _GLUED_AND.sub(lambda m: m[1] + " " + m[0][len(m[1]):], text) if isinstance(text, str) else text
+
+
+def _fix_type(part: str) -> str | None:
+    """A spoken type command, made one the grammar reads. Only when the last word is one of the bank's field names:
+    'type Sam recipient' -> 'type Sam in recipient'; 'type Test Recipient in recipient' -> 'type "Test Recipient" in
+    recipient'; 'type one hundred and fifty in amount' -> 'type 150.00 in amount'. None when nothing applies."""
+    m = _FIX_TYPE.match(_clean(part))
+    if not m:
+        return None
+    value, field = m["value"].strip(), m["field"]
+    if value.lower() in {"in", "into", "the", "in the", "into the"}:  # "type in recipient": no value was said
+        return None
+    if field.lower() == "amount":
+        a = _AMOUNT_ONLY.match(_number_words_to_digits(value).strip())
+        amount = _normal_amount(a["n"]) if a else None
+        if amount is not None:
+            return f"type {amount} in {field}"
+    quoted = len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'"
+    if " " in value and not quoted:
+        if '"' in value:
+            return None
+        value = f'"{value}"'
+    fixed = f"type {value} in {field}"
+    return fixed if parse(fixed) is not None else None
+
+
+def _amount_text(step: str) -> str:
+    """'type hundred in amount' -> 'type 100.00 in amount'. A value that is not an amount is left as said."""
+    cmd = parse(step)
+    if cmd is None or cmd.kind != "type" or not re.match(r"^\s*amount\b", cmd.name, re.IGNORECASE):
+        return step
+    a = _AMOUNT_ONLY.match(_number_words_to_digits(cmd.text or "").strip())
+    amount = _normal_amount(a["n"]) if a else None
+    return step if amount is None or amount == cmd.text else f"type {amount} in {cmd.name}"
+
+
+def _as_command(part: str) -> str:
+    """One part as a command the grammar understands, or the part as said."""
+    if _understood(part):
+        return part
+    return _repair(part) or part
+
+
 def plan_commands(commands: list[str], max_in: int = 10, max_out: int = 30) -> list[str]:
-    """What the runner runs: split each sentence, expand payment phrases, drop a repeat of the command just before."""
+    """What the runner runs: split each sentence, expand payment phrases, read amounts, drop an immediate repeat."""
     out: list[str] = []
     for text in list(commands)[:max_in]:
-        for part in split_chained(text):
-            for step in expand_payment(part):
+        for part in split_chained(_unglue(text)):
+            for step in expand_payment(_as_command(part)):
+                step = _amount_text(step)
                 if out and step.strip().lower() == out[-1].strip().lower():
                     continue
                 out.append(step)

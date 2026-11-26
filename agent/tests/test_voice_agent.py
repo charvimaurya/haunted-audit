@@ -284,3 +284,46 @@ def test_spoken_chain_is_still_blocked_on_haunted_page():
     result = run_voice_journey("broken", [CHAIN], "speech")
     assert result.verdict == "BLOCKED" and result.reason_code == "NO_ACTIVATION"
     assert [e.args["outcome"] for e in result.step_events] == ["done", "failed", "failed"]
+
+
+# ── REQ-VA-22: what Chrome writes down ──────────────────────────────────────
+@pytest.mark.parametrize("text,expected", [
+    ("type hundred in amount", ["type 100.00 in amount"]),
+    ("type $50 in Amount", ["type 50.00 in Amount"]),
+    ("type one hundred and fifty in Amount", ["type 150.00 in Amount"]),
+    ("type 100 amount", ["type 100.00 in amount"]),
+    ("type Test Recipient in recipient", ['type "Test Recipient" in recipient']),
+    ("type Test Recipient recipient", ['type "Test Recipient" in recipient']),
+    ("type rent for may in the reference field", ['type "rent for may" in reference']),
+    ("type Rent reference", ["type Rent in reference"]),
+    # the shapes seen in real speech runs (names replaced with Test Recipient)
+    ("Type TestRecipient recipient type 100.00 in amount and click send payment",
+     ["type TestRecipient in recipient", "type 100.00 in amount", "click send payment"]),
+    ("Type TestRecipient in recipient type 100.00 in amountAnd click send payment",
+     ["Type TestRecipient in recipient", "type 100.00 in amount", "click send payment"]),
+    ("Type Test Recipient in recipient type one hundred and fifty in amount and click send payment",
+     ['type "Test Recipient" in recipient', "type 150.00 in amount", "click send payment"]),
+])
+def test_plan_commands_reads_what_chrome_writes(text, expected):
+    assert plan_commands([text]) == expected
+
+
+@pytest.mark.parametrize("text", [
+    "type abc in Amount",                 # not an amount: typed as said, the bank refuses it
+    "type in recipient",                  # no value said: nothing is typed
+    "type Test Recipient in Search",      # not a bank field name: never guessed
+    'type "Send Payment" in Reference',   # quoted text kept
+    "click Send Payment", "hello there",
+])
+def test_plan_commands_leaves_other_text_as_said(text):
+    assert plan_commands([text]) == [text]
+
+
+def test_parse_is_unchanged_by_req_va_22():
+    assert parse("type Alex Carter in Recipient") is None  # REQ-VA-01: two bare words still need quotes in parse
+
+
+def test_spoken_amount_in_words_completes_on_fixed_page():
+    result = run_voice_journey("fixed", ["Type Test Recipient in recipient type a hundred in amount and click send payment"], "speech")
+    assert result.verdict == "PASSED"
+    assert [e.args["text"] for e in result.step_events if e.tool == "voice_type"] == ["Test Recipient", "100.00"]

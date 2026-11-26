@@ -63,7 +63,7 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
                 <span>{c}</span>
               </li>
             ))}
-            {commands.length === 0 && <li className="font-ui text-ink-muted">No commands yet. Use Push to talk or Edit commands, for example: send 100 dollars to Sam Lee.</li>}
+            {commands.length === 0 && <li className="font-ui text-ink-muted">No commands yet. Use Push to talk or Edit commands, for example: send 100 dollars to, then a made-up name.</li>}
           </ol>
         )}
         {speech.listening && (
@@ -128,7 +128,7 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
           {editing ? 'Done editing' : 'Edit commands'}
         </button>
         <p className="m-0 text-base font-ui text-ink-muted">
-          Say, for example, "send money to Sam Lee, 100 dollars". It runs as soon as you stop talking. Chrome may send microphone audio to its speech service. Audio is never stored or played.
+          Say, for example, "send 100 dollars to" and then a made-up name. It runs as soon as you stop talking. Chrome may send microphone audio to its speech service. Audio is never stored or played.
         </p>
       </div>
     </section>
