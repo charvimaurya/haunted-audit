@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { API_BASE } from '../runs/api';
 import { shownRun, type RunRecordLike } from '../runs/record';
 import type { JourneyResult, StepEvent, Variant } from '../types';
-import type { VoiceInputSource } from './interpretVoiceCommand';
+import { normalizeVoiceCommand, type VoiceInputSource } from './interpretVoiceCommand';
 
 export type VoiceStepOutcome = 'done' | 'failed' | 'not_understood';
 
@@ -55,9 +55,13 @@ export function toStep(e: StepEvent): VoiceStep {
   };
 }
 
-/** One command per non-empty line. */
+/** One command per non-empty line, intelligently normalizing plurals & ASR problem words (e.g. 'amounts' -> 'Amount'). */
 export function commandsFrom(text: string): string[] {
-  return text.split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 10);
+  return text
+    .split('\n')
+    .map((l) => normalizeVoiceCommand(l))
+    .filter(Boolean)
+    .slice(0, 10);
 }
 
 export function useVoiceRun() {

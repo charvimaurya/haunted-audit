@@ -29,7 +29,7 @@ class HalloweenAudioEngine {
     if (this.master && this.ctx) {
       const now = this.ctx.currentTime;
       this.master.gain.cancelScheduledValues(now);
-      this.master.gain.setTargetAtTime(0.14, now, 0.8);
+      this.master.gain.setTargetAtTime(0.36, now, 0.7);
     }
 
     if (!this.running) {
@@ -64,8 +64,8 @@ class HalloweenAudioEngine {
       osc.type = idx === 0 ? 'sine' : 'triangle';
       osc.frequency.value = freq;
       filter.type = 'lowpass';
-      filter.frequency.value = idx === 0 ? 180 : 320;
-      gain.gain.value = idx === 0 ? 0.28 : 0.08;
+      filter.frequency.value = idx === 0 ? 240 : 380;
+      gain.gain.value = idx === 0 ? 0.52 : 0.18;
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.master!);
@@ -97,7 +97,7 @@ class HalloweenAudioEngine {
     lfo.start();
 
     const windGain = ctx.createGain();
-    windGain.gain.value = 0.05;
+    windGain.gain.value = 0.11;
     noise.connect(windFilter);
     windFilter.connect(windGain);
     windGain.connect(this.master);
@@ -125,7 +125,7 @@ class HalloweenAudioEngine {
     osc.frequency.setValueAtTime(freq, now);
     osc.frequency.exponentialRampToValueAtTime(freq * 0.985, now + 2.4);
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.045, now + 0.12);
+    gain.gain.linearRampToValueAtTime(0.095, now + 0.12);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
     osc.connect(gain);
     gain.connect(this.master);
@@ -161,7 +161,7 @@ class HalloweenAudioEngine {
       knockOsc.frequency.setValueAtTime(210, now);
       knockOsc.frequency.exponentialRampToValueAtTime(68, now + 0.09);
       knockGain.gain.setValueAtTime(0.0001, now);
-      knockGain.gain.linearRampToValueAtTime(0.06, now + 0.008);
+      knockGain.gain.linearRampToValueAtTime(0.11, now + 0.008);
       knockGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
       knockOsc.connect(knockGain);
       knockGain.connect(ctx.destination);
@@ -178,7 +178,7 @@ class HalloweenAudioEngine {
       chimeFilter.type = 'lowpass';
       chimeFilter.frequency.value = 1200;
       chimeGain.gain.setValueAtTime(0.0001, now);
-      chimeGain.gain.linearRampToValueAtTime(0.032, now + 0.015);
+      chimeGain.gain.linearRampToValueAtTime(0.065, now + 0.015);
       chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
       chimeOsc.connect(chimeFilter);
       chimeFilter.connect(chimeGain);

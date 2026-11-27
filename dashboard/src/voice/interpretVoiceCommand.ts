@@ -24,6 +24,90 @@ export interface VoiceInterpretResult {
 
 const DEFAULT_TARGET = 'Send Payment';
 
+const FIELD_SYNONYMS: Record<string, string> = {
+  recipient: 'Recipient',
+  recipients: 'Recipient',
+  recepient: 'Recipient',
+  reciepient: 'Recipient',
+  resipient: 'Recipient',
+  recipent: 'Recipient',
+  payee: 'Recipient',
+  receiver: 'Recipient',
+  beneficiary: 'Recipient',
+  person: 'Recipient',
+  name: 'Recipient',
+  amount: 'Amount',
+  amounts: 'Amount',
+  'a mount': 'Amount',
+  amout: 'Amount',
+  amunt: 'Amount',
+  amoutn: 'Amount',
+  amnt: 'Amount',
+  money: 'Amount',
+  total: 'Amount',
+  totals: 'Amount',
+  price: 'Amount',
+  cost: 'Amount',
+  fee: 'Amount',
+  fees: 'Amount',
+  sum: 'Amount',
+  reference: 'Reference',
+  references: 'Reference',
+  refernce: 'Reference',
+  ref: 'Reference',
+  note: 'Reference',
+  notes: 'Reference',
+  memo: 'Reference',
+  reason: 'Reference',
+  comment: 'Reference',
+};
+
+function editDistance(a: string, b: string): number {
+  const dp = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i += 1) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j += 1) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+/** Intelligent field & problem-word normalizer ('amounts' -> 'Amount', 'amout' -> 'Amount'). */
+export function normalizeVoiceField(raw: string): string {
+  const cleaned = raw.replace(/\s+(?:field|box|input)$/i, '').trim();
+  const low = cleaned.toLowerCase();
+  if (FIELD_SYNONYMS[low]) return FIELD_SYNONYMS[low];
+  if (low.endsWith('s') && FIELD_SYNONYMS[low.slice(0, -1)]) return FIELD_SYNONYMS[low.slice(0, -1)];
+  for (const target of ['recipient', 'amount', 'reference'] as const) {
+    if (editDistance(low, target) <= 2) return target[0].toUpperCase() + target.slice(1);
+  }
+  return cleaned;
+}
+
+/** Rewrite noisy user voice/typed text so problem words like "amounts" resolve cleanly before sending to backend. */
+export function normalizeVoiceCommand(command: string): string {
+  const trimmed = command.trim();
+  if (!trimmed) return trimmed;
+  // Normalize "type/enter/put/set ... in <problem-word field>"
+  const typeMatch = trimmed.match(/^(type|enter|write|put)\s+(.+?)\s+in(?:to)?\s+(?:the\s+)?(.+?)[.?!]*$/i);
+  if (typeMatch) {
+    const [, verb, val, field] = typeMatch;
+    return `${verb} ${val} in ${normalizeVoiceField(field)}`;
+  }
+  const setMatch = trimmed.match(/^(?:set|fill)\s+(?:the\s+)?(.+?)\s+(?:to|with)\s+(.+?)[.?!]*$/i);
+  if (setMatch) {
+    const [, field, val] = setMatch;
+    return `type ${val} in ${normalizeVoiceField(field)}`;
+  }
+  // Common ASR typos for click/press + send payments
+  return trimmed
+    .replace(/^(?:clik|clic|pres|prees|tapp)\b/i, 'click')
+    .replace(/\bsend\s+payments\b/i, 'Send Payment');
+}
+
 function sourceLabel(source: VoiceInputSource): string {
   return source === 'speech'
     ? 'browser speech recognition (Chrome)'
@@ -77,14 +161,17 @@ function isActivateIntent(command: string): boolean {
 }
 
 function matchName(names: string[], query: string): string | null {
-  const q = query.trim().toLowerCase();
+  const q = normalizeVoiceField(query).trim().toLowerCase();
   if (!q) return null;
   const exact = names.find((n) => n.toLowerCase() === q);
   if (exact) return exact;
   const includes = names.find(
     (n) => n.toLowerCase().includes(q) || q.includes(n.toLowerCase()),
   );
-  return includes ?? null;
+  if (includes) return includes;
+  // Fuzzy match against available accessible names when slightly misspelled/pluralized
+  const fuzzy = names.find((n) => editDistance(q, n.toLowerCase()) <= 2);
+  return fuzzy ?? null;
 }
 
 /**

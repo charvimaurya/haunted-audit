@@ -1,3 +1,8 @@
+/**
+ * Route table: the only place a path is written (spec: .kiro/specs/site-shell-repair/).
+ * The router, every nav item, sidebar item, breadcrumb and "Next step" link
+ * all read from here.
+ */
 export type FixStep = 'find' | 'fix' | 'verify' | 'regression';
 export const FIX_STEPS: FixStep[] = ['find', 'fix', 'verify', 'regression'];
 export const FIX_STEP_LABEL: Record<FixStep, string> = {
@@ -9,7 +14,7 @@ export const FIX_STEP_LABEL: Record<FixStep, string> = {
 
 const APP = '/app';
 
-/** Every page and its canonical route path. */
+/** Every page and its path. */
 export const PATHS = {
   home: '/',
   'how-it-works': '/how-it-works',
@@ -30,6 +35,7 @@ export const PATHS = {
 
 export type PageId = keyof typeof PATHS;
 
+/** The path for a page. */
 export function to(id: PageId): string {
   return PATHS[id];
 }
@@ -37,9 +43,13 @@ export function to(id: PageId): string {
 export interface PageDef {
   id: PageId;
   path: string;
+  /** Visible page title (the only H1 on the page; Home uses the hero). */
   h1: string;
+  /** Plain-English line: what this page shows. */
   shows: string;
+  /** Which chrome shell renders this page. */
   shell: 'marketing' | 'app';
+  /** Breadcrumb parent (app pages). */
   parent?: PageId;
   next?: { label: string; page: PageId };
 }
@@ -51,7 +61,7 @@ const SPECS: PageSpec[] = [
   { id: 'home', h1: 'Haunted Audit', shell: 'marketing',
     shows: 'The start page. It explains the idea in one line and sends you to the demo.' },
   { id: 'how-it-works', h1: 'How it works', shell: 'marketing',
-    shows: 'Why scanners miss half of real accessibility barriers (3/6), and how Possession Mode tests journeys without a mouse.',
+    shows: 'Detect, Experience, Fix, Verify, and Prevent — how Haunted Audit tests real accessibility journeys without a mouse.',
     next: { label: 'Open Possession Mode', page: 'possession' } },
   { id: 'results', h1: 'Results', shell: 'marketing',
     shows: 'Measured results from a run. Anything not measured yet shows -- and "not yet measured".',
@@ -59,24 +69,24 @@ const SPECS: PageSpec[] = [
   { id: 'trust', h1: 'Trust', shell: 'marketing',
     shows: 'How Haunted Audit keeps results honest: deterministic verdicts, real measurements only, and human approval.',
     next: { label: 'See measured results', page: 'results' } },
-  { id: 'kiro', h1: 'Kiro', shell: 'app',
+  { id: 'kiro', h1: 'Kiro', shell: 'marketing',
     shows: 'How Haunted Audit is built with Kiro: specs, steering rules, and the scan-on-save hook.',
-    next: { label: 'See reports', page: 'app-reports' } },
+    next: { label: 'About Haunted Audit', page: 'about' } },
   { id: 'about', h1: 'About', shell: 'marketing',
     shows: 'What Haunted Audit is, why mouse-free journey testing matters, and who it is built for.',
     next: { label: 'Accessibility statement', page: 'accessibility' } },
   { id: 'accessibility', h1: 'Accessibility', shell: 'marketing',
-    shows: 'How this dashboard meets WCAG 2.2 AA: keyboard navigation, calm mode, and focus management.',
+    shows: 'How this dashboard meets WCAG 2.2 AA: keyboard navigation, high contrast, calm mode, and focus management.',
     next: { label: 'Back to the start', page: 'home' } },
-  // ── App workspace ──────────────────────────────────────────
+  // ── App ────────────────────────────────────────────────────
   { id: 'app-home', h1: 'Dashboard', shell: 'app',
-    shows: 'Your Haunted Audit workspace. Launch a journey, scan URLs, inspect agents, approve fixes, and review telemetry.',
-    next: { label: 'Run a journey', page: 'possession' } },
-  { id: 'app-scans', h1: 'Findings', shell: 'app', parent: 'app-home',
-    shows: 'Read-only Ghost Hunter axe-core scanner for Haunted Bank (3/6 baseline) or SSRF-guarded public URLs.',
-    next: { label: 'Experience Possession Mode', page: 'possession' } },
-  { id: 'app-journeys', h1: 'Scenarios', shell: 'app', parent: 'app-home',
-    shows: 'Choose from 9 bundled Possession sandbox domains and run keyboard-only or voice journeys.',
+    shows: 'Your Haunted Audit workspace. Pick a tool from the sidebar — no metrics are invented here.',
+    next: { label: 'Run a journey', page: 'app-journeys' } },
+  { id: 'app-scans', h1: 'Scans', shell: 'app', parent: 'app-home',
+    shows: 'Read-only Ghost Hunter axe-core scanner for Haunted Bank or SSRF-guarded public URLs.',
+    next: { label: 'Try a journey', page: 'app-journeys' } },
+  { id: 'app-journeys', h1: 'Journeys', shell: 'app', parent: 'app-home',
+    shows: 'Choose from 9 bundled Possession sandbox domains and run keyboard-only or voice journeys on broken or fixed flows.',
     next: { label: 'Open Possession Mode', page: 'possession' } },
   { id: 'possession', h1: 'Possession Mode', shell: 'app', parent: 'app-journeys',
     shows: 'Run a keyboard-only or voice-command journey on any of the 9 sandbox scenarios. A ghost is an accessibility barrier.',
@@ -88,7 +98,7 @@ const SPECS: PageSpec[] = [
     shows: 'Browse recorded Possession runs in a paginated table, click View details, and track Find, Fix, Verify, and Regression rounds.',
     next: { label: 'See reports', page: 'app-reports' } },
   { id: 'app-reports', h1: 'Reports', shell: 'app', parent: 'app-home',
-    shows: 'Measured results, HeroUI charts, and saved Possession telemetry. Unmeasured values always show --.',
+    shows: 'Measured metrics, bar charts, and saved Possession telemetry. Unmeasured values always show --.',
     next: { label: 'Open settings', page: 'app-settings' } },
   { id: 'app-settings', h1: 'Settings', shell: 'app', parent: 'app-home',
     shows: 'Configure default runner mode, Halloween sound, calm mode, local run storage, and live API diagnostics.',
@@ -117,6 +127,7 @@ export function titleFor(pathname: string): string {
   return p.id === 'home' ? 'Haunted Audit' : `${p.h1} · Haunted Audit`;
 }
 
+/** Breadcrumb trail for a page, from the app dashboard down to the page itself. */
 export function trailFor(id: PageId): PageDef[] {
   const out: PageDef[] = [];
   let cur: PageDef | undefined = page(id);
@@ -133,85 +144,44 @@ export interface NavItem {
   isCurrent: (pathname: string) => boolean;
 }
 
-function cleanPath(p: string): string {
-  return p.length > 1 ? p.replace(/\/+$/, '') : p;
-}
-
 function item(label: string, id: PageId, section?: string): NavItem {
   const path = to(id);
   const prefix = section ?? path;
   return {
     label,
     to: path,
-    isCurrent: (raw) => {
-      const p = cleanPath(raw);
-      return p === path || (prefix !== '/' && (p === prefix || p.startsWith(`${prefix}/`)));
-    },
+    isCurrent: (p) => p === path || (prefix !== '/' && (p === prefix || p.startsWith(`${prefix}/`))),
   };
 }
 
-/** Exact design/v9 top navigation bar links: Home · Scans · Journeys · Fixes · Kiro · Reports */
+/** Global top bar. */
 export const NAV: NavItem[] = [
-  { ...item('Home', 'home'), isCurrent: (p) => cleanPath(p) === '/' },
-  item('Scans', 'app-scans'),
-  {
-    ...item('Journeys', 'possession'),
-    isCurrent: (p) => {
-      const c = cleanPath(p);
-      return c.startsWith(`${APP}/journeys`) || c === PATHS['app-agents'];
-    },
-  },
-  { ...item('Fixes', 'app-fixes'), isCurrent: (p) => cleanPath(p).startsWith(`${APP}/fixes`) },
-  item('Kiro', 'kiro'),
-  {
-    ...item('Reports', 'app-reports'),
-    isCurrent: (p) => {
-      const c = cleanPath(p);
-      return c === PATHS['app-reports'] || c === PATHS.results;
-    },
-  },
+  item('How it works', 'how-it-works'),
+  { ...item('App', 'app-home'), isCurrent: (p) => p === APP || p.startsWith(`${APP}/`) },
 ];
 
+/** Public pages and quick entry points. */
 export const FOOTER_NAV: NavItem[] = [
   item('How it works', 'how-it-works'),
-  { ...item('Possession Mode', 'possession'), isCurrent: (p) => cleanPath(p) === PATHS.possession },
+  { ...item('Possession Mode', 'possession'), isCurrent: (p) => p === PATHS.possession },
   item('Results', 'results'),
-  item('Kiro', 'kiro'),
   item('Trust', 'trust'),
   item('About', 'about'),
   item('Accessibility', 'accessibility'),
 ];
 
-/** Exact design/v9 App Sidebar: Overview · Agents · Findings · Fixes · Verification · Regression · Kiro · Reports */
+/** App sidebar: consolidated single Fixes hub plus Overview, Scans, Journeys, Agents, Reports, Settings. */
 export const APP_NAV: NavItem[] = [
-  {
-    ...item('Overview', 'app-home'),
-    isCurrent: (p) => {
-      const c = cleanPath(p);
-      return c === APP || c === PATHS['app-journeys'];
-    },
-  },
+  { ...item('Overview', 'app-home'), isCurrent: (p) => p === APP },
+  item('Scans', 'app-scans'),
+  { ...item('Journeys', 'app-journeys'), isCurrent: (p) => p.startsWith(`${APP}/journeys`) },
   item('Agents', 'app-agents'),
-  item('Findings', 'app-scans'),
-  {
-    label: 'Fixes',
-    to: PATHS['app-fixes'],
-    isCurrent: (p) => cleanPath(p).startsWith(`${APP}/fixes`),
-  },
-  {
-    label: 'Verification',
-    to: `${PATHS['app-fixes']}?step=verify`,
-    isCurrent: () => false,
-  },
-  {
-    label: 'Regression',
-    to: `${PATHS['app-fixes']}?step=regression`,
-    isCurrent: () => false,
-  },
-  item('Kiro', 'kiro'),
+  { ...item('Fixes', 'app-fixes'), isCurrent: (p) => p.startsWith(`${APP}/fixes`) },
   item('Reports', 'app-reports'),
+  item('Settings', 'app-settings'),
 ];
 
+/** Redirects from old paths to canonical routes. */
 export const REDIRECTS: { from: string; to: string }[] = [
   { from: '/try', to: to('possession') },
   { from: '/journeys', to: to('app-journeys') },

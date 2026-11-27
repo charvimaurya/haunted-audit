@@ -40,6 +40,7 @@ export default defineConfig({
       '/voice-runs': API_PROXY,
       '/fixes': API_PROXY,
       '/scan': API_PROXY,
+      '/sandbox': API_PROXY,
       '/health': API_PROXY,
       '/ping': API_PROXY,
     },

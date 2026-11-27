@@ -58,9 +58,9 @@ def page_source(target_file: str = TARGET) -> str:
 
 def _scripted_diff(source: str, finding: dict, *, target_file: str = TARGET, submit_label: str = "Send Payment") -> tuple[str, str]:
     el = finding.get("blocked_element") or {}
-    if finding.get("reason_code") != "TARGET_NOT_FOCUSABLE" or (el.get("tag") or "").lower() != "div":
+    if finding.get("reason_code") not in {"TARGET_NOT_FOCUSABLE", "NO_ACTIVATION"} or (el.get("tag") or "").lower() != "div":
         raise Refused("UNKNOWN_BARRIER",
-                      "The scripted Exorcist only knows one barrier: a div used as a button that the keyboard cannot reach.")
+                      "The scripted Exorcist only knows one barrier: a div used as a button that keyboard or voice cannot activate.")
     broken_send = f"""'<div class="pay-btn" id="send-payment" onclick="window.submitPayment()">{submit_label}</div>'"""
     fixed_send = f"""'<button type="submit" class="btn-primary" id="send-payment">{submit_label}</button>'"""
     lines = source.split("\n")

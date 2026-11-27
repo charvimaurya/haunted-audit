@@ -62,7 +62,7 @@ export default function Settings() {
     <Page id="app-settings">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* 1. Default Agent Runner & Target Variant */}
-        <Card className="v9-card text-white shadow-none">
+        <Card className="bg-base-panel text-white shadow-none">
           <CardHeader className="flex items-center justify-between gap-3 px-5 pt-5 pb-2">
             <div className="flex items-center gap-2.5">
               <Bot size={20} className="text-violet-neon" aria-hidden="true" />
@@ -121,7 +121,7 @@ export default function Settings() {
         </Card>
 
         {/* 2. Underground Halloween Audio */}
-        <Card className="v9-card text-white shadow-none">
+        <Card className="bg-base-panel text-white shadow-none">
           <CardHeader className="flex items-center justify-between gap-3 px-5 pt-5 pb-2">
             <div className="flex items-center gap-2.5">
               {soundOn ? <Volume2 size={20} className="text-violet-neon" aria-hidden="true" /> : <VolumeX size={20} className="text-ink-muted" aria-hidden="true" />}
@@ -143,7 +143,7 @@ export default function Settings() {
         </Card>
 
         {/* 3. Calm Mode (Motion Guard) */}
-        <Card className="v9-card text-white shadow-none">
+        <Card className="bg-base-panel text-white shadow-none">
           <CardHeader className="flex items-center justify-between gap-3 px-5 pt-5 pb-2">
             <div className="flex items-center gap-2.5">
               <Sparkles size={20} className="text-violet-neon" aria-hidden="true" />
@@ -167,7 +167,7 @@ export default function Settings() {
         </Card>
 
         {/* 4. Local Run Storage & Fix Tracking */}
-        <Card className="v9-card text-white shadow-none">
+        <Card className="bg-base-panel text-white shadow-none">
           <CardHeader className="flex items-center justify-between gap-3 px-5 pt-5 pb-2">
             <div className="flex items-center gap-2.5">
               <Database size={20} className="text-violet-neon" aria-hidden="true" />
@@ -208,7 +208,7 @@ export default function Settings() {
         </Card>
 
         {/* 5. API Diagnostics & Safety Guardrails */}
-        <Card className="v9-card text-white shadow-none md:col-span-2">
+        <Card className="bg-base-panel text-white shadow-none md:col-span-2">
           <CardHeader className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-2">
             <div className="flex items-center gap-2.5">
               <Activity size={20} className="text-violet-neon" aria-hidden="true" />

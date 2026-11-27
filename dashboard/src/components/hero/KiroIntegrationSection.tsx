@@ -1,172 +1,154 @@
-import { Card, CardBody, CardHeader, Chip } from '@heroui/react';
-import { AlertTriangle, FileText, Folder, LogOut, Zap } from 'lucide-react';
-import { GhostFigure } from '../ghost/GhostFigure';
-import { V9Dot } from '../ghost/V9Dot';
+/**
+ * KiroIntegrationSection
+ *
+ * "Kiro Integration — Accessibility in Your Workflow" panel (annotation E in v7).
+ *
+ * Real content only (no-mock-results REQ-NM-06):
+ * - The file tree lists the folders that really exist in .kiro/.
+ * - The code is the real hook, .kiro/hooks/scan-on-save.json (trigger, matcher, command).
+ * - The browser cannot see the hook run, so there is no "live" list. One finding recorded on
+ *   22 Nov 2026 is shown with its source file. It is a record, not a live result.
+ *
+ * Accessibility:
+ * - The file tree is a plain list, not an interactive tree widget.
+ * - The code listing is a figure with a caption.
+ * - Status is icon plus text. "Built with Kiro" is plain text.
+ */
+import { AlertTriangle, Dot, FileSearch, Zap } from 'lucide-react';
 
+/** The real hook, as in .kiro/hooks/scan-on-save.json (description and matcher shortened). */
 const HOOK_CODE_LINES = [
-  { n: 1, key: null, text: '{' },
-  { n: 2, key: '"name"', val: '"Form label check on save"', comma: true },
-  { n: 3, key: '"trigger"', val: '"PostFileSave"', comma: true },
-  { n: 4, key: '"matcher"', val: '"… bank | fixtures | dashboard/src .(html|tsx)"', comma: true },
-  { n: 5, key: '"action"', text: '{' },
-  { n: 6, key: '"type"', val: '"command"', comma: true, indent: 4 },
-  { n: 7, key: '"command"', val: '"python3 backend/scan_file.py --hook"', highlight: true, indent: 4 },
-  { n: 8, key: null, text: '}', indent: 2 },
-  { n: 9, key: null, text: '}' },
+  { n: 1, text: '{', muted: true },
+  { n: 2, text: '  "name": "Form label check on save",' },
+  { n: 3, text: '  "trigger": "PostFileSave",' },
+  { n: 4, text: '  "matcher": "… bank | fixtures/haunted_bank | dashboard/src … .(html|tsx)",' },
+  { n: 5, text: '  "action": {' },
+  { n: 6, text: '    "type": "command",' },
+  { n: 7, text: '    "command": "python3 backend/scan_file.py --hook",', highlight: true },
+  { n: 8, text: '    "timeout": 10' },
+  { n: 9, text: '  }' },
+  { n: 10, text: '}', muted: true },
 ];
 
+/** Folders that exist in .kiro/ in this repo. */
 const FILE_TREE = [
   { name: '.kiro/', depth: 0 },
   { name: 'agents/', depth: 1 },
-  { name: 'specs/', depth: 1 },
   { name: 'hooks/', depth: 1, active: true },
-  { name: 'powers/', depth: 1 },
+  { name: 'scripts/', depth: 1 },
+  { name: 'settings/', depth: 1 },
+  { name: 'skills/', depth: 1 },
+  { name: 'specs/', depth: 1 },
   { name: 'steering/', depth: 1 },
 ];
 
+/** Recorded by scan_page on 22 Nov 2026 (docs/evidence/mcp-scan-page-2026-11-22.md). */
 const RECORDED_FINDING = {
   file: 'fixtures/haunted_bank/index.html',
+  line: 188,
   element: 'input#amount',
+  findingId: 'label-594db4fb701f',
+  message: 'This input has no accessible name.',
+  source: 'docs/evidence/mcp-scan-page-2026-11-22.md',
   recorded: '22 Nov 2026',
 };
 
 export function KiroIntegrationSection() {
   return (
-    <section id="kiro" aria-labelledby="kiro-integration-heading" className="flex flex-col gap-3.5">
-      <h2 id="kiro-integration-heading" className="m-0 flex items-center gap-2.5 text-lg sm:text-xl font-extrabold text-white">
-        <span className="v9-neon" aria-hidden="true">
-          <Zap size={24} />
-        </span>
-        <span>Kiro Integration — Accessibility in Your Workflow</span>
-      </h2>
+    <section id="kiro" aria-labelledby="kiro-integration-heading" className="panel overflow-hidden">
+      <div className="px-5 py-3 border-b border-base-line flex items-center gap-2">
+        <h2 id="kiro-integration-heading" className="text-base font-semibold font-ui text-ink">
+          Kiro Integration —{' '}
+          <span className="text-ink-muted font-normal">Accessibility in Your Workflow</span>
+        </h2>
+      </div>
 
-      {/* Responsive 2-col on Desktop xl+, stacked cleanly on Tablet & Mobile */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(290px,1fr)]">
-        <Card className="v9-card overflow-hidden text-white shadow-none">
-          <CardBody className="flex flex-col p-0 md:flex-row">
-            <nav
-              aria-label="Kiro workspace folders"
-              className="border-b border-[#2b3254] p-3.5 text-sm md:w-48 md:shrink-0 md:border-r md:border-b-0"
-            >
-              <div className="mb-2.5 flex items-center gap-2 pl-1 font-bold text-white">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-violet-600 text-xs font-extrabold text-white">
-                  K
-                </span>
-                <span>Kiro</span>
-              </div>
-              <ul className="m-0 flex list-none flex-wrap gap-1 p-0 md:flex-col" role="list">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-0 divide-y xl:divide-y-0 xl:divide-x divide-base-line">
+        {/* ── Left: the real hook file ─────────────────────────────── */}
+        <div className="p-4 flex flex-col gap-3">
+          <div className="flex gap-3">
+            <nav aria-label="Kiro workspace folders" className="w-28 shrink-0">
+              <ul className="flex flex-col gap-0.5 list-none p-0 m-0" role="list">
                 {FILE_TREE.map(({ name, depth, active }) => (
                   <li
                     key={name}
                     className={[
-                      'flex min-h-8 items-center gap-2 rounded-lg px-2.5 text-sm',
-                      depth === 1 ? 'md:pl-6' : '',
-                      active ? 'bg-[#3a2479] text-white shadow-[0_0_12px_#7c3aed66]' : 'text-[#d7dbef]',
+                      'text-base font-mono rounded px-1 py-0.5',
+                      active ? 'bg-violet-600/20 text-violet-300' : 'text-ink-faint',
                     ].join(' ')}
+                    style={{ paddingLeft: `${depth * 10 + 4}px` }}
                     aria-current={active ? 'true' : undefined}
                   >
-                    {depth === 0 ? (
-                      <LogOut size={15} aria-hidden="true" />
-                    ) : (
-                      <Folder size={15} className={active ? 'text-violet-300' : 'text-[#cfd3ee]'} aria-hidden="true" />
-                    )}
-                    <span>{name}</span>
+                    {name}
                   </li>
                 ))}
               </ul>
             </nav>
-
-            <div className="min-w-0 flex-1">
-              <div className="border-b border-[#2b3254] bg-[#12162d]">
-                <span className="inline-flex items-center gap-2 border-r border-[#2b3254] bg-[#1b2140] px-4 py-2 font-mono text-xs sm:text-sm text-white">
-                  <FileText size={14} aria-hidden="true" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1 mb-2">
+                <div className="flex items-center gap-1 px-2 py-1 rounded-t-md text-base font-mono bg-base border-t border-l border-r border-base-line text-ink-muted">
+                  <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true" />
                   <span>scan-on-save.json</span>
-                </span>
+                </div>
               </div>
-              <figure className="m-0" aria-label="scan-on-save.json, the real Kiro hook">
+              <figure className="code-block m-0" aria-label="scan-on-save.json, the real Kiro hook">
                 <figcaption className="sr-only">
-                  Real Kiro hook configuration triggered on PostFileSave.
+                  .kiro/hooks/scan-on-save.json: on save, Kiro runs python3 backend/scan_file.py --hook
                 </figcaption>
-                <pre className="m-0 overflow-x-auto px-4 py-3.5 font-mono text-xs sm:text-sm leading-relaxed">
+                <pre className="m-0 whitespace-pre-wrap break-words">
                   <code>
-                    {HOOK_CODE_LINES.map((row) => (
-                      <span key={row.n} className="block whitespace-pre">
-                        <span className="mr-5 inline-block w-[2ch] select-none text-right text-[#6f789e]" aria-hidden="true">
-                          {row.n}
-                        </span>
-                        {row.key ? (
-                          <>
-                            <span>{' '.repeat(row.indent ?? 2)}</span>
-                            <span className="text-[#7dd3fc]">{row.key}</span>
-                            <span className="text-white">: </span>
-                            {row.val ? (
-                              <span className={row.highlight ? 'font-semibold text-[#fbbf24]' : 'text-[#fbbf24]'}>
-                                {row.val}
-                              </span>
-                            ) : (
-                              <span className="text-white">{row.text}</span>
-                            )}
-                            {row.comma && <span className="text-white">,</span>}
-                          </>
-                        ) : (
-                          <span className="text-white">
-                            {' '.repeat(row.indent ?? 0)}
-                            {row.text}
-                          </span>
-                        )}
+                    {HOOK_CODE_LINES.map(({ n, text, muted, highlight }) => (
+                      <span
+                        key={n}
+                        className={[
+                          'flex gap-3 leading-relaxed',
+                          muted ? 'text-ink-faint' : '',
+                          highlight ? 'text-amber-300' : '',
+                          !muted && !highlight ? 'text-ink-muted' : '',
+                        ].filter(Boolean).join(' ')}
+                      >
+                        <span className="w-6 text-right text-ink-faint shrink-0 select-none" aria-hidden="true">{n}</span>
+                        <span>{text}</span>
                       </span>
                     ))}
                   </code>
                 </pre>
               </figure>
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="panel-glow flex flex-col text-white shadow-none">
-          <CardHeader className="flex items-center gap-2.5 px-4 pt-4 pb-2">
-            <Zap size={20} style={{ color: '#fb923c' }} aria-hidden="true" />
-            <h3 className="m-0 text-base sm:text-lg font-extrabold text-white">
-              Kiro Hook (recorded {RECORDED_FINDING.recorded})
-            </h3>
-          </CardHeader>
-
-          <CardBody className="flex flex-1 flex-col justify-between gap-4 px-4 pt-2 pb-4">
-            <ul className="m-0 flex list-none flex-col gap-3 p-0 text-sm sm:text-[15px]" aria-label="Recorded hook events">
-              <li className="flex items-start gap-3 text-ink">
-                <V9Dot state="ok" size={22} />
-                <span>
-                  File saved:{' '}
-                  <span className="font-mono text-xs sm:text-sm break-all text-white">{RECORDED_FINDING.file}</span>
-                </span>
-              </li>
-              <li className="flex items-start gap-3 text-ink">
-                <GhostFigure tone="white" face="happy" size={22} className="shrink-0" />
-                <span>Haunted Audit scan triggered</span>
-              </li>
-              <li className="flex items-start gap-3 text-ink">
-                <span className="v9-dot bad shrink-0" style={{ width: 22, height: 22 }} aria-hidden="true">
-                  <AlertTriangle size={12} strokeWidth={3} />
-                </span>
-                <span>
-                  Accessibility issue found:
-                  <br />
-                  <b className="font-mono text-xs sm:text-sm text-[#ff6b6b]">{RECORDED_FINDING.element} has no accessible name</b>
-                </span>
-              </li>
-            </ul>
-
-            <div className="flex justify-end">
-              <Chip
-                size="md"
-                variant="flat"
-                className="h-9 rounded-xl border border-[#b794ff] bg-gradient-to-b from-[#3b1f86] to-[#26135a] px-4 font-extrabold text-white shadow-[0_0_16px_#8b5cf688]"
-              >
-                Built with Kiro
-              </Chip>
-            </div>
-          </CardBody>
-        </Card>
+        {/* ── Right: the hook's events, as v7 lays them out; one real recorded finding ── */}
+        <div className="p-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Zap size={16} className="text-amber-400" aria-hidden="true" />
+            <h3 className="text-base font-semibold font-ui text-ink">Kiro Hook (recorded {RECORDED_FINDING.recorded})</h3>
+          </div>
+          <ul className="m-0 flex list-none flex-col gap-2 p-0 text-base font-ui" aria-label="Recorded hook events">
+            <li className="flex items-start gap-2 text-ink">
+              <FileSearch size={16} className="mt-1 shrink-0 text-ink-muted" aria-hidden="true" />
+              <span>File scanned: <span className="font-mono break-all">{RECORDED_FINDING.file}</span></span>
+            </li>
+            <li className="flex items-start gap-2 text-ink">
+              <Dot size={16} className="mt-1 shrink-0 text-violet-neon" aria-hidden="true" />
+              <span>Haunted Audit scan triggered (<span className="font-mono">scan_page</span>)</span>
+            </li>
+            <li className="flex items-start gap-2 text-ink">
+              <AlertTriangle size={16} className="mt-1 shrink-0 text-ghost-blocked" aria-hidden="true" />
+              <span>
+                <span className="sr-only">Finding: </span>Accessibility issue found:{' '}
+                <span className="text-ghost-blocked">Missing accessible label</span>{' '}
+                (<span className="font-mono">{RECORDED_FINDING.element}</span>, line {RECORDED_FINDING.line})
+              </span>
+            </li>
+          </ul>
+          <p className="m-0 text-base font-ui text-ink-muted">
+            Recorded, not live: this page cannot see the hook run in your editor. Source: {RECORDED_FINDING.source}
+          </p>
+          <p className="mt-auto ml-auto inline-flex w-fit items-center rounded-lg border border-violet-neon/60 bg-violet-600/25 px-3 py-1 text-base font-ui font-semibold text-ink">
+            Built with Kiro
+          </p>
+        </div>
       </div>
     </section>
   );

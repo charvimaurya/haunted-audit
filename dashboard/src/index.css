@@ -2,143 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Rubik Wet Paint';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('./assets/rubik-wet-paint-latin-400-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Creepster';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('./assets/creepster-latin-400-normal.woff2') format('woff2');
-}
-
-/* ── Haunted Audit UI v9 Design Tokens ────────────────────────────────────── */
+/* ── CSS custom properties (Dark Halloween mode) ───────────────────────── */
 :root {
-  --page: #08060f;
-  --frame-a: #15102b;
-  --frame-b: #0c0919;
-  --card-a: #171c34;
-  --card-b: #10142a;
-  --card-line: #2b3254;
-  --violet: #8b5cf6;
-  --violet-hi: #b794ff;
-  --violet-deep: #2a1a5c;
-  --mute: #a9afcc;
-  --dim: #7f86a8;
+  --color-base:          #0d0714;
+  --color-panel:         #1a0f2e;
+  --color-surface:       #231540;
+  --color-line:          #3b2060;
 
-  --color-base: #08060f;
-  --color-panel: #14172f;
-  --color-surface: #1b203f;
-  --color-line: #2b3254;
-  --color-violet-500: #8b5cf6;
-  --color-violet-600: #7c3aed;
-  --color-violet-neon: #c084fc;
-  --color-ghost-ready: #c9b6ff;
+  --color-violet-500:    #8b46ff;
+  --color-violet-600:    #7c3aed;
+  --color-violet-neon:   #a855f7;
+
+  --color-ghost-ready:   #c9b6ff;
   --color-ghost-blocked: #ef4444;
-  --color-ghost-verified: #22c55e;
-  --color-ghost-caught: #ffffff;
-  --color-parchment: #f5e6c8;
+  --color-ghost-verified:#22c55e;
+  --color-ghost-caught:  #ffffff;
+
+  --color-parchment:     #f5e6c8;
   --color-parchment-ink: #3b2a0e;
   --color-parchment-yes: #166534;
-  --color-parchment-no: #b91c1c;
-  --color-ink: #eef0ff;
-  --color-ink-muted: #a9afcc;
-  --color-ink-faint: #7f86a8;
+  --color-parchment-no:  #b91c1c;
 
-  --bank-bar: #0c0919;
-  --bank-rail: #10142a;
-  --bank-card: #171c34;
-  --bank-line: #2b3254;
-  --bank-sidebar: #0e1226;
-  --bank-input: #121731;
-  --bank-nav: #1c2b4d;
-  --bank-nav-line: #3b82f6;
-  --bank-dash-fill: #2a1020;
-  --bank-tip: #1a0c16;
-  --bank-barrier: #3a0f1a;
+  --color-ink:           #f0e8ff;
+  --color-ink-muted:     #b2a0cf;
+  --color-ink-faint:     #9480b2;
 
-  --font-display: 'Rubik Wet Paint', 'Creepster', cursive;
-  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --bank-bar:            #090c1a;
+  --bank-rail:           #0a0c1a;
+  --bank-card:           #111626;
+  --bank-line:           #1e2437;
+  --bank-sidebar:        #050d17;
+  --bank-input:          #151a2b;
+  --bank-nav:            #10223c;
+  --bank-nav-line:       #144775;
+  --bank-dash-fill:      #30243d;
+  --bank-tip:            #0f0f1f;
+  --bank-barrier:        #2f0e21;
 
-  --shadow-glow: 0 0 26px #7c3aed77, 0 0 70px #7c3aed2a;
-  --shadow-glow-red: 0 0 18px #ef444455;
-  --shadow-glow-green: 0 0 18px #22c55e55;
+  --font-display: "Rubik Wet Paint", fantasy;
+  --font-ui:      "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-  --gf-red-0: #ffb4b4;
-  --gf-red-1: #ff5a5a;
-  --gf-red-2: #b3122b;
-  --gf-green-0: #d4ffe3;
-  --gf-green-1: #5ef08f;
-  --gf-green-2: #138a42;
-  --gf-white-0: #ffffff;
-  --gf-white-1: #efe8ff;
-  --gf-white-2: #b79cf5;
-  --gf-face: #1b0710;
-  --gf-shine: #ffffff;
-  --gf-glow-red: #ff3b3b;
-  --gf-glow-green: #22c55e;
-  --gf-glow-white: rgba(255, 255, 255, 0.55);
+  --shadow-glow:        0 0 12px 2px rgba(168, 85, 247, 0.45);
+  --shadow-glow-red:    0 0 10px 2px rgba(239, 68, 68, 0.40);
+  --shadow-glow-green:  0 0 10px 2px rgba(34, 197, 94, 0.35);
 }
 
 @layer utilities {
-  .bg-base { background-color: var(--color-base); }
+  .bg-base     { background-color: var(--color-base); }
   .bg-base\/40 { background-color: color-mix(in srgb, var(--color-base) 40%, transparent); }
   .bg-base\/85 { background-color: color-mix(in srgb, var(--color-base) 85%, transparent); }
   .bg-base\/90 { background-color: color-mix(in srgb, var(--color-base) 90%, transparent); }
   .bg-base\/95 { background-color: color-mix(in srgb, var(--color-base) 95%, transparent); }
 }
 
+/* ── Base resets ───────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
   font-size: 16px;
   font-family: var(--font-ui);
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 4.5rem;
   -webkit-text-size-adjust: 100%;
-  overflow-x: clip;
 }
 
 body {
   margin: 0;
-  background: radial-gradient(90% 60% at 50% -10%, #1c1240 0%, var(--page) 60%) fixed;
-  background-color: var(--page);
+  background-color: var(--color-base);
   color: var(--color-ink);
   font-family: var(--font-ui);
-  line-height: 1.45;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  overflow-x: clip;
 }
 
 h2, h3, h4, h5, h6, button, input, select, textarea {
   font-family: var(--font-ui);
 }
 
-:focus-visible {
-  outline: 3px solid #fde047;
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
-h1[tabindex='-1']:focus,
-h2[tabindex='-1']:focus {
-  outline: none;
-}
-
+/* ── prefers-reduced-motion ─────────────────────────────────────────────
+   Covers: ghost floating, glow pulses, spinner, animate-pulse dot.
+   animation: none stops @keyframes from Tailwind and plain CSS alike.
+   box-shadow: none removes glow pulses (which are shadow-based).
+   transition: none stops hover colour flickers.
+   ─────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
   }
+  /* Remove pulsing glow box-shadows */
+  .panel-glow,
+  .shadow-glow,
+  .glow,
+  .glow-red,
+  .glow-green {
+    box-shadow: none !important;
+  }
 }
 
+/* Calm mode is the same promise, chosen from the page as well as the OS. */
 html[data-calm='true'] *,
 html[data-calm='true'] *::before,
 html[data-calm='true'] *::after {
@@ -147,384 +110,8 @@ html[data-calm='true'] *::after {
   transition-delay: 0ms !important;
 }
 
-html[data-calm='true'] .v9-roam {
-  display: none !important;
-}
-
-/* ── v9 Surface Cards & Outer Glow Frame ──────────────────────────────────── */
-.v9-frame {
-  position: relative;
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--frame-a), var(--frame-b));
-  border: 1.5px solid #7c4dff;
-  box-shadow:
-    0 0 0 1px #a78bfa22,
-    0 0 26px #7c3aed66,
-    0 0 64px #7c3aed24,
-    inset 0 0 36px #7c3aed1a;
-}
-
-.v9-card,
-.panel {
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--card-a), var(--card-b)) !important;
-  border: 1px solid var(--card-line) !important;
-  box-shadow: inset 0 1px 0 #ffffff0d, 0 8px 24px #0006 !important;
-}
-
-.panel-glow {
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--card-a), var(--card-b)) !important;
-  border: 1px solid #7c4dff !important;
-  box-shadow: 0 0 22px #7c3aed44, inset 0 1px 0 #ffffff0d !important;
-}
-
-.v9-neon {
-  color: var(--color-violet-neon);
-  filter: drop-shadow(0 0 6px #a855f7aa);
-}
-
-.v9-dot {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  color: #fff;
-  box-shadow: 0 0 10px currentColor;
-}
-.v9-dot.ok {
-  background: radial-gradient(circle at 35% 30%, #5ef08f, #16a34a);
-  color: #22c55e;
-}
-.v9-dot.bad {
-  background: radial-gradient(circle at 35% 30%, #ff8080, #dc2626);
-  color: #ef4444;
-}
-.v9-dot.wait {
-  background: #252b46;
-  color: transparent;
-  box-shadow: none;
-  border: 1px dashed #4b5375;
-}
-.v9-dot svg { color: #fff; }
-
-/* ── App Frame Layout (Sticky header + Sticky sidebar on Desktop) ─────────── */
-.v9-appframe {
-  margin: 8px auto 16px;
-  width: min(100% - 16px, 1360px);
-  display: flex;
-  flex-direction: column;
-}
-@media (min-width: 768px) {
-  .v9-appframe {
-    margin: 10px auto 20px;
-    width: min(100% - 24px, 1360px);
-  }
-}
-
-.v9-apphead {
-  position: sticky;
-  top: 54px;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 9px 20px;
-  border-top-left-radius: 17px;
-  border-top-right-radius: 17px;
-  background: color-mix(in srgb, #140f2a 92%, transparent);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid #2a2350;
-}
-
-.v9-appbody {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  align-items: stretch;
-}
-
-.v9-side {
-  flex: 0 0 190px;
-  width: 190px;
-  padding: 12px 10px;
-  border-right: 1px solid #2a2350;
-}
-
-.v9-content {
-  flex: 1 1 0%;
-  min-width: 0;
-  padding: 16px;
-}
-@media (min-width: 768px) {
-  .v9-content {
-    padding: 18px 22px 22px;
-  }
-}
-
-/* ── Home Hero (.v9-hero) — Clean across Mobile, Tablet, Desktop ─────────── */
-.v9-hero {
-  position: relative;
-  width: min(100% - 12px, 1360px);
-  margin: 4px auto 8px;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 1.5px solid #7c4dff88;
-  box-shadow: 0 0 30px #7c3aed55;
-  min-height: calc(100dvh - 82px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-@media (min-width: 1024px) {
-  .v9-hero {
-    width: min(100% - 24px, 1360px);
-    margin: 8px auto 16px;
-    aspect-ratio: 1296 / 536;
-    min-height: 500px;
-    max-height: calc(100dvh - 88px);
-    display: block;
-    container-type: inline-size;
-  }
-}
-.v9-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(65% 65% at 50% 48%, #0b0618cc 0%, #0b061888 55%, #0b061844 100%);
-}
-@media (min-width: 1024px) {
-  .v9-hero::after {
-    background: radial-gradient(38% 46% at 56.6% 46%, #0b0618b3 0%, #0b061866 45%, transparent 75%);
-  }
-}
-.v9-hero .art {
-  position: absolute;
-  inset: 0;
-  background: url('./assets/hero-bg.jpg') 24% center / cover no-repeat;
-}
-@media (min-width: 1024px) {
-  .v9-hero .art {
-    background-position: center;
-  }
-}
-
-.v9-center {
-  position: relative;
-  z-index: 3;
-  text-align: center;
-  padding: 28px 16px 64px;
-  width: 100%;
-  max-width: 640px;
-}
-@media (min-width: 1024px) {
-  .v9-center {
-    position: absolute;
-    left: 56.6%;
-    top: 12%;
-    transform: translateX(-50%);
-    width: 52cqw;
-    max-width: none;
-    padding: 0;
-  }
-}
-
-.v9-wordmark {
-  margin: 0;
-  font-family: 'Rubik Wet Paint', 'Creepster', cursive;
-  font-weight: 400;
-  font-size: clamp(2.4rem, 7vw, 4.75rem);
-  line-height: 1.02;
-  letter-spacing: 0.04em;
-  color: transparent;
-  background: linear-gradient(180deg, #ffffff 0%, #f3ecff 42%, #cdb4ff 72%, #a98bff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 0 8px #b794ff99) drop-shadow(0 3px 8px #0009);
-}
-@media (min-width: 1024px) {
-  .v9-wordmark {
-    white-space: nowrap;
-    font-size: max(36px, 6.4cqw);
-  }
-}
-.v9-wordmark span {
-  color: transparent;
-  background: linear-gradient(180deg, #e9ddff 0%, #c4a6ff 55%, #9f7bff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.v9-roam {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-  width: 48px;
-  height: 48px;
-  opacity: 0.85;
-}
-.v9-roam-a { top: 82%; left: -60px; }
-.v9-roam-b { top: 4%; right: -60px; width: 40px; height: 40px; }
-@media (min-width: 1024px) {
-  .v9-roam { width: 4cqw; height: 4cqw; }
-  .v9-roam-a { top: 86%; left: -8cqw; }
-  .v9-roam-b { top: 1%; right: -8cqw; width: 3.3cqw; height: 3.3cqw; }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .v9-roam-a { animation: v9laneA 24s linear infinite; }
-  .v9-roam-b { animation: v9laneB 29s linear infinite; }
-  @keyframes v9laneA {
-    0% { transform: translate(0, 0); }
-    50% { transform: translate(55vw, -12px); }
-    100% { transform: translate(115vw, 0); }
-  }
-  @keyframes v9laneB {
-    0% { transform: translate(0, 0) scaleX(-1); }
-    50% { transform: translate(-55vw, 12px) scaleX(-1); }
-    100% { transform: translate(-115vw, 0) scaleX(-1); }
-  }
-  .v9-bob { animation: v9bob 5s ease-in-out infinite; }
-  @keyframes v9bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-}
-/* Restored AmbientLayer styling for Framer Motion trails & particles */
-.ambient-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  pointer-events: none;
-}
-.ambient-layer * {
-  pointer-events: none !important;
-}
-.hero-paused .ambient-layer,
-.hero-paused .ambient-layer *,
-.hero-paused .v9-roam,
-.hero-paused .v9-bob,
-.hero-paused .animate-glow-pulse {
-  animation-play-state: paused !important;
-}
-.hero-paused .ambient-layer {
-  opacity: 0.45;
-  transition: opacity 250ms ease;
-}
-
-/* ── Possession Mode Target Replica Styling ───────────────────────────────── */
-.v9-amtbar {
-  height: 3px;
-  max-width: 560px;
-  margin: 4px 0 14px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #8b5cf6, #c084fc 60%, transparent);
-}
-.v9-paybtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: min(100%, 280px);
-  min-height: 46px;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  border: 2px dashed #ff5a5a;
-  background: #2a1020;
-  box-shadow: 0 0 20px #ef444455, inset 0 0 20px #ef444422;
-}
-.v9-paybtn.ok {
-  border: 2px solid #22c55e;
-  background: #0f2a1b;
-  box-shadow: 0 0 20px #22c55e66;
-}
-.v9-paybtn.idle {
-  border: 2px dashed #4b5375;
-  background: #161a33;
-  box-shadow: none;
-}
-
-/* ── Critical Ghost, Fixes Cards & Outcome Parchment ──────────────────────── */
-.v9-crit {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 16px 20px;
-  border-radius: 16px;
-  flex-wrap: wrap;
-  background: linear-gradient(90deg, #3a1022 0%, #2a0d1c 55%, #1a0c1c 100%) !important;
-  border: 1.5px solid #ff5a5a88 !important;
-  box-shadow: 0 0 24px #ef444444, inset 0 0 30px #ef44441a !important;
-}
-
-.v9-fcard.reg {
-  background: linear-gradient(180deg, #2a0f1c, #1a0b16) !important;
-  border: 1.5px solid #ff5a5a !important;
-  box-shadow: 0 0 26px #ef444455, inset 0 0 30px #ef44441a !important;
-}
-
-.v9-tile {
-  border-radius: 16px !important;
-  padding: 16px !important;
-}
-.v9-tile.t1 {
-  background: linear-gradient(180deg, #2a1230, #1a0e26) !important;
-  border: 1.5px solid #ec4899aa !important;
-  box-shadow: 0 0 18px #ec489944 !important;
-}
-.v9-tile.t2 {
-  background: linear-gradient(180deg, #0f2620, #0c1a18) !important;
-  border: 1.5px solid #22c55eaa !important;
-  box-shadow: 0 0 18px #22c55e44 !important;
-}
-.v9-tile.t3 {
-  background: linear-gradient(180deg, #22164a, #160f33) !important;
-  border: 1.5px solid #a855f7aa !important;
-  box-shadow: 0 0 18px #a855f744 !important;
-}
-.v9-tile.t4 {
-  background: linear-gradient(180deg, #10203f, #0c162d) !important;
-  border: 1.5px solid #3b82f6aa !important;
-  box-shadow: 0 0 18px #3b82f644 !important;
-}
-
-.v9-parch {
-  position: relative;
-  padding: 22px 24px;
-  color: #2a1a0a;
-  border-radius: 8px;
-  background: radial-gradient(120% 120% at 30% 20%, #f6e3bc 0%, #ecd29c 55%, #d9b679 100%);
-  clip-path: polygon(
-    2% 4%, 8% 0, 20% 3%, 34% 1%, 50% 4%, 66% 0, 80% 3%, 95% 1%, 100% 6%,
-    98% 22%, 100% 40%, 98% 60%, 100% 80%, 97% 96%, 86% 100%, 70% 97%,
-    54% 100%, 38% 97%, 22% 100%, 8% 97%, 0 92%, 2% 72%, 0 52%, 2% 30%, 0 14%
-  );
-  box-shadow: inset 0 0 40px #8a5a2a88;
-}
-
-.v9-okghost {
-  position: absolute;
-  right: -6px;
-  top: -54px;
-  width: 96px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.row-tick::after {
-  content: ' \2713';
-  content: ' \2713' / '';
-  color: #4ade80;
-  font-weight: 800;
-}
+/* Spooky moments (spooky-steps). The resting style is the end state, so Calm mode and reduced motion
+   (animation: none above) show the same final state at once. One-off animations, no repeat, never under 334 ms. */
 .exorcism-ghost {
   display: inline-flex;
   opacity: 0.35;
@@ -533,31 +120,622 @@ html[data-calm='true'] .v9-roam {
 }
 @keyframes exorcise {
   from { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 14px currentColor) brightness(1.4); }
-  60% { opacity: 0.9; transform: scale(1.08); filter: drop-shadow(0 0 22px currentColor) brightness(1.6); }
-  to { opacity: 0.35; transform: scale(0.85); filter: none; }
+  60%  { opacity: 0.9; transform: scale(1.08); filter: drop-shadow(0 0 22px currentColor) brightness(1.6); }
+  to   { opacity: 0.35; transform: scale(0.85); filter: none; }
 }
-.split-reveal { animation: split-reveal 600ms ease-out 1; }
+.split-reveal {
+  animation: split-reveal 600ms ease-out 1;
+}
 @keyframes split-reveal {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  to   { opacity: 1; transform: none; }
 }
 
+/* Fix pages: a done row is also ticked after its text (v9). Empty alt text: the row already says "Done". */
+.row-tick::after {
+  content: " \2713";
+  content: " \2713" / "";
+  color: var(--color-ghost-verified);
+  font-weight: 700;
+}
+
+/* Decorative motion sits under the controls and cannot take clicks or focus. */
+.ambient-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: inline-size;
+}
+.ambient-layer,
+.ambient-layer * {
+  pointer-events: none !important;
+}
+
+/* Horizontal only. Each pass starts fully outside the hero and loops. */
+@keyframes ambient-roam {
+  from { transform: translate3d(-5rem, 0, 0); }
+  to { transform: translate3d(calc(100cqi + 1rem), 0, 0); }
+}
+@keyframes ambient-roam-back {
+  from { transform: translate3d(calc(100cqi + 1rem), 0, 0); }
+  to { transform: translate3d(-5rem, 0, 0); }
+}
+.ambient-roam {
+  left: 0;
+  line-height: 1;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+/* Lower band, under the step chips and clear of the main button, left → right.
+   Starts mid-crossing so it is visible immediately. (site-shell-repair REQ-SH-08) */
+.ambient-roam-ltr {
+  top: auto;
+  bottom: 0.25rem;
+  font-size: 3rem;
+  animation-name: ambient-roam;
+  animation-delay: -7s;
+}
+/* Upper band, inside the hero's top padding, above the H1, right → left.
+   A different, tinted ghost, already on screen. */
+.ambient-roam-rtl {
+  top: 0.5rem;
+  font-size: 3rem;
+  animation-name: ambient-roam-back;
+  animation-delay: -4s;
+}
+.ambient-ghost-alt {
+  display: inline-block;
+  transform: scaleX(-1);
+  color: var(--color-ghost-ready);
+}
+/* Our SVG ghost (docs/ui-fidelity.md D1). Decorative: soft, behind content. */
+/* Roaming ghosts: one red, one green, as the owner asked (22 Nov). Decorative only: aria-hidden, no pointer,
+   behind content. The run's real state is always given in text (run-state badge, panels). */
+.ambient-ghost-svg { opacity: 0.8; display: block; filter: drop-shadow(0 0 8px currentColor); }
+.ambient-ghost-red { color: var(--color-ghost-blocked); }
+.ambient-ghost-green { color: var(--color-ghost-verified); }
+/* In the slim band at the top of every page: smaller, and inside the band's height. */
+.site-band .ambient-roam-ltr, .site-band .ambient-roam-rtl { top: 0.35rem; bottom: auto; }
+.site-band .ambient-ghost-svg { width: 36px; height: 36px; opacity: 0.6; }
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translateY(16vh); opacity: 0.25; }
+  50% { transform: translateY(68vh); opacity: 0.45; }
+}
+.ambient-particle {
+  animation-name: ambient-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Home's own "Pause animation" button (WCAG 2.2.2). Freezes only the two
+   roaming ghosts inside the hero; it is a local pause, not Calm mode. */
+.hero-paused .ambient-roam,
+.hero-paused .ambient-particle {
+  animation-play-state: paused;
+}
+
+/* Glow on the active breadcrumb (v7 panel 2). Static, so Calm mode needs no change. */
+.text-glow-violet { text-shadow: 0 0 10px var(--color-violet-neon); }
+
+/* ── Typography helpers ────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ── Panel / card base ─────────────────────────────────────────────────── */
+/* Violet glowing border on every panel, as in v7 (docs/ui-fidelity.md D9). Static, so Calm mode needs no change. */
+.panel {
+  background: var(--color-panel);
+  border: 1px solid color-mix(in srgb, var(--color-violet-neon) 45%, var(--color-line));
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-violet-neon) 12%, transparent),
+              0 0 18px color-mix(in srgb, var(--color-violet-neon) 22%, transparent);
+}
+/* Slim castle and fog band behind the breadcrumb row on every page (docs/ui-fidelity.md D7). */
+.site-band {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-violet-neon) 10%, transparent) 55%, transparent 100%);
+}
+.site-band * { pointer-events: none !important; }
+
+.panel-glow {
+  background: var(--color-panel);
+  border: 1px solid var(--color-violet-600);
+  border-radius: 12px;
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Focus visible ring (WCAG 2.1 §2.4.7) ──────────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--color-violet-neon);
+  outline-offset: 3px;
+}
+
+/* ── Scrollbar (dark themed) ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-base); }
+::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-violet-600); }
+
+/* ── Glow utilities (supplement Tailwind) ────────────────────────────────── */
+.glow       { box-shadow: var(--shadow-glow); }
+.glow-red   { box-shadow: var(--shadow-glow-red); }
+.glow-green { box-shadow: var(--shadow-glow-green); }
+
+/* ── Responsive / zoom safety ───────────────────────────────────────────── */
+/* Prevents horizontal scroll at 200% zoom and on 375px viewports without breaking position:sticky */
+html, body {
+  overflow-x: clip;
+}
+
+/* ── Code block ─────────────────────────────────────────────────────────── */
 .code-block {
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  background: #0d1022;
-  border: 1px solid var(--card-line);
-  border-radius: 10px;
-  padding: 10px 12px;
+  /* 16px minimum applies to code too (accessibility.md). rem so zoom and text size work. */
+  font-size: 1rem;
+  line-height: 1.6;
+  background: #0d0714;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 12px 14px;
   overflow-x: auto;
 }
 
-.font-display { font-family: var(--font-display); }
-.font-mono { font-family: var(--font-mono); }
-.text-glow-violet { text-shadow: 0 0 12px #c4b5fd; }
+.code-block .token-add    { color: #22c55e; }
+.code-block .token-remove { color: #ef4444; }
+.code-block .token-tag    { color: #a855f7; }
+.code-block .token-attr   { color: #60a5fa; }
+.code-block .token-string { color: #f59e0b; }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--page); }
-::-webkit-scrollbar-thumb { background: var(--card-line); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--violet); }
+/* ── Hero castle (decorative) ───────────────────────────────────────────
+   Sampled from design/Haunted_Audit_Final_UI_v7.png (1866x779):
+   castle #101635 near (585,150); hill #192048; window #f3985f at (585,136), 3x3 spread 16. */
+:root {
+  --hero-castle: #101635;
+  --hero-hill: #192048;
+  --hero-window: #f3985f;
+}
+.hero-castle {
+  position: absolute;
+  bottom: 0;
+  width: min(24%, 340px);
+  right: 2%;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(calc(var(--px, 0) * -10px), calc(var(--py, 0) * -4px), 0);
+}
+.hero-castle * { pointer-events: none !important; }
+.hero-castle .castle-window {
+  opacity: calc(0.55 + var(--near, 0) * 0.45);
+  animation: castle-flicker 2.4s ease-in-out infinite;
+}
+.hero-castle .castle-window:nth-of-type(2n) { animation-duration: 3.1s; animation-delay: -1s; }
+.hero-castle .castle-glow { opacity: calc(0.15 + var(--near, 0) * 0.6); }
+.hero-castle .castle-flag { transform-box: fill-box; transform-origin: left center; animation: castle-sway 3.6s ease-in-out infinite; }
+@keyframes castle-flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+@keyframes castle-sway { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.82); } }
+
+/* ── Hero scene tokens ─────────────────────────────────────────────────
+   Measured from the judge-deck art (docs/Haunted Audit Judge Deck v7.pptx, mascot + pumpkins)
+   and v7 hero crop (design/Haunted_Audit_Final_UI_v7.png, x0-660,y0-320). */
+:root {
+  --scene-ghost: #f1e9ff;
+  --scene-eye: #0e0a1a;
+  --scene-hat: #2b1b4d;
+  --scene-band: #3a2668;
+  --scene-gold: #ffc56b;
+  --scene-lens: #1a0f33;
+  --scene-glyph: #c4a8ff;
+  --scene-moon: #cec3ed;
+  --scene-pumpkin: #e07a1f;
+  --scene-face: #2a1302;
+  --scene-grave: #34255f;
+  --scene-blush: #f4a6d7;
+  --scene-bat: #0a0614;
+}
+.wordmark-glow { text-shadow: 0 0 18px var(--color-violet-neon), 0 0 2px var(--scene-ghost); }
+@keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.scene-ghost-bob { animation: scene-bob 4s ease-in-out infinite; }
+.hero-scene, .hero-scene * { pointer-events: none !important; }
+/* Home hero: the painted v7 artwork. Wide screens centre it; phones show the ghost side. */
+.hero-art {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url('./assets/hero-bg.jpg') 50% 50% / cover no-repeat;
+}
+/* Phones and tablets: the text sits on top, the ghost scene fills the lower part. */
+@media (max-width: 1023px) {
+  .hero-art {
+    top: auto; bottom: 0; height: 240px; background-size: cover; background-position: 16% 100%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%); mask-image: linear-gradient(to bottom, transparent 0, #000 22%);
+  }
+}
+
+/* Wordmark colours: "Haunted" lavender-white, "Audit" violet (v7 hero wordmark). */
+.wordmark-haunted { background: linear-gradient(#ffffff, #cbb6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wordmark-audit { background: linear-gradient(#d9c2ff, #9b5cf0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wordmark-glow { text-shadow: none; filter: drop-shadow(0 0 10px var(--color-violet-neon)); }
+
+/* Cinematic mist drift for the Home backdrop */
+@keyframes mist-pan {
+  0%, 100% { transform: translate3d(-4%, 0, 0) scale(1.03); opacity: 0.42; }
+  50% { transform: translate3d(4%, -2%, 0) scale(1.08); opacity: 0.65; }
+}
+.cinematic-mist {
+  animation: mist-pan 16s ease-in-out infinite;
+}
+
+/* Hero night scene: flat patches from v7 hero crop (design/Haunted_Audit_Final_UI_v7.png, x0-660,y0-320). */
+:root {
+  --scene-tree: #0b0620;
+  --hero-sky-top: #3a2a7c;
+  --hero-sky-mid: #231651;
+  --hero-sky-low: #150c33;
+  --hero-cta-top: #7c3aed;
+  --hero-cta-bottom: #5b21b6;
+  --hero-pill: #1a1233;
+  --hero-pill-edge: #3b2d66;
+  --scene-path: #2a1f4d;
+  --scene-star: #e9e1ff;
+}
+
+/* ── High contrast (docs/ui-fidelity.md D19) ───────────────────────────────
+   Tailwind colours compile to fixed values, so the text and border utilities are overridden here too.
+   Text becomes near-white on black, borders and focus become bright, decoration fades out. */
+html[data-contrast='high'] {
+  --color-base: #000000;
+  --color-panel: #000000;
+  --color-surface: #000000;
+  --color-line: #ffffff;
+  --color-ink-muted: #ffffff;
+}
+html[data-contrast='high'] body,
+html[data-contrast='high'] .bg-base,
+html[data-contrast='high'] .bg-base-panel,
+html[data-contrast='high'] .bg-base-surface,
+html[data-contrast='high'] .bg-base-surface\/60,
+html[data-contrast='high'] .bg-base\/95,
+html[data-contrast='high'] .panel,
+html[data-contrast='high'] .panel-glow { background: #000000 !important; }
+html[data-contrast='high'] .text-ink,
+html[data-contrast='high'] .text-ink-muted,
+html[data-contrast='high'] .text-ink-faint { color: #ffffff !important; }
+html[data-contrast='high'] .text-violet-300 { color: #e9d5ff !important; }
+html[data-contrast='high'] .panel,
+html[data-contrast='high'] .panel-glow,
+html[data-contrast='high'] [class*='border-base-line'] { border-color: #ffffff !important; box-shadow: none !important; }
+html[data-contrast='high'] :focus-visible { outline: 3px solid #ffff00 !important; outline-offset: 3px; }
+html[data-contrast='high'] .ambient-layer,
+html[data-contrast='high'] .site-band,
+html[data-contrast='high'] .hero-scene,
+html[data-contrast='high'] .hero-castle,
+html[data-contrast='high'] .hero-art { opacity: 0.25; }
+
+/* Text size setting (docs/ui-fidelity.md D20): every size is in rem, so the root size scales them all. */
+html[data-text-size='125'] { font-size: 125%; }
+html[data-text-size='150'] { font-size: 150%; }
+
+/* Ghost figure colours: the v9 gradients (design/v9) for the red, green and white ghosts. */
+:root {
+  --gf-red-0: #ffb4b4; --gf-red-1: #ff5a5a; --gf-red-2: #b3122b;
+  --gf-green-0: #d4ffe3; --gf-green-1: #5ef08f; --gf-green-2: #138a42;
+  --gf-white-0: #ffffff; --gf-white-1: #efe8ff; --gf-white-2: #b79cf5;
+  --gf-face: #1b0710; --gf-shine: #ffffff;
+  --gf-glow-red: #ff3b3b; --gf-glow-green: #22c55e; --gf-glow-white: rgba(255, 255, 255, 0.55);
+}
+
+/* ── v9 Fixes pipeline UI (design/v9/index.html#fixes) ──────────────────── */
+.v9-fix-strip {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 0;
+}
+.v9-fix-arrow {
+  flex: 1 1 24px;
+  max-width: 90px;
+  min-width: 18px;
+  height: 2px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, #3b3466, #5b4f99);
+  position: relative;
+}
+.v9-fix-arrow::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border: 5px solid transparent;
+  border-left: 7px solid #5b4f99;
+}
+.v9-fix-stepbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 26px;
+  border-radius: 16px;
+  border: 1px solid #2c2a52;
+  background: #141230;
+  color: #d9dcf5;
+  font-size: 17px;
+  font-weight: 600;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.v9-fix-stepbtn:hover {
+  border-color: #6d55b8;
+  color: #ffffff;
+}
+.v9-fix-stepnum {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #b794ff;
+  color: #d9c8ff;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.v9-fix-stepbtn[aria-current="step"],
+.v9-fix-stepbtn[aria-selected="true"] {
+  background: linear-gradient(180deg, #5a2fc2, #3b1d8f);
+  border: 1.5px solid #c4a8ff;
+  color: #ffffff;
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.67);
+}
+.v9-fix-stepbtn[aria-current="step"] .v9-fix-stepnum,
+.v9-fix-stepbtn[aria-selected="true"] .v9-fix-stepnum {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.v9-fix-card {
+  background: linear-gradient(180deg, #131733, #0d1024);
+  border: 1px solid #2c2a52;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 20px;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.v9-fix-card-focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.53);
+}
+.v9-fix-card-head {
+  margin: 0;
+  padding: 16px 22px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  border-bottom: 1px solid #252a4a;
+}
+.v9-fix-card-head span {
+  font-weight: 500;
+  color: #cfd3ee;
+}
+
+.v9-fix-card-reg {
+  background: linear-gradient(180deg, #2a0f1c, #1a0b16);
+  border: 1.5px solid #ff5a5a;
+  box-shadow: 0 0 26px rgba(239, 68, 68, 0.33), inset 0 0 30px rgba(239, 68, 68, 0.1);
+}
+.v9-fix-card-reg .v9-fix-card-head {
+  color: #ff8a8a;
+  border-bottom-color: #4a1a2a;
+}
+.v9-fix-card-reg .v9-fix-card-head span {
+  color: #ffd5d5;
+}
+
+.v9-fix-diff {
+  margin: 14px 0 0;
+  max-height: 220px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.v9-fix-diff-row {
+  padding: 4px 18px;
+  white-space: pre;
+}
+.v9-fix-diff-del {
+  background: linear-gradient(90deg, #7f1d2d, #5a1522);
+  color: #ffc9c9;
+}
+.v9-fix-diff-add {
+  background: linear-gradient(90deg, #14532d, #0f3d22);
+  color: #c7f9d5;
+}
+.v9-fix-diff-ctx {
+  color: #cfd3ee;
+}
+
+.v9-fix-fbtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 22px 0;
+  margin-top: auto;
+  border-top: 1px solid #252a4a;
+}
+
+.v9-fix-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  border: 1.5px solid transparent;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+.v9-fix-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  filter: brightness(1.1);
+}
+.v9-fix-btn:disabled,
+.v9-fix-btn[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.v9-fix-btn-green {
+  background: linear-gradient(180deg, #14532d, #0f3d22);
+  border-color: #22c55e;
+  color: #dcfce7;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.v9-fix-btn-grey {
+  background: #1e2340;
+  border-color: #353c60;
+  color: #dfe3ff;
+}
+.v9-fix-btn-violet {
+  background: linear-gradient(180deg, #3b1f86, #2a1466);
+  border-color: #a78bfa;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.53), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.v9-fix-btn-danger {
+  background: linear-gradient(180deg, #4a1220, #3a0f1a);
+  border-color: #ff6b6b;
+  color: #ffd5d5;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+}
+
+.v9-fix-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.v9-fix-dot-ok {
+  background: #22c55e;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.65);
+}
+.v9-fix-dot-bad {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+}
+.v9-fix-dot-wait {
+  border: 2px solid #3c4266;
+  background: #12162d;
+  color: #9aa3c7;
+}
+
+.v9-fix-regline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e7dbe6;
+  font-size: 15px;
+}
+.v9-fix-regline::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  border: 2px solid #f1c8d0;
+  flex-shrink: 0;
+}
+.v9-fix-caught {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #140c1c;
+  border: 1px solid #3a2236;
+  font-weight: 800;
+  font-size: 17px;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+/* ── v9 Agents Investigation UI (design/v9/index.html#agents) ─────────── */
+.v9-agent-card {
+  background: linear-gradient(180deg, #131733, #0d1024);
+  border: 1px solid #2c2a52;
+  border-radius: 18px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.v9-agent-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(167, 139, 250, 0.55);
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.45);
+  flex-shrink: 0;
+}
+.v9-agent-crit {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  border-radius: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(90deg, #3a1022 0%, #2a0d1c 55%, #1a0c1c 100%);
+  border: 1.5px solid rgba(255, 90, 90, 0.55);
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.28), inset 0 0 30px rgba(239, 68, 68, 0.1);
+}
+.v9-agent-thumb {
+  flex: 0 0 240px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #121631;
+  border: 1px solid #2e3558;
+}
+.v9-agent-thumb-lines {
+  height: 28px;
+  margin-bottom: 10px;
+  background: repeating-linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0 3px, transparent 3px 8px);
+  opacity: 0.65;
+  border-radius: 4px;
+}
+.v9-agent-thumb-mini {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5a;
+  background: #2a1020;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.42);
+}
+
+

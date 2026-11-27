@@ -11,6 +11,7 @@ Anything else returns None, and None never leads to an action.
 """
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass
 from typing import Literal
@@ -75,16 +76,93 @@ def describe(cmd: Command) -> str:
 PAYMENT_BUTTON = "Send Payment"  # the accessible name of the bank's payment button
 _POLITE = re.compile(r"^(?:please\s+|(?:can|could|would)\s+you\s+(?:please\s+)?|i(?:'d|\s+would)?\s+(?:want|like)\s+to\s+)+", re.IGNORECASE)
 _ARTICLE = r"(?:(?:the|a|an|my)\s+)?"
-_PAYMENT = re.compile(rf"^(?:(?:send|make|submit|do|pay)\s+{_ARTICLE}(?:payment|it)|pay(?:\s+now)?)$", re.IGNORECASE)
+_PAYMENT = re.compile(rf"^(?:(?:send|make|submit|do|pay)\s+{_ARTICLE}(?:payments?|it)|pay(?:\s+now)?)$", re.IGNORECASE)
 _CLICK_WORDS = re.compile(rf"^(?:press|tap|hit|push|select|choose|activate|submit)\s+(?:on\s+)?{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
-_CLICK_ON = re.compile(rf"^click\s+on\s+{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
+_CLICK_ON = re.compile(rf"^click\s+(?:on\s+)?{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
 _GO_WORDS = re.compile(rf"^(?:open|visit|navigate\s+to|take\s+me\s+to|show\s+me)\s+{_ARTICLE}(?P<name>.+)$", re.IGNORECASE)
 _VALUE = r"(?P<text>\"[^\"]*\"|'[^']*'|\S+)"
 _TYPE_WORDS = re.compile(rf"^(?:enter|write|put|fill\s+in)\s+{_VALUE}\s+(?:in|into)\s+(?:the\s+)?(?P<field>.+)$", re.IGNORECASE)
 _SET_WORDS = re.compile(rf"^(?:set|fill)\s+(?:the\s+)?(?P<field>.+?)\s+(?:to|with)\s+{_VALUE}$", re.IGNORECASE)
 
 
-_SUFFIX = re.compile(r"\s+(?:button|link|field|box)$", re.IGNORECASE)
+_SUFFIX = re.compile(r"\s+(?:button|link|field|box|input)$", re.IGNORECASE)
+
+# Smart field & problem-word canonicalizer (plural, synonym, phonetic/ASR error, fuzzy match)
+_FIELD_SYNONYMS: dict[str, str] = {
+    "recipient": "Recipient",
+    "recipients": "Recipient",
+    "recepient": "Recipient",
+    "reciepient": "Recipient",
+    "resipient": "Recipient",
+    "recipent": "Recipient",
+    "recipient name": "Recipient",
+    "payee": "Recipient",
+    "payees": "Recipient",
+    "receiver": "Recipient",
+    "beneficiary": "Recipient",
+    "person": "Recipient",
+    "name": "Recipient",
+    "user": "Recipient",
+    "customer": "Recipient",
+    "patient": "Recipient",
+    "employee": "Recipient",
+    "student": "Recipient",
+    "teammate": "Recipient",
+    "amount": "Amount",
+    "amounts": "Amount",
+    "a mount": "Amount",
+    "amout": "Amount",
+    "amunt": "Amount",
+    "amoutn": "Amount",
+    "amnt": "Amount",
+    "money": "Amount",
+    "total": "Amount",
+    "totals": "Amount",
+    "price": "Amount",
+    "cost": "Amount",
+    "fee": "Amount",
+    "fees": "Amount",
+    "sum": "Amount",
+    "euros": "Amount",
+    "euro": "Amount",
+    "dollars": "Amount",
+    "dollar": "Amount",
+    "reference": "Reference",
+    "references": "Reference",
+    "refernce": "Reference",
+    "refrence": "Reference",
+    "ref": "Reference",
+    "refs": "Reference",
+    "note": "Reference",
+    "notes": "Reference",
+    "memo": "Reference",
+    "memos": "Reference",
+    "reason": "Reference",
+    "reasons": "Reference",
+    "description": "Reference",
+    "comment": "Reference",
+    "comments": "Reference",
+    "message": "Reference",
+}
+_CANONICAL_FIELDS = ("recipient", "amount", "reference")
+
+
+def canonical_field(raw: str) -> str:
+    """Resolve plurals, synonyms, and common ASR problem words (e.g. 'amounts' -> 'Amount').
+    Preserves caller's casing when the word is already exact ('recipient' stays 'recipient').
+    """
+    cleaned = _SUFFIX.sub("", raw.strip()).strip()
+    low = cleaned.lower()
+    if low in _CANONICAL_FIELDS:
+        return cleaned
+    if low in _FIELD_SYNONYMS:
+        return _FIELD_SYNONYMS[low]
+    if low.endswith("s") and low[:-1] in _FIELD_SYNONYMS:
+        return _FIELD_SYNONYMS[low[:-1]]
+    close = difflib.get_close_matches(low, _CANONICAL_FIELDS, n=1, cutoff=0.72)
+    if close:
+        return close[0].capitalize()
+    return cleaned
 
 
 def _name(raw: str) -> str:
@@ -96,11 +174,19 @@ def _rewrite(text: str) -> str | None:
     if _PAYMENT.match(t):
         return f"click {PAYMENT_BUTTON}"
     if m := _CLICK_WORDS.match(t) or _CLICK_ON.match(t):
-        return f"click {_name(m['name'])}"
+        target = _name(m["name"])
+        if target.lower() in {"send payments", "payment", "payments", "pay button", "pay"}:
+            target = PAYMENT_BUTTON
+        return f"click {target}"
     if m := _GO_WORDS.match(t):
         return f"go to {_name(m['name'])}"
     if m := _TYPE_WORDS.match(t) or _SET_WORDS.match(t):
-        return f"type {m['text']} in {_name(m['field'])}"
+        return f"type {m['text']} in {canonical_field(m['field'])}"
+    # Also support "type <value> in <problem-word field>" cleanly
+    if m := re.match(rf"^type\s+{_VALUE}\s+in(?:to)?\s+(?:the\s+)?(?P<field>.+)$", t, re.IGNORECASE):
+        resolved = canonical_field(m["field"])
+        if resolved != m["field"].strip():
+            return f"type {m['text']} in {resolved}"
     return None
 
 
@@ -108,9 +194,18 @@ def parse_natural(text: str) -> Command | None:
     """The three strict commands first, then the fixed natural phrases. Returns None for anything else."""
     if not isinstance(text, str) or len(text) > MAX_COMMAND_CHARS or "\n" in text.strip():
         return None
-    if (cmd := parse(text)) is not None:
-        return cmd
     rewritten = _rewrite(text)
+    if (cmd := parse(text)) is not None:
+        # Normalize plural/problem field names like 'amounts' -> 'Amount' or 'send payments' -> 'Send Payment'
+        if cmd.kind == "type":
+            norm_name = canonical_field(cmd.name)
+            if norm_name != cmd.name:
+                return Command("type", norm_name, cmd.text, text)
+        elif cmd.kind == "click" and rewritten:
+            rcmd = parse(rewritten)
+            if rcmd and rcmd.name != cmd.name:
+                return Command("click", rcmd.name, None, text)
+        return cmd
     if rewritten is None:
         return None
     cmd = parse(rewritten)
@@ -284,11 +379,12 @@ def split_chained(text: str) -> list[str]:
 
 
 # ── What Chrome writes down (voice-agent REQ-VA-22) ────────────────────────
-_FIELD_NAMES = r"recipient|amount|reference"  # the bank's field labels (fixtures/haunted_bank/index.html)
-_GLUED_AND = re.compile(rf"\b({_FIELD_NAMES})and\b", re.IGNORECASE)
+_FIELD_WORDS = "|".join(sorted({k for k in _FIELD_SYNONYMS if " " not in k}, key=len, reverse=True))
+_FIELD_NAMES = rf"{_FIELD_WORDS}"  # domain fields + plurals + problem words
+_GLUED_AND = re.compile(rf"\b(recipient|recipients|amount|amounts|reference|references)and\b", re.IGNORECASE)
 _FIX_TYPE = re.compile(
-    rf"^(?P<verb>type|enter|write|put)\s+(?P<value>.+?)(?:\s+(?P<in>in|into)(?:\s+the)?)?\s+"
-    rf"(?P<field>{_FIELD_NAMES})(?:\s+(?:field|box))?$", re.IGNORECASE)
+    rf"^(?P<verb>type|enter|write|put|fill)\s+(?P<value>.+?)(?:\s+(?P<in>in|into)(?:\s+the)?)?\s+"
+    rf"(?P<field>{_FIELD_NAMES})(?:\s+(?:field|box|input))?$", re.IGNORECASE)
 
 
 def _unglue(text: str) -> str:
@@ -297,13 +393,11 @@ def _unglue(text: str) -> str:
 
 
 def _fix_type(part: str) -> str | None:
-    """A spoken type command, made one the grammar reads. Only when the last word is one of the bank's field names:
-    'type Sam recipient' -> 'type Sam in recipient'; 'type Test Recipient in recipient' -> 'type "Test Recipient" in
-    recipient'; 'type one hundred and fifty in amount' -> 'type 150.00 in amount'. None when nothing applies."""
+    """A spoken type command, made one the grammar reads (handles plurals & problem words like 'amounts')."""
     m = _FIX_TYPE.match(_clean(part))
     if not m:
         return None
-    value, field = m["value"].strip(), m["field"]
+    value, field = m["value"].strip(), canonical_field(m["field"])
     if value.lower() in {"in", "into", "the", "in the", "into the"}:  # "type in recipient": no value was said
         return None
     if field.lower() == "amount":
@@ -323,11 +417,11 @@ def _fix_type(part: str) -> str | None:
 def _amount_text(step: str) -> str:
     """'type hundred in amount' -> 'type 100.00 in amount'. A value that is not an amount is left as said."""
     cmd = parse(step)
-    if cmd is None or cmd.kind != "type" or not re.match(r"^\s*amount\b", cmd.name, re.IGNORECASE):
+    if cmd is None or cmd.kind != "type" or canonical_field(cmd.name).lower() != "amount":
         return step
     a = _AMOUNT_ONLY.match(_number_words_to_digits(cmd.text or "").strip())
     amount = _normal_amount(a["n"]) if a else None
-    return step if amount is None or amount == cmd.text else f"type {amount} in {cmd.name}"
+    return step if amount is None or amount == cmd.text else f"type {amount} in {canonical_field(cmd.name)}"
 
 
 def _as_command(part: str) -> str:

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -46,8 +46,6 @@ export default function FixesHub() {
   const { result, apiStatus, isRunning, history } = useRun();
   const flow = useFix();
   const [page, setPage] = useState(1);
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
 
   const runRows: SavedPossessionRun[] = useMemo(() => {
     if (!result || result.error || history.some((h) => h.run_id === result.run_id)) {
@@ -77,13 +75,6 @@ export default function FixesHub() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  useEffect(() => {
-    const requestedStep = params.get('step');
-    if ((requestedStep === 'verify' || requestedStep === 'regression') && runRows.length > 0) {
-      navigate(`${to('app-fixes')}/${runRows[0].run_id}?step=${requestedStep}`, { replace: true });
-    }
-  }, [navigate, params, runRows]);
-
   const pageRows = useMemo(() => {
     const start = (page - 1) * ROWS_PER_PAGE;
     return runRows.slice(start, start + ROWS_PER_PAGE);
@@ -93,32 +84,49 @@ export default function FixesHub() {
   const completedCount = Object.values(trackedMap).filter(
     (t) => t.status === 'approved' || t.verify_verdict === 'PASSED' || t.regression_verdict === 'BLOCKED',
   ).length;
+  const latestRun = runRows[0] ?? null;
 
   return (
     <Page id="app-fixes">
-      <Card className="v9-card text-white shadow-none" aria-labelledby="possession-picker-heading">
-        <CardHeader className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 pb-2 sm:px-5">
-          <div className="flex items-center gap-3">
-            <span className="v9-neon" aria-hidden="true">
-              <History size={22} />
+      <Card
+        className="border border-[#2c2a52] bg-gradient-to-b from-[#131733] to-[#0d1024] text-white shadow-none rounded-[18px]"
+        aria-labelledby="possession-picker-heading"
+      >
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-[#252a4a] px-5 pt-5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-600/20 text-violet-neon">
+              <History size={18} aria-hidden="true" />
             </span>
             <div>
-              <h2 id="possession-picker-heading" className="m-0 text-base sm:text-lg font-extrabold text-white">
+              <h2 id="possession-picker-heading" className="m-0 text-base font-bold text-white">
                 Possession Runs &amp; Fix Rounds
               </h2>
               <p className="m-0 text-xs text-ink-muted">
-                Open View details on any Possession run to run Find, Fix, Verify, and Regression checks
+                Open View details on any Possession run to review Find, Proposed Fix, Verification, and Regression Guard
               </p>
             </div>
           </div>
-          <Chip size="sm" variant="flat" className="border border-[#2b3254] bg-[#1d2140] font-mono text-xs text-violet-200">
-            {runRows.length} runs · {completedCount} fixed
-          </Chip>
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip size="sm" variant="flat" color="secondary" className="text-xs font-mono">
+              {runRows.length} runs · {completedCount} fixed
+            </Chip>
+            {latestRun && (
+              <Button
+                as={Link}
+                to={`${to('app-fixes')}/${latestRun.run_id}`}
+                size="sm"
+                endContent={<ArrowRight size={14} aria-hidden="true" />}
+                className="border border-[#a78bfa] bg-gradient-to-b from-[#5a2fc2] to-[#3b1d8f] font-semibold text-white shadow-[0_0_16px_rgba(139,92,246,0.45)]"
+              >
+                Open Latest Pipeline
+              </Button>
+            )}
+          </div>
         </CardHeader>
 
-        <CardBody className="px-4 pt-2 pb-4 sm:px-5">
+        <CardBody className="px-5 pt-3 pb-5">
           {runRows.length === 0 ? (
-            <div className="flex flex-col gap-3 rounded-xl border border-[#2b3254] bg-[#0e1226]/70 p-4">
+            <div className="flex flex-col gap-4 rounded-xl bg-base-surface/40 p-4">
               <ResultState
                 result={null}
                 apiStatus={apiStatus}
@@ -130,114 +138,105 @@ export default function FixesHub() {
                   as={Link}
                   to={to('possession')}
                   size="sm"
+                  color="secondary"
                   startContent={<Ghost size={14} aria-hidden="true" />}
-                  className="h-9 rounded-xl border border-[#a78bfa] bg-gradient-to-b from-[#3b1f86] to-[#2a1466] px-4 font-bold text-white"
+                  className="bg-violet-600 font-semibold text-white"
                 >
                   Open Possession Mode
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table
-                aria-label="Recorded Possession runs"
-                removeWrapper
-                classNames={{
-                  th: 'bg-[#0e1226] text-[11px] sm:text-xs font-bold uppercase tracking-wide text-ink-muted border-b border-[#2b3254]',
-                  td: 'border-b border-[#2b3254]/60 py-2.5 text-xs sm:text-sm text-white whitespace-nowrap',
+            <Table
+              aria-label="Recorded Possession runs"
+              removeWrapper
+              classNames={{
+                th: 'bg-base-surface/70 text-xs font-semibold uppercase tracking-wide text-ink-muted',
+                td: 'border-b border-base-line/50 py-3 text-sm text-white',
+              }}
+              bottomContent={
+                totalPages > 1 ? (
+                  <div className="flex w-full justify-center pt-4">
+                    <Pagination
+                      isCompact
+                      showControls
+                      showShadow
+                      color="secondary"
+                      page={page}
+                      total={totalPages}
+                      onChange={setPage}
+                      aria-label="Possession runs pagination"
+                    />
+                  </div>
+                ) : null
+              }
+            >
+              <TableHeader>
+                <TableColumn>RUN</TableColumn>
+                <TableColumn>SCENARIO</TableColumn>
+                <TableColumn>RUNNER</TableColumn>
+                <TableColumn>VERDICT</TableColumn>
+                <TableColumn>BARRIER</TableColumn>
+                <TableColumn>FIX ROUND</TableColumn>
+                <TableColumn align="end">ACTION</TableColumn>
+              </TableHeader>
+              <TableBody items={pageRows}>
+                {(item) => {
+                  const badge = fixRoundLabel(trackedMap[item.run_id]);
+                  return (
+                    <TableRow key={item.run_id}>
+                      <TableCell>
+                        <span className="font-mono text-xs font-semibold text-white">
+                          {item.run_id.slice(0, 8)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-medium text-white">
+                          {scenarioDisplayName(item.scenario)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs text-ink-muted">
+                          {item.variant} · {item.agent_kind} ({item.agent_mode})
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={item.verdict === 'BLOCKED' ? 'danger' : 'success'}
+                        >
+                          {item.verdict}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>
+                        {item.blocked_selector ? (
+                          <code className="rounded bg-base px-1.5 py-0.5 font-mono text-xs text-ghost-blocked">
+                            {item.blocked_selector}
+                          </code>
+                        ) : (
+                          <span className="text-xs text-ink-faint">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Chip size="sm" variant="flat" color={badge.color} className="text-xs">
+                          {badge.label}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          to={`${to('app-fixes')}/${item.run_id}`}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-violet-600/20 px-3 text-xs font-semibold text-white transition-colors hover:bg-violet-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+                        >
+                          <span>View details</span>
+                          <ArrowRight size={14} aria-hidden="true" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
                 }}
-                bottomContent={
-                  totalPages > 1 ? (
-                    <div className="flex w-full justify-center pt-3">
-                      <Pagination
-                        isCompact
-                        showControls
-                        showShadow
-                        color="secondary"
-                        page={page}
-                        total={totalPages}
-                        onChange={setPage}
-                        aria-label="Possession runs pagination"
-                      />
-                    </div>
-                  ) : null
-                }
-              >
-                <TableHeader>
-                  <TableColumn>RUN</TableColumn>
-                  <TableColumn>SCENARIO</TableColumn>
-                  <TableColumn>RUNNER</TableColumn>
-                  <TableColumn>VERDICT</TableColumn>
-                  <TableColumn>BARRIER</TableColumn>
-                  <TableColumn>FIX ROUND</TableColumn>
-                  <TableColumn align="end">ACTION</TableColumn>
-                </TableHeader>
-                <TableBody items={pageRows}>
-                  {(item) => {
-                    const badge = fixRoundLabel(trackedMap[item.run_id]);
-                    return (
-                      <TableRow key={item.run_id}>
-                        <TableCell>
-                          <span className="font-mono text-xs font-semibold text-white">
-                            {item.run_id.slice(0, 8)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-semibold text-white">
-                            {scenarioDisplayName(item.scenario)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-ink-muted">
-                            {item.variant} · {item.agent_kind} ({item.agent_mode})
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="sm"
-                            variant="flat"
-                            color={item.verdict === 'BLOCKED' ? 'danger' : 'success'}
-                            className={
-                              item.verdict === 'BLOCKED'
-                                ? 'border border-[#ff6b6b55] bg-[#3a1222] text-[#ff8a8a]'
-                                : 'border border-[#22c55e55] bg-[#0f2a1b] text-[#6ee7a0]'
-                            }
-                          >
-                            {item.verdict}
-                          </Chip>
-                        </TableCell>
-                        <TableCell>
-                          {item.blocked_selector ? (
-                            <code className="rounded bg-[#0d1022] px-1.5 py-0.5 font-mono text-xs text-[#ff7a7a]">
-                              {item.blocked_selector}
-                            </code>
-                          ) : (
-                            <span className="text-xs text-ink-faint">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Chip size="sm" variant="flat" color={badge.color} className="text-xs">
-                            {badge.label}
-                          </Chip>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            as={Link}
-                            to={`${to('app-fixes')}/${item.run_id}`}
-                            role="link"
-                            size="sm"
-                            endContent={<ArrowRight size={13} aria-hidden="true" />}
-                            className="h-8 rounded-lg border border-[#a78bfa] bg-gradient-to-b from-[#3b1f86] to-[#2a1466] px-3 text-xs font-bold text-white"
-                          >
-                            View details
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }}
-                </TableBody>
-              </Table>
-            </div>
+              </TableBody>
+            </Table>
           )}
         </CardBody>
       </Card>

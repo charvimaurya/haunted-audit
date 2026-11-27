@@ -42,7 +42,7 @@ export function CursorGhosts() {
         if (el) {
           const offsetY = Math.sin(performance.now() * 0.004 + i) * 3;
           const scale = 1 - i * 0.13;
-          const opacity = activeRef.current ? Math.max(0.1, 0.36 - i * 0.06) : 0;
+          const opacity = activeRef.current ? Math.max(0.18, 0.72 - i * 0.12) : 0;
           el.style.transform = `translate3d(${positions[i].x + 12}px, ${positions[i].y + 12 + offsetY}px, 0) scale(${scale})`;
           el.style.opacity = String(opacity);
         }

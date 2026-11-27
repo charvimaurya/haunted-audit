@@ -16,6 +16,7 @@ interface BadgePos {
   left: number;
   width: number;
   height: number;
+  badgeLeft: number;
 }
 
 function measureBadges(card: HTMLElement, stops: FocusTrailStop[]): BadgePos[] {
@@ -26,12 +27,15 @@ function measureBadges(card: HTMLElement, stops: FocusTrailStop[]): BadgePos[] {
     const el = document.getElementById(stop.replicaId);
     if (!el || !card.contains(el)) continue;
     const r = el.getBoundingClientRect();
+    const relLeft = r.left - cardRect.left;
+    const badgeLeft = Math.min(relLeft + r.width + 8, Math.max(8, cardRect.width - 36));
     out.push({
       stop,
       top: r.top - cardRect.top,
-      left: r.left - cardRect.left,
+      left: relLeft,
       width: r.width,
       height: r.height,
+      badgeLeft,
     });
   }
   return out;
@@ -95,7 +99,7 @@ export function FocusTrailReplay({ result, isRunning }: FocusTrailReplayProps) {
     cardEl && positions.length > 0
       ? createPortal(
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            {positions.map(({ stop, top, left, width, height }) => (
+            {positions.map(({ stop, top, left, width, height, badgeLeft }) => (
               <div key={stop.position}>
                 <div
                   className="pointer-events-none absolute rounded-lg outline outline-[3px] outline-amber-400"
@@ -106,7 +110,7 @@ export function FocusTrailReplay({ result, isRunning }: FocusTrailReplayProps) {
                   className="pointer-events-none absolute grid min-h-[1.75rem] min-w-[1.75rem] place-items-center rounded-full border-2 border-amber-300 bg-base px-1.5 text-base font-bold text-amber-200 shadow-glow-sm"
                   style={{
                     top: Math.max(4, top + height / 2 - 14),
-                    left: left + width + 8,
+                    left: badgeLeft,
                   }}
                 >
                   {stop.position}

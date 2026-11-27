@@ -24,7 +24,7 @@ from typing import Annotated, Literal
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from agent.api.limits import LimitSettings, Refusal, RunLimiter, SlidingWindow, client_ip
@@ -456,9 +456,61 @@ def create_app(
                 headers={"Retry-After": str(secs)},
             )
         app.state.scan_window.record(ip, now=now)
-        result = scan_public_url(resolved.url)
+        try:
+            result = scan_public_url(resolved.url)
+        except Exception as exc:
+            msg = str(exc).splitlines()[0][:180]
+            raise HTTPException(
+                status_code=504,
+                detail=f"Public site scan could not complete ({msg}). Try a fast public URL like https://www.w3.org/WAI/demos/bad/before/home.html.",
+            ) from exc
         log_event(msg="public_scan_finished", findings=result["count"])
         return result
+
+    @app.get("/sandbox/{scenario_id}", response_class=HTMLResponse)
+    def serve_sandbox(scenario_id: str, variant: Literal["broken", "fixed"] = "broken", run_id: str | None = None) -> HTMLResponse:
+        from agent.keyboard_agent.scenarios import scenario_path
+
+        try:
+            path = scenario_path(scenario_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        html = path.read_text(encoding="utf-8")
+        if run_id:
+            safe_run = json.dumps(run_id)
+            safe_api = json.dumps("")
+            observer = (
+                "<script>(function(){"
+                "const runId=" + safe_run + ";"
+                "const api=" + safe_api + "||window.location.origin;"
+                "const bar=document.createElement('div');"
+                "bar.style.cssText='position:fixed;bottom:14px;right:14px;z-index:9999;max-width:380px;background:#120b24;color:#f3efff;border:1.5px solid #a855f7;border-radius:12px;padding:12px 14px;font:600 13px/1.4 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.6)';"
+                "bar.innerHTML='<div style=\"color:#c084fc;font-size:11px;text-transform:uppercase;letter-spacing:.08em\">Haunted Audit Live Agent</div><div id=\"ha-live-msg\">Connecting to sandbox runner...</div>';"
+                "document.body.appendChild(bar);"
+                "let lastHighlighted=null;"
+                "function highlight(sel,label){"
+                "if(lastHighlighted){lastHighlighted.style.outline='';lastHighlighted.style.boxShadow='';}"
+                "if(!sel)return;"
+                "try{const el=document.querySelector(sel);if(el){lastHighlighted=el;el.style.outline='3px solid #fbbf24';el.style.boxShadow='0 0 18px rgba(251,191,36,.55)';el.scrollIntoView({block:'nearest'});}}catch(e){}"
+                "if(label)document.getElementById('ha-live-msg').textContent=label;"
+                "}"
+                "const es=new EventSource(api+'/runs/'+encodeURIComponent(runId)+'/events');"
+                "es.onmessage=function(ev){try{const d=JSON.parse(ev.data);"
+                "const hint=d.focused_after&&d.focused_after.selector_hint;"
+                "const targetBefore=d.focused_before&&d.focused_before.selector_hint;"
+                "if(d.tool==='type_text'&&d.args&&typeof d.args.text==='string'){const f=targetBefore?document.querySelector(targetBefore):document.activeElement;if(f&&'value' in f){f.value=d.args.text;}}"
+                "highlight(hint,'Step '+d.step+': '+d.tool+(hint?' -> '+hint:''));"
+                "}catch(e){}};"
+                "es.addEventListener('done',function(){es.close();fetch(api+'/runs/'+encodeURIComponent(runId)).then(r=>r.json()).then(rec=>{"
+                "const res=rec.result||rec;const blocked=res.verdict==='BLOCKED';"
+                "bar.style.borderColor=blocked?'#ef4444':'#22c55e';"
+                "document.getElementById('ha-live-msg').textContent=blocked?('BLOCKED: '+(res.reason_code||'')+' '+(res.blocked_element&&res.blocked_element.selector||'')):'PASSED cleanly';"
+                "if(blocked&&res.blocked_element&&res.blocked_element.selector){highlight(res.blocked_element.selector);}"
+                "}).catch(function(){});});"
+                "})();</script>"
+            )
+            html = html.replace("</body>", observer + "</body>")
+        return HTMLResponse(content=html)
 
     @app.post("/runs", status_code=202)
     def create_run(body: RunCreate, request: Request) -> dict:
@@ -543,9 +595,9 @@ def create_app(
         if rec["status"] != "complete":
             raise HTTPException(status_code=409, detail={"code": "RUN_NOT_FINISHED", "message": "The run has not finished."})
         result = rec.get("result") or {}
-        if rec["verdict"] != "BLOCKED" or result.get("agent_kind", "keyboard") != "keyboard":
+        if rec["verdict"] != "BLOCKED" or result.get("agent_kind", "keyboard") not in {"keyboard", "voice"}:
             raise HTTPException(status_code=409, detail={"code": "NOTHING_TO_FIX",
-                                                        "message": "Only a finished, BLOCKED keyboard run has a finding to fix."})
+                                                        "message": "Only a finished, BLOCKED run has a finding to fix."})
         finding = {"reason_code": result.get("reason_code"), "blocked_element": result.get("blocked_element")}
         scenario = rec.get("scenario") or "haunted-bank"
         try:

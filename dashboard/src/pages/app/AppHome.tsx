@@ -5,16 +5,16 @@ import {
   ArrowRight,
   ChartColumn,
   Ghost,
-  LayoutGrid,
   ScanSearch,
   Send,
   Settings,
+  Shield,
+  ShieldCheck,
+  TriangleAlert,
   Users,
   Wrench,
-  Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { GhostFigure } from '../../components/ghost/GhostFigure';
 import { Page } from '../../components/layout/Page';
 import { useFix } from '../../fixes/fixContext';
 import { verifiedPct } from '../../fixes/verifiedPct';
@@ -23,12 +23,13 @@ import { APP_NAV, PAGES, to } from '../../routes';
 import { useRun } from '../../runs/runContext';
 
 const TOOL_META: Record<string, { icon: LucideIcon; tag: string }> = {
-  Possession: { icon: Ghost, tag: 'Runner' },
-  Scenarios: { icon: Send, tag: '9 Sandboxes' },
+  Scans: { icon: ScanSearch, tag: 'Scanner' },
+  Journeys: { icon: Send, tag: 'Runner' },
   Agents: { icon: Users, tag: 'AI Agent' },
-  Findings: { icon: ScanSearch, tag: 'axe-core' },
+  Findings: { icon: TriangleAlert, tag: 'Triage' },
   Fixes: { icon: Wrench, tag: 'Exorcist' },
-  Kiro: { icon: Zap, tag: 'Workflow' },
+  Verification: { icon: ShieldCheck, tag: 'Proof' },
+  Regression: { icon: Shield, tag: 'Guardrail' },
   Reports: { icon: ChartColumn, tag: 'Metrics' },
   Settings: { icon: Settings, tag: 'Preferences' },
 };
@@ -45,25 +46,21 @@ export default function AppHome() {
 
   const metrics = [
     {
-      cls: 't1',
       label: 'Latest verdict',
       value: result ? result.verdict : '--',
       sub: isRunning ? 'Run in progress' : result ? 'Measured from last run' : 'Not yet measured',
     },
     {
-      cls: 't2',
       label: 'Barriers found',
       value: barriersFound !== null ? `${barriersFound} / ${planted}` : `-- / ${planted}`,
-      sub: `${planted} planted baseline`,
+      sub: `${planted} planted in Haunted Bank`,
     },
     {
-      cls: 't3',
       label: 'Patch validation',
       value: pct !== null ? `${pct}%` : '--',
       sub: pct !== null ? 'Measured after human approval' : 'Not yet measured',
     },
     {
-      cls: 't4',
       label: 'Saved possessions',
       value: history.length > 0 ? String(history.length) : '--',
       sub: history.length > 0 ? `${result?.agent_mode ?? mode} mode · localStorage` : 'Not yet measured',
@@ -72,30 +69,33 @@ export default function AppHome() {
 
   return (
     <Page id="app-home">
-      {/* Command Banner HeroUI Card */}
-      <Card className="panel-glow mb-4 text-white shadow-none">
-        <CardBody className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <GhostFigure tone="white" face="happy" size={40} className="shrink-0" />
+      {/* HeroUI Dashboard Command Banner */}
+      <Card className="mb-6 bg-gradient-to-br from-[#1f1238] via-base-panel to-[#140a24] text-white shadow-glow-sm">
+        <CardBody className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3.5">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-600/25 text-violet-neon shadow-glow-sm">
+              <Ghost size={24} aria-hidden="true" />
+            </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="m-0 text-base sm:text-lg font-extrabold text-white">Start with Possession Mode</h2>
-                <Chip size="sm" variant="flat" className="border border-[#2b3254] bg-[#1d2140] text-xs font-semibold text-violet-200">
-                  9 Sandbox Domains
+                <h2 className="m-0 text-lg sm:text-xl font-bold text-white">Start with Possession Mode</h2>
+                <Chip size="sm" variant="flat" color="secondary" className="text-xs font-semibold">
+                  Haunted Bank Fixture
                 </Chip>
               </div>
-              <p className="m-0 mt-1 text-xs sm:text-sm text-ink-muted">
+              <p className="m-0 mt-1 text-sm text-ink-muted">
                 Run a keyboard-only or voice-command journey and inspect real barriers. Unmeasured metrics always remain --.
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button
               as={Link}
               to={to('possession')}
               size="sm"
-              endContent={<ArrowRight size={14} aria-hidden="true" />}
-              className="h-9 rounded-xl border border-[#a78bfa] bg-gradient-to-b from-[#3b1f86] to-[#2a1466] px-4 font-bold text-white shadow-[0_0_16px_#8b5cf666]"
+              color="secondary"
+              endContent={<ArrowRight size={15} aria-hidden="true" />}
+              className="bg-violet-600 px-4 font-semibold text-white shadow-glow-sm"
             >
               Launch Possession Mode
             </Button>
@@ -103,7 +103,8 @@ export default function AppHome() {
               as={Link}
               to={to('app-reports')}
               size="sm"
-              className="h-9 rounded-xl border border-[#353c60] bg-[#1e2340] px-3.5 font-bold text-[#dfe3ff]"
+              variant="flat"
+              className="bg-base-surface/60 px-3 font-semibold text-white hover:bg-base-surface"
             >
               Reports
             </Button>
@@ -111,20 +112,20 @@ export default function AppHome() {
         </CardBody>
       </Card>
 
-      {/* Run Telemetry KPI Grid */}
-      <section aria-labelledby="kpi-heading" className="mb-5">
-        <div className="mb-2.5 flex items-center gap-2">
-          <Activity size={15} className="text-violet-300" aria-hidden="true" />
-          <h2 id="kpi-heading" className="m-0 text-xs font-bold uppercase tracking-wider text-ink-muted">
+      {/* HeroUI KPI Telemetry Strip */}
+      <section aria-labelledby="kpi-heading" className="mb-6">
+        <div className="mb-3 flex items-center gap-2">
+          <Activity size={16} className="text-violet-neon" aria-hidden="true" />
+          <h2 id="kpi-heading" className="m-0 text-sm font-bold uppercase tracking-wider text-ink-muted">
             Run Telemetry
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {metrics.map((m) => (
-            <Card key={m.label} className={`v9-tile ${m.cls} text-white shadow-none`}>
-              <CardBody className="flex flex-col gap-1 p-3.5 text-left">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">{m.label}</span>
-                <span className="font-mono text-2xl font-bold text-white">{m.value}</span>
+            <Card key={m.label} className="bg-base-panel/90 text-white shadow-none">
+              <CardBody className="gap-1 p-4">
+                <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{m.label}</span>
+                <span className="text-xl sm:text-2xl font-bold font-mono text-white">{m.value}</span>
                 <span className="text-xs text-ink-faint">{m.sub}</span>
               </CardBody>
             </Card>
@@ -132,15 +133,15 @@ export default function AppHome() {
         </div>
       </section>
 
-      {/* Workspace Modules HeroUI Grid */}
+      {/* HeroUI Bento Workspace Grid */}
       <section aria-labelledby="app-tools-heading">
-        <div className="mb-2.5 flex items-center justify-between gap-2">
-          <h2 id="app-tools-heading" className="m-0 text-base sm:text-lg font-extrabold text-white">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 id="app-tools-heading" className="m-0 text-lg sm:text-xl font-bold font-ui text-white">
             Workspace Modules
           </h2>
           <span className="text-xs text-ink-muted">{tools.length} modules</span>
         </div>
-        <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3" role="list">
+        <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3" role="list">
           {tools.map((item) => {
             const def = PAGES.find((p) => p.path === item.to);
             const meta = TOOL_META[item.label] ?? { icon: LayoutGrid, tag: 'Module' };
@@ -151,27 +152,25 @@ export default function AppHome() {
                   as={Link}
                   to={item.to}
                   isPressable
-                  className="v9-card h-full w-full text-left text-white no-underline shadow-none transition-transform hover:scale-[1.01]"
+                  className="h-full w-full bg-base-panel text-left text-white shadow-none transition-colors hover:bg-[#22143a]"
                 >
-                  <CardHeader className="flex items-center justify-between gap-2 px-4 pt-4 pb-1.5">
-                    <span className="flex items-center gap-2.5">
-                      <span className="v9-neon" aria-hidden="true">
-                        <Icon size={17} />
+                  <CardHeader className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
+                    <div className="flex items-center gap-2.5">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-violet-600/20 text-violet-neon">
+                        <Icon size={16} aria-hidden="true" />
                       </span>
                       <span className="text-base font-bold text-white">{item.label}</span>
-                    </span>
-                    <Chip size="sm" variant="flat" className="border border-[#2b3254] bg-[#1d2140] text-[11px] text-ink-muted">
+                    </div>
+                    <Chip size="sm" variant="flat" color="secondary" className="h-5 text-[11px] font-medium">
                       {meta.tag}
                     </Chip>
                   </CardHeader>
-                  <CardBody className="px-4 py-1">
-                    {def && <p className="m-0 text-xs sm:text-sm text-ink-muted">{def.shows}</p>}
+                  <CardBody className="px-4 py-1.5">
+                    {def && <span className="text-sm leading-relaxed text-ink-muted">{def.shows}</span>}
                   </CardBody>
-                  <CardFooter className="px-4 pt-1.5 pb-3.5 text-xs font-semibold text-violet-300">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span>Open {item.label}</span>
-                      <ArrowRight size={13} aria-hidden="true" />
-                    </span>
+                  <CardFooter className="flex items-center justify-between px-4 py-3 text-xs font-semibold text-violet-300">
+                    <span>Open {item.label}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
                   </CardFooter>
                 </Card>
               </li>

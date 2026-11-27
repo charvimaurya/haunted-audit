@@ -28,7 +28,7 @@ export interface RunValue {
   setMode: (m: AgentMode) => void;
   /** A plain setter: pass a value, or a function of the latest details (used by the voice fill). */
   setDetails: Dispatch<SetStateAction<TestDetails>>;
-  run: () => Promise<void>;
+  run: (options?: { liveTab?: Window | null }) => Promise<void>;
   /** The last finished voice run, so the status badge can show it. Null when a keyboard run is newer. */
   voiceResult: JourneyResult | null;
   setVoiceResult: (r: JourneyResult | null) => void;

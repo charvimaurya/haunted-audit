@@ -1,253 +1,203 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Button,
-  Divider,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerHeader,
   Navbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  NavbarMenu,
-  NavbarMenuItem,
-  NavbarMenuToggle,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Switch,
 } from '@heroui/react';
-import { Menu, Settings, X } from 'lucide-react';
-import { GhostFigure } from '../ghost/GhostFigure';
+import { Ghost, Menu, Volume2, VolumeX } from 'lucide-react';
 import { GhostShieldIcon } from '../ghost/GhostShieldIcon';
 import { useImmersion } from '../../immersion/ImmersionContext';
-import { APP_NAV, NAV, to } from '../../routes';
+import { NAV, to } from '../../routes';
 
 export function TopNav() {
   const { pathname } = useLocation();
-  const { calm, toggleCalm, soundOn, toggleSound } = useImmersion();
+  const { soundOn, toggleSound } = useImmersion();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
-    setPopoverOpen(false);
   }, [pathname]);
 
+  // Auto-close mobile nav drawer if viewport grows into tablet/desktop
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const sync = () => {
       if (mq.matches) setMenuOpen(false);
     };
     sync();
     mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
+    window.addEventListener('resize', sync);
+    return () => {
+      mq.removeEventListener('change', sync);
+      window.removeEventListener('resize', sync);
+    };
   }, []);
+
+  const linkClass = (isActive: boolean) =>
+    [
+      'inline-flex h-9 items-center font-ui text-sm sm:text-[15px] transition-colors duration-150 rounded-lg px-3',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
+      isActive
+        ? 'bg-violet-600/30 text-white font-semibold shadow-glow-sm'
+        : 'text-white/85 hover:text-white hover:bg-white/10',
+    ].join(' ');
 
   return (
     <Navbar
-      maxWidth="2xl"
-      height="54px"
-      isBlurred={false}
-      isMenuOpen={menuOpen}
-      onMenuOpenChange={setMenuOpen}
+      maxWidth="xl"
+      height="auto"
       aria-label="Primary navigation"
-      className={[
-        'sticky top-0 z-50 text-white transition-colors duration-200',
-        scrolled || menuOpen ? 'bg-[#08060f]/90 backdrop-blur-md' : 'bg-transparent',
-      ].join(' ')}
+      className="sticky top-0 z-50 bg-[#0d0714]/90 py-1.5 sm:py-2 backdrop-blur-xl text-white"
       classNames={{
-        wrapper: 'mx-auto max-w-[1360px] px-3 sm:px-6 gap-4',
-        menu: 'bg-[#0b0818]/98 backdrop-blur-xl pt-4 pb-8 px-4 gap-1.5 border-t border-[#2a2350] z-50',
+        wrapper: 'px-4 sm:px-6',
       }}
     >
-      <NavbarContent justify="start" className="grow-0 gap-2">
-        <NavbarMenuToggle
-          aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          icon={(isOpen) => (isOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />)}
-          className="h-[38px] w-[38px] min-w-[38px] rounded-[12px] border border-[#3a3363] bg-[#140f2a] text-[#cfc6ff] hover:text-white lg:hidden"
-        />
-        <NavbarBrand className="grow-0 shrink-0">
-          <Link
-            to={to('home')}
-            className="inline-flex items-center gap-2.5 rounded-lg py-1 pr-2 text-[19px] font-extrabold tracking-tight text-white no-underline hover:text-violet-200"
-            aria-label="Haunted Audit — home"
-            aria-current={pathname === to('home') ? 'page' : undefined}
+      <NavbarBrand className="grow-0">
+        <Link
+          to={to('home')}
+          className="flex shrink-0 items-center gap-2 rounded-lg px-1 py-1 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+          aria-label="Haunted Audit — home"
+          aria-current={pathname === to('home') ? 'page' : undefined}
+        >
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600/25 text-violet-neon shadow-glow-sm"
+            aria-hidden="true"
           >
-            <GhostFigure tone="white" face="happy" size={32} className="drop-shadow-[0_0_6px_#fff8]" />
-            <span className="whitespace-nowrap">Haunted Audit</span>
-          </Link>
-        </NavbarBrand>
-      </NavbarContent>
+            <Ghost size={18} />
+          </span>
+          <span
+            className="text-[1.05rem] leading-none text-white"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            Haunted Audit
+          </span>
+        </Link>
+      </NavbarBrand>
 
-      {/* Exact design/v9 top navigation links: Home · Scans · Journeys · Fixes · Kiro · Reports */}
-      <NavbarContent justify="center" className="hidden lg:flex gap-[34px]" id="tour-nav-links">
-        {NAV.map((link) => {
-          const active = link.isCurrent(pathname);
-          return (
-            <NavbarItem key={link.label} isActive={active}>
+      <NavbarContent justify="center" className="hidden md:flex">
+        <ul id="tour-nav-links" className="m-0 flex list-none items-center gap-1.5 p-0" role="list">
+          {NAV.map((link) => (
+            <NavbarItem key={link.label}>
               <Link
                 to={link.to}
-                className={[
-                  'inline-flex h-8 items-center rounded-md px-0.5 text-[15.5px] no-underline transition-colors',
-                  active
-                    ? 'font-bold text-white [text-shadow:0_0_12px_#c4b5fd]'
-                    : 'font-medium text-[#d6d9f3] hover:text-white',
-                ].join(' ')}
-                aria-current={active ? 'page' : undefined}
+                className={linkClass(link.isCurrent(pathname))}
+                aria-current={link.isCurrent(pathname) ? 'page' : undefined}
               >
                 {link.label}
               </Link>
             </NavbarItem>
-          );
-        })}
+          ))}
+        </ul>
       </NavbarContent>
 
-      {/* Exact design/v9 right controls: Kiro hourglass pill + Settings gear button */}
-      <NavbarContent justify="end" id="tour-top-controls" className="grow-0 gap-2.5">
-        <NavbarItem className="hidden sm:flex">
+      <NavbarContent justify="end" id="tour-top-controls" className="gap-2">
+        <NavbarItem>
           <Button
-            as={Link}
-            to={to('kiro')}
-            role="link"
-            size="sm"
+            type="button"
+            isIconOnly
+            radius="full"
             variant="flat"
-            startContent={<GhostShieldIcon size={16} />}
-            aria-label="Built with Kiro"
-            aria-current={pathname === to('kiro') ? 'page' : undefined}
-            className="h-[38px] rounded-[12px] border-[1.5px] border-[#a78bfa] bg-gradient-to-b from-[#3b1f86] to-[#26135a] px-3.5 text-[15px] font-bold text-white shadow-[0_0_14px_#8b5cf688] hover:brightness-110"
+            size="sm"
+            onPress={toggleSound}
+            aria-pressed={soundOn}
+            aria-label={soundOn ? 'Turn Halloween background audio off' : 'Turn Halloween background audio on'}
+            className={[
+              'h-8 w-8 min-w-8 text-white',
+              soundOn ? 'bg-violet-600/35 shadow-glow-sm' : 'bg-base-panel/80 hover:bg-white/10',
+            ].join(' ')}
           >
-            Kiro
+            {soundOn ? <Volume2 size={15} aria-hidden="true" /> : <VolumeX size={15} aria-hidden="true" />}
           </Button>
         </NavbarItem>
 
-        <NavbarItem>
-          <Popover
-            isOpen={popoverOpen}
-            onOpenChange={setPopoverOpen}
-            placement="bottom-end"
-            classNames={{
-              content: 'border border-[#2b3254] bg-[#151a33] p-3.5 text-white shadow-2xl',
-            }}
+        <NavbarItem className="hidden sm:flex">
+          <Link
+            to={to('kiro')}
+            className={[
+              'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-white transition-colors shrink-0',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
+              pathname === to('kiro')
+                ? 'bg-violet-600/40 shadow-glow-sm'
+                : 'bg-violet-600/20 hover:bg-violet-600/30',
+            ].join(' ')}
+            aria-label="Built with Kiro"
+            aria-current={pathname === to('kiro') ? 'page' : undefined}
           >
-            <PopoverTrigger>
-              <Button
-                type="button"
-                isIconOnly
-                size="sm"
-                variant="flat"
-                aria-label="Display settings"
-                className="h-[38px] w-[38px] min-w-[38px] rounded-[12px] border border-[#3a3363] bg-[#140f2a] text-[#cfc6ff] hover:text-white"
-              >
-                <Settings size={17} aria-hidden="true" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64">
-              <div className="flex w-full flex-col gap-3">
-                <p className="m-0 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                  Display &amp; Audio
-                </p>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-white">Calm mode (no motion)</span>
-                  <Switch size="sm" color="secondary" isSelected={calm} onValueChange={toggleCalm} aria-label="Calm mode" />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-white">Spooky sound</span>
-                  <Switch size="sm" color="secondary" isSelected={soundOn} onValueChange={toggleSound} aria-label="Spooky sound" />
-                </div>
-                <Button
-                  as={Link}
-                  to={to('app-settings')}
-                  role="link"
-                  size="sm"
-                  variant="flat"
-                  onPress={() => setPopoverOpen(false)}
-                  className="mt-1 border border-[#3a3363] bg-[#0d1022] font-semibold text-violet-200"
-                >
-                  Open full Settings
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+            <GhostShieldIcon size={14} />
+            <span>Kiro</span>
+          </Link>
+        </NavbarItem>
+
+        <NavbarItem className="md:hidden">
+          <Button
+            type="button"
+            isIconOnly
+            size="sm"
+            variant="flat"
+            className="h-9 w-9 min-w-9 bg-base-panel/80 text-white hover:bg-white/10"
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={menuOpen}
+            onPress={() => setMenuOpen((o) => !o)}
+          >
+            <Menu size={18} aria-hidden="true" />
+          </Button>
         </NavbarItem>
       </NavbarContent>
 
-      {/* Single Mobile/Tablet Unified HeroUI Menu (lg:hidden) */}
-      <NavbarMenu
-        motionProps={{
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          exit: { opacity: 0 },
-          transition: { duration: 0.12 },
+      <Drawer
+        isOpen={menuOpen}
+        onOpenChange={setMenuOpen}
+        placement="right"
+        size="xs"
+        classNames={{
+          wrapper: 'md:hidden',
+          backdrop: 'md:hidden',
+          base: 'bg-[#12091f] text-white',
+          header: 'text-white',
         }}
       >
-        <li className="px-1 pt-1 text-[11px] font-bold uppercase tracking-wider text-ink-faint">
-          Navigation
-        </li>
-        {NAV.map((link) => {
-          const active = link.isCurrent(pathname);
-          return (
-            <NavbarMenuItem key={link.label} isActive={active}>
-              <Button
-                as={Link}
-                to={link.to}
-                role="link"
-                fullWidth
-                size="sm"
-                radius="lg"
-                variant={active ? 'flat' : 'light'}
-                onPress={() => setMenuOpen(false)}
-                aria-current={active ? 'page' : undefined}
-                className={
-                  active
-                    ? 'h-9 justify-start bg-gradient-to-r from-[#3a2479] to-[#2a1a5c] px-3 font-bold text-white shadow-[inset_3px_0_0_#b794ff]'
-                    : 'h-9 justify-start px-3 font-medium text-[#d6d9f3]'
-                }
-              >
-                {link.label}
-              </Button>
-            </NavbarMenuItem>
-          );
-        })}
-
-        <li className="py-1" aria-hidden="true">
-          <Divider className="bg-[#2a2350]" />
-        </li>
-        <li className="px-1 text-[11px] font-bold uppercase tracking-wider text-ink-faint">
-          Workspace
-        </li>
-        {APP_NAV.filter((a) => !NAV.some((n) => n.to === a.to)).map((item) => {
-          const active = item.isCurrent(pathname);
-          return (
-            <NavbarMenuItem key={item.to} isActive={active}>
-              <Button
-                as={Link}
-                to={item.to}
-                role="link"
-                fullWidth
-                size="sm"
-                radius="lg"
-                variant={active ? 'flat' : 'light'}
-                onPress={() => setMenuOpen(false)}
-                aria-current={active ? 'page' : undefined}
-                className={
-                  active
-                    ? 'h-9 justify-start bg-gradient-to-r from-[#3a2479] to-[#2a1a5c] px-3 font-bold text-white'
-                    : 'h-9 justify-start px-3 font-medium text-[#d6d9f3]'
-                }
-              >
-                {item.label}
-              </Button>
-            </NavbarMenuItem>
-          );
-        })}
-      </NavbarMenu>
+        <DrawerContent>
+          <DrawerHeader className="flex items-center gap-2 text-base font-bold text-white">
+            <Ghost size={18} className="text-violet-neon" aria-hidden="true" />
+            <span>Navigation</span>
+          </DrawerHeader>
+          <DrawerBody className="py-4">
+            <nav aria-label="Primary navigation drawer">
+              <ul className="m-0 flex list-none flex-col gap-1.5 p-0" role="list">
+                {NAV.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className={[linkClass(link.isCurrent(pathname)), 'w-full'].join(' ')}
+                      aria-current={link.isCurrent(pathname) ? 'page' : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link
+                    to={to('kiro')}
+                    className={[linkClass(pathname === to('kiro')), 'w-full'].join(' ')}
+                    aria-current={pathname === to('kiro') ? 'page' : undefined}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Built with Kiro
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Navbar>
   );
 }

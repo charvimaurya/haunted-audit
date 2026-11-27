@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { CursorGhosts } from '../components/ghost/CursorGhosts';
+import { MobileBottomBar } from '../components/layout/MobileBottomBar';
 import { TopNav } from '../components/layout/TopNav';
 import { useImmersion } from '../immersion/ImmersionContext';
 import { halloweenAudio } from '../immersion/halloweenAudio';
@@ -20,6 +21,7 @@ export function RootLayout() {
   const { soundOn } = useImmersion();
   const isHome = pathname === '/';
 
+  // Sync underground Halloween sound with user sound preference + gesture unlock
   useEffect(() => {
     if (!soundOn) {
       halloweenAudio.stop();
@@ -35,6 +37,7 @@ export function RootLayout() {
     };
   }, [soundOn]);
 
+  // Spooky tactile sound on interactive button/link clicks unless user muted Sound
   useEffect(() => {
     const onInteractiveClick = (e: MouseEvent) => {
       if (!e.isTrusted) return;
@@ -58,7 +61,7 @@ export function RootLayout() {
         <div
           className={[
             'flex flex-col bg-base font-ui text-ink transition-colors duration-200',
-            isHome ? 'min-h-dvh lg:h-dvh lg:overflow-hidden' : 'min-h-dvh',
+            isHome ? 'min-h-dvh md:h-dvh md:overflow-hidden' : 'min-h-dvh',
           ].join(' ')}
         >
           <CursorGhosts />
@@ -82,6 +85,7 @@ export function RootLayout() {
           >
             <Outlet />
           </Suspense>
+          <MobileBottomBar />
           <div id="live-region" role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
         </div>
       </FixProvider>

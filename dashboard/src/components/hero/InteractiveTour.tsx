@@ -309,11 +309,11 @@ const PAGE_TOURS: Partial<Record<PageId, SpotlightStep[]>> = {
       placement: 'bottom',
     },
     {
-      targetSelector: 'nav[aria-label="Breadcrumb"]',
+      targetSelector: 'nav[aria-label="Journey breadcrumb"]',
       badge: 'Run Status',
-      title: 'Live Breadcrumb & Status Pill',
+      title: 'Live Test & Completion Badge',
       description:
-        'Track whether the runner is idle ("Ready"), actively testing ("Live Test"), or finished ("Verified" / "Blocked").',
+        'Track whether the runner is idle ("Not run yet"), actively testing ("Live Test"), or finished ("Last run finished").',
       placement: 'bottom',
     },
     {

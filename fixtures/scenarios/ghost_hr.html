@@ -7,12 +7,12 @@
   <link rel="icon" href="data:," />
   <style>
     :root {
-      --bg: #140b22;
-      --panel: #241338;
+      --bg: #151226;
+      --panel: #211c3a;
       --ink: #f6f0e6;
       --muted: #cbbbe0;
-      --line: #4a3270;
-      --gold: #f0c36a;
+      --line: #453a7a;
+      --gold: #f472b6;
       --green: #3ddc97;
       --lilac: #c9b6ff;
     }
@@ -77,7 +77,7 @@
       border: 0;
       border-radius: 999px;
       padding: 12px 18px;
-      background: linear-gradient(180deg, #c2392a, #a62f1c);
+      background: linear-gradient(180deg, #db2777, #be185d);
       color: white;
       font: 700 1rem/1 ui-sans-serif, system-ui, sans-serif;
       cursor: pointer;
@@ -118,36 +118,36 @@
   <a class="skip" href="#payment-form">Skip to payment</a>
   <header>
     <div class="brand">
-      <div class="mascot" aria-hidden="true">👻</div>
+      <div class="mascot" aria-hidden="true">🧾</div>
       <div>
-        <p class="eyebrow">Enterprise HR</p>
+        <p class="eyebrow">GhostHR Portal</p>
         <h1>GhostHR Portal - test site</h1>
       </div>
     </div>
   </header>
   <nav aria-label="Primary">
     <ul>
-      <li><a id="nav-dashboard" href="#dashboard">Dashboard</a></li>
-      <li><a id="nav-accounts" href="#accounts">Accounts</a></li>
-      <li><a id="nav-transactions" href="#transactions">Transactions</a></li>
-      <li><a id="nav-offer" href="#offer">See offer</a></li>
+      <li><a id="nav-dashboard" href="#dashboard">HR Home</a></li>
+      <li><a id="nav-accounts" href="#accounts">Expenses</a></li>
+      <li><a id="nav-transactions" href="#transactions">Time Off</a></li>
+      <li><a id="nav-offer" href="#offer">Policies</a></li>
     </ul>
   </nav>
   <div class="layout">
     <main class="panel" id="dashboard">
       <p class="eyebrow">Payments</p>
       <h2>Submit Request</h2>
-      <p id="accounts">Move euros to another customer. This page is the journey under test.</p>
+      <p id="accounts">Employee expense & stipend claim form where Submit Request omits keyboard focus.</p>
       <p class="balance" id="balance">Demo balance: EUR 1000.00 (not real money)</p>
       <form id="payment-form" novalidate>
         <div class="field">
-          <label for="recipient">Recipient</label>
+          <label for="recipient">Employee Name</label>
           <input id="recipient" name="recipient" type="text" autocomplete="name" />
-          <p class="hint" id="recipient-hint">Use the name on the account.</p>
+          <p class="hint" id="recipient-hint">Employee listed in GhostHR directory.</p>
         </div>
         <div class="field" id="amount-slot"></div>
         <div class="field">
-          <label for="reference">Reference</label>
+          <label for="reference">Cost Center / Note</label>
           <input id="reference" name="reference" type="text" maxlength="60" autocomplete="off" />
         </div>
         <div class="actions">
@@ -160,15 +160,15 @@
       <p id="cancelled" role="status" hidden>Payment cancelled. Nothing was sent.</p>
     </main>
     <aside class="panel offer" id="offer">
-      <p class="eyebrow">Distraction</p>
-      <h2>Pumpkin fee waived</h2>
-      <p id="transactions">A seasonal banner. It is not part of sending the payment.</p>
+      <p class="eyebrow">Policy Reminder</p>
+      <h2>Receipts over EUR 25</h2>
+      <p id="transactions">Quarterly expense reimbursement window open.</p>
       <a id="offer-terms" href="#offer">Offer terms</a>
     </aside>
   </div>
   <footer>
     <a id="privacy" href="#privacy-note">Privacy</a>
-    <p id="privacy-note">Haunted Bank test site. No real money moves.</p>
+    <p id="privacy-note">GhostHR Portal sandbox. Internal test only.</p>
   </footer>
   <script>
     const params = new URLSearchParams(window.location.search);

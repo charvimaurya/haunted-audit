@@ -11,6 +11,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        // NOTE: Do NOT set `DEFAULT` under `base` because Tailwind's `text-base` (font-size: 1rem)
+        // would also emit `color: var(--color-base)` and paint text the same color as the background.
+        // `.bg-base` utilities are defined in src/index.css.
         base: {
           panel:   'var(--color-panel)',
           surface: 'var(--color-surface)',
@@ -54,7 +57,7 @@ export default {
           input:          'var(--bank-input)',
           nav:            'var(--bank-nav)',
           'nav-line':     'var(--bank-nav-line)',
-          dash:           '#c83f4b',
+          'dash':         '#c83f4b',
           'dash-fill':    'var(--bank-dash-fill)',
           tip:            'var(--bank-tip)',
           'tip-line':     '#561931',
@@ -91,8 +94,8 @@ export default {
           '50%':     { transform: 'translateY(-10px)' },
         },
         'glow-pulse': {
-          '0%,100%': { boxShadow: '0 0 12px 1px rgba(139,92,246,0.45)' },
-          '50%':     { boxShadow: '0 0 26px 6px rgba(168,85,247,0.78)' },
+          '0%,100%': { boxShadow: '0 0 10px 1px rgba(168,85,247,0.38)' },
+          '50%':     { boxShadow: '0 0 22px 5px rgba(168,85,247,0.68)' },
         },
       },
       animation: {
@@ -102,35 +105,5 @@ export default {
       },
     },
   },
-  plugins: [
-    heroui({
-      defaultTheme: 'dark',
-      themes: {
-        dark: {
-          colors: {
-            background: '#08060f',
-            foreground: '#eef0ff',
-            divider: '#2b3254',
-            content1: { DEFAULT: '#15102b', foreground: '#eef0ff' },
-            content2: { DEFAULT: '#171c34', foreground: '#eef0ff' },
-            content3: { DEFAULT: '#1b203f', foreground: '#eef0ff' },
-            content4: { DEFAULT: '#22284d', foreground: '#eef0ff' },
-            default: {
-              DEFAULT: '#1e2340',
-              50: '#0d1022',
-              100: '#14172f',
-              200: '#1e2340',
-              300: '#2b3254',
-              foreground: '#eef0ff',
-            },
-            primary: { DEFAULT: '#8b5cf6', foreground: '#ffffff' },
-            secondary: { DEFAULT: '#7c3aed', foreground: '#ffffff' },
-            success: { DEFAULT: '#22c55e', foreground: '#ffffff' },
-            danger: { DEFAULT: '#ef4444', foreground: '#ffffff' },
-            warning: { DEFAULT: '#f59e0b', foreground: '#1f1408' },
-          },
-        },
-      },
-    }),
-  ],
+  plugins: [heroui()],
 };

@@ -105,8 +105,9 @@ export function RunProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const run = useCallback(async () => {
+  const run = useCallback(async (options?: { liveTab?: Window | null }) => {
     // Reset state
+    const liveTab = options?.liveTab ?? null;
     setResult(null);
     setRunDetails(null);
     setRunError(null);
@@ -132,6 +133,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
         }),
       });
       if (!res.ok) {
+        if (liveTab && !liveTab.closed) liveTab.close();
         // 429 = rate limit or busy, 403 = LLM mode paused. The API sends the plain-English text.
         const detail = await res
           .json()
@@ -147,6 +149,9 @@ export function RunProvider({ children }: { children: ReactNode }) {
         return;
       }
       const { run_id } = (await res.json()) as { run_id: string };
+      if (liveTab && !liveTab.closed) {
+        liveTab.location.href = `${API_BASE}/sandbox/${encodeURIComponent(scenario)}?variant=${encodeURIComponent(variant)}&run_id=${encodeURIComponent(run_id)}`;
+      }
 
       // SSE stream
       const sse = new EventSource(`${API_BASE}/runs/${run_id}/events`);

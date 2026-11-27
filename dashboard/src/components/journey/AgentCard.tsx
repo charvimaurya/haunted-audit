@@ -1,72 +1,127 @@
-import { Card, CardBody, CardFooter, CardHeader } from '@heroui/react';
-import { Loader2 } from 'lucide-react';
+/**
+ * AgentCard
+ *
+ * One agent card in the "The Ghost Hunt — Agent Investigation" section.
+ * Uses real telemetry rows, explicit status badge, and real run metadata footer.
+ */
+import { Chip } from '@heroui/react';
+import { Check, Loader2, X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { V9Dot } from '../ghost/V9Dot';
 
 export interface AgentOutcome {
   label: string;
   passed: boolean;
+  highlight?: string;
   detail?: string;
 }
 
+export type AgentCardStatus = 'idle' | 'running' | 'passed' | 'blocked';
+
 interface AgentCardProps {
+  /** Agent name e.g. "Keyboard Agent" */
   name: string;
+  /** Subtitle e.g. "Tab & Enter traversal" */
+  roleLabel?: string;
+  /** Lucide icon node */
   icon: ReactNode;
   outcomes: AgentOutcome[];
+  status?: AgentCardStatus;
   isRunning?: boolean;
+  emptyText?: string;
+  /** Real measured metadata shown in card footer (run ID, latency, scenario, mode) */
+  meta?: string | null;
+  /** Overrides the card's accessible name (default: "<name> results"). */
   ariaLabel?: string;
-  footer?: ReactNode;
 }
 
-export function AgentCard({ name, icon, outcomes, isRunning = false, ariaLabel, footer }: AgentCardProps) {
-  return (
-    <Card className="v9-card flex h-full flex-col text-white shadow-none" aria-label={ariaLabel ?? `${name} results`}>
-      <CardHeader className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <span className="v9-neon shrink-0" aria-hidden="true">
-          {icon}
-        </span>
-        <h3 className="m-0 text-base sm:text-lg font-extrabold text-white">{name}</h3>
-        {isRunning && (
-          <Loader2
-            size={15}
-            className="ml-auto animate-spin text-violet-300"
-            aria-label="running"
-          />
-        )}
-      </CardHeader>
+const STATUS_BADGE: Record<AgentCardStatus, { label: string; color: 'default' | 'warning' | 'success' | 'danger' }> = {
+  idle: { label: 'Idle', color: 'default' },
+  running: { label: 'Running', color: 'warning' },
+  passed: { label: 'Passed', color: 'success' },
+  blocked: { label: 'Blocked', color: 'danger' },
+};
 
-      <CardBody className="flex-1 px-4 py-2">
+export function AgentCard({
+  name,
+  roleLabel,
+  icon,
+  outcomes,
+  status = 'idle',
+  isRunning = false,
+  emptyText = 'Not run yet',
+  meta = null,
+  ariaLabel,
+}: AgentCardProps) {
+  const effectiveStatus: AgentCardStatus = isRunning ? 'running' : status;
+  const badge = STATUS_BADGE[effectiveStatus];
+
+  return (
+    <article
+      className="v9-agent-card h-full"
+      aria-label={ariaLabel ?? `${name} results`}
+    >
+      <div>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="v9-agent-neon" aria-hidden="true">
+              {icon}
+            </span>
+            <div className="min-w-0">
+              <h3 className="m-0 truncate text-[18px] font-extrabold text-white">{name}</h3>
+              {roleLabel && <p className="m-0 text-xs text-[#9aa3c7]">{roleLabel}</p>}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {effectiveStatus === 'running' && (
+              <Loader2 size={14} className="text-amber-300 motion-safe:animate-spin" aria-label="running" />
+            )}
+            <Chip size="sm" variant="flat" color={badge.color} className="text-[11px] font-semibold">
+              {badge.label}
+            </Chip>
+          </div>
+        </div>
+
         {outcomes.length === 0 ? (
-          <ul className="m-0 flex list-none flex-col gap-3 p-0">
-            <li className="flex items-center gap-3 text-sm sm:text-[15px] text-ink-muted">
-              <V9Dot state="wait" size={22} />
-              <span>
-                <span aria-hidden="true">-- </span>
-                not yet measured
-              </span>
-            </li>
-          </ul>
+          <div className="flex items-center gap-3 rounded-xl border border-[#23284a] bg-[#0e1227] px-3.5 py-3 text-sm text-[#9aa3c7]">
+            <span className="v9-fix-dot v9-fix-dot-wait" aria-hidden="true" />
+            <span>{isRunning ? 'Listening for agent steps…' : emptyText}</span>
+          </div>
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-2.5 p-0" aria-label={`${name} outcome list`}>
+          <ul className="m-0 flex list-none flex-col gap-3 p-0" aria-label={`${name} outcome list`}>
             {outcomes.map((o, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm sm:text-[15px]">
-                <V9Dot state={o.passed ? 'ok' : 'bad'} size={22} />
-                <span className={o.passed ? 'text-ink' : 'text-[#ff7a7a]'}>
-                  <span className="sr-only">{o.passed ? 'Passed: ' : 'Failed: '}</span>
-                  {o.label}
+              <li key={i} className="flex items-start gap-3 text-[15px] leading-snug">
+                {o.passed ? (
+                  <span className="v9-fix-dot v9-fix-dot-ok mt-0.5" aria-label="passed">
+                    <Check size={13} strokeWidth={3} aria-hidden="true" />
+                  </span>
+                ) : (
+                  <span className="v9-fix-dot v9-fix-dot-bad mt-0.5" aria-label="failed">
+                    <X size={13} strokeWidth={3} aria-hidden="true" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1 text-[#eef0ff]">
+                  <p className="m-0">
+                    {o.label}
+                    {o.highlight && (
+                      <span className="block font-semibold text-[#ff6b6b]">{o.highlight}</span>
+                    )}
+                  </p>
                   {o.detail && (
-                    <span className="mt-0.5 block font-mono text-xs sm:text-sm text-[#ff6b6b]">{o.detail}</span>
+                    <p className="m-0 mt-0.5 truncate font-mono text-xs text-[#9aa3c7]" title={o.detail}>
+                      {o.detail}
+                    </p>
                   )}
-                </span>
+                </div>
               </li>
             ))}
           </ul>
         )}
-      </CardBody>
+      </div>
 
-      {footer && (
-        <CardFooter className="px-4 pt-1 pb-3.5 text-xs text-ink-muted">{footer}</CardFooter>
-      )}
-    </Card>
+      <div className="border-t border-[#23284a] pt-3 text-xs font-mono text-[#9aa3c7]">
+        {meta ?? '-- · not yet measured'}
+      </div>
+    </article>
   );
 }

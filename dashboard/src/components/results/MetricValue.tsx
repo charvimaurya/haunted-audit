@@ -7,7 +7,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Chip } from '@heroui/react';
 import type { AgentMode, MetricValue as TMetricValue } from '../../types/index';
 import { useMotionAllowed } from '../../immersion/ImmersionContext';
 import { shouldAnimateCounter } from '../../immersion/motion';
@@ -57,15 +56,12 @@ export function MetricValueDisplay({
       <span className="text-base text-ink-muted text-center leading-tight">{label}</span>
 
       {/* Agent mode badge (always shown) */}
-      <Chip
-        size="sm"
-        variant="flat"
-        color={agentMode === 'llm' ? 'secondary' : 'default'}
-        className="font-mono font-medium"
+      <span
+        className={`text-base px-1.5 py-0.5 rounded-full font-mono font-medium ${MODE_BADGE[agentMode]}`}
         aria-label={`agent mode: ${agentMode}`}
       >
         {agentMode}
-      </Chip>
+      </span>
 
       {/* Screen-reader note for unmeasured — also render visible hint text */}
       {isUnmeasured && (
@@ -119,12 +115,8 @@ function useMeasuredCount(value: number | null): number | null {
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / 600);
-      const step =
-        Number.isInteger(value) && value >= 1
-          ? Math.max(1, Math.round(value * t))
-          : Number.isInteger(value)
-            ? Math.round(value * t)
-            : value * t;
+      // Whole numbers count in whole steps, so a count never shows a fraction like 0.67.
+      const step = Number.isInteger(value) ? Math.round(value * t) : value * t;
       setShown(t >= 1 ? value : step);
       if (t < 1) frame = requestAnimationFrame(tick);
     };

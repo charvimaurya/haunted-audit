@@ -1,57 +1,59 @@
-import { Alert, Button, Card, CardBody, Input, Tab, Tabs, Textarea } from '@heroui/react';
+/**
+ * PossessionMode
+ *
+ * "Possession Mode — Keyboard-only demonstration" sandbox panel.
+ * Responsive across desktop, tablet, and mobile.
+ * During a live run, streams real SSE StepEvents to highlight active sandbox fields,
+ * fill typed values live, and update checklist rows in real time.
+ */
+import { useEffect, useMemo, useState } from 'react';
 import {
   Ban,
+  Check,
+  ChevronRight,
+  ExternalLink,
   FileText,
+  Ghost,
   House,
   Keyboard,
   Landmark,
   List,
   Loader2,
-  Mic,
-  MicOff,
-  Pencil,
-  Play,
   Send,
   TriangleAlert,
+  X,
 } from 'lucide-react';
-import { useId, useState } from 'react';
-import { V9Dot } from '../ghost/V9Dot';
 import { FocusTrailReplay } from './FocusTrailReplay';
 import { PossessionGhost } from '../ghost/PossessionGhost';
+import { API_BASE } from '../../runs/api';
 import { getScenarioDef, type ScenarioId } from '../../runs/scenarios';
-import { commandsFrom, type VoiceRunState } from '../../voice/useVoiceRun';
-import type { VoiceInputSource } from '../../voice/interpretVoiceCommand';
-import type { GhostState, JourneyResult, RecordedDetails, TestDetails } from '../../types/index';
-import type { AgentKind } from './AgentToggle';
+import type { GhostState, JourneyResult, RecordedDetails, StepEvent, Variant } from '../../types/index';
 
 interface TabStep {
   label: string;
-  status: 'pending' | 'pass' | 'fail';
+  status: 'pending' | 'active' | 'pass' | 'fail';
+  /** What the agent typed in this field, from the run record or live SSE events. */
   typed?: string;
 }
 
 interface PossessionModeProps {
   scenario?: ScenarioId;
-  agent?: AgentKind;
-  onAgentChange?: (agent: AgentKind) => void;
-  details?: TestDetails;
+  variant?: Variant;
   result: JourneyResult | null;
   isRunning?: boolean;
+  liveEvents?: StepEvent[];
   liveSteps?: TabStep[];
+  /** test_details of the run; null hides typed values (internal default or no run). */
   runDetails?: RecordedDetails | null;
-  onRun?: () => void;
-  voiceRun?: VoiceRunState;
-  commandText?: string;
-  onCommandTextChange?: (text: string, source: VoiceInputSource) => void;
-  speech?: {
-    supported: boolean;
-    listening: boolean;
-    heard: string;
-    error: string | null;
-    start: () => void;
-    stop: () => void;
-  };
-  voiceNotice?: string | null;
+}
+
+function defaultStepsFor(submitLabel: string): TabStep[] {
+  return [
+    { label: 'Tab to Recipient', status: 'pending' },
+    { label: 'Tab to Amount', status: 'pending' },
+    { label: 'Tab to Reference', status: 'pending' },
+    { label: `Tab to ${submitLabel}`, status: 'pending' },
+  ];
 }
 
 const NAV_ITEMS = [
@@ -67,12 +69,71 @@ function ghostStateFromResult(result: JourneyResult | null, isRunning: boolean):
   return 'blocked';
 }
 
-function typedInto(result: JourneyResult, hint: string): string | undefined {
-  const step = result.step_events.find(
-    (e) => e.tool === 'type_text' && (e.focused_before?.selector_hint ?? '').includes(hint),
-  );
+function typedIntoEvents(events: StepEvent[], hint: string): string | undefined {
+  const step = [...events]
+    .reverse()
+    .find(
+      (e) =>
+        e.tool === 'type_text' &&
+        ((e.focused_before?.selector_hint ?? '').includes(hint) ||
+          (e.focused_after?.selector_hint ?? '').includes(hint)),
+    );
   const text = step ? (step.args as { text?: unknown }).text : undefined;
   return typeof text === 'string' ? text : undefined;
+}
+
+function focusedFieldFromHint(hint: string | null | undefined): 'recipient' | 'amount' | 'reference' | 'send-payment' | null {
+  if (!hint) return null;
+  if (hint.includes('#recipient')) return 'recipient';
+  if (hint.includes('#amount')) return 'amount';
+  if (hint.includes('#reference')) return 'reference';
+  if (hint.includes('#send-payment')) return 'send-payment';
+  return null;
+}
+
+function stepsFromLive(liveEvents: StepEvent[], submitLabel: string): TabStep[] {
+  const reached = (hint: string) =>
+    liveEvents.some(
+      (e) =>
+        (e.focused_after?.selector_hint ?? '').includes(hint) ||
+        (e.focused_before?.selector_hint ?? '').includes(hint),
+    );
+  const latestHint = liveEvents[liveEvents.length - 1]?.focused_after?.selector_hint ?? '';
+  const activeField = focusedFieldFromHint(latestHint);
+
+  const recPass = reached('#recipient');
+  const amtPass = reached('#amount');
+  const refPass = reached('#reference');
+  const payPass = reached('#send-payment');
+
+  const statusFor = (passed: boolean, id: 'recipient' | 'amount' | 'reference' | 'send-payment', prevDone: boolean): TabStep['status'] => {
+    if (activeField === id) return 'active';
+    if (passed) return 'pass';
+    if (prevDone && activeField === null && liveEvents.length > 0) return 'active';
+    return 'pending';
+  };
+
+  return [
+    {
+      label: 'Tab to Recipient',
+      status: statusFor(recPass, 'recipient', true),
+      typed: typedIntoEvents(liveEvents, '#recipient'),
+    },
+    {
+      label: 'Tab to Amount',
+      status: statusFor(amtPass, 'amount', recPass),
+      typed: typedIntoEvents(liveEvents, '#amount'),
+    },
+    {
+      label: 'Tab to Reference',
+      status: statusFor(refPass, 'reference', amtPass),
+      typed: typedIntoEvents(liveEvents, '#reference'),
+    },
+    {
+      label: `Tab to ${submitLabel}`,
+      status: statusFor(payPass, 'send-payment', refPass),
+    },
+  ];
 }
 
 function stepsFromResult(
@@ -80,17 +141,9 @@ function stepsFromResult(
   runDetails: RecordedDetails | null = null,
   submitLabel = 'Send Payment',
 ): TabStep[] {
-  if (result === null) {
-    return [
-      { label: 'Tab to Recipient', status: 'pending' },
-      { label: 'Tab to Amount', status: 'pending' },
-      { label: 'Tab to Reference', status: 'pending' },
-      { label: `Tab to ${submitLabel}`, status: 'pending' },
-    ];
-  }
-  const typed = (hint: string) => (runDetails ? typedInto(result, hint) : undefined);
-  const reached = (hint: string) =>
-    result.focus_trail.some((snap) => snap.selector_hint.includes(hint));
+  if (result === null) return defaultStepsFor(submitLabel);
+  const typed = (hint: string) => (runDetails ? typedIntoEvents(result.step_events, hint) : undefined);
+  const reached = (hint: string) => result.focus_trail.some((snap) => snap.selector_hint.includes(hint));
   const stuck = result.verdict === 'BLOCKED' && result.reason_code === 'TARGET_NOT_FOCUSABLE';
   const last: TabStep = stuck
     ? { label: `Tab to ${submitLabel} (stuck)`, status: 'fail' }
@@ -106,454 +159,450 @@ function stepsFromResult(
   ];
 }
 
+function StepRow({ label, status, typed }: TabStep) {
+  const statusText =
+    status === 'pass' ? 'Passed' : status === 'fail' ? 'Failed' : status === 'active' ? 'In progress' : 'Pending';
+  const stuck = label.endsWith(' (stuck)');
+  const main = stuck ? label.slice(0, -' (stuck)'.length) : label;
+  return (
+    <li className="flex items-start gap-3 border-b border-bank-line py-3 text-base font-ui last:border-b-0">
+      {status === 'pass' && (
+        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ghost-verified text-[color:var(--color-base)]" aria-hidden="true">
+          <Check size={16} strokeWidth={3.5} />
+        </span>
+      )}
+      {status === 'fail' && (
+        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ghost-blocked text-ink" aria-hidden="true">
+          <X size={16} strokeWidth={3.5} />
+        </span>
+      )}
+      {status === 'active' && (
+        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 border-amber-400 bg-amber-500/20 text-amber-300" aria-hidden="true">
+          <Loader2 size={13} className="motion-safe:animate-spin" />
+        </span>
+      )}
+      {status === 'pending' && (
+        <span className="mt-0.5 h-6 w-6 shrink-0 rounded-full border-2 border-base-line" aria-hidden="true" />
+      )}
+      <span className="min-w-0 flex-1 text-ink">
+        {main}
+        {stuck && (
+          <>
+            <br />
+            <span className="text-ghost-blocked">(stuck)</span>
+          </>
+        )}
+        {typed !== undefined && (
+          <span className="mt-0.5 block break-words text-sm text-ink-muted">
+            Typed: <span className="font-mono text-ink">{typed}</span>
+          </span>
+        )}
+      </span>
+      <span className="sr-only">{statusText}</span>
+    </li>
+  );
+}
+
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon';
+const AGENT_ACTIVE_RING =
+  'border-amber-400 ring-[3px] ring-amber-400/80 shadow-[0_0_16px_rgba(251,191,36,0.4)]';
+
 export function PossessionMode({
   scenario = 'haunted-bank',
-  agent = 'keyboard',
-  onAgentChange,
-  details,
+  variant = 'broken',
   result,
   isRunning = false,
+  liveEvents = [],
   liveSteps,
   runDetails = null,
-  onRun,
-  voiceRun,
-  commandText = '',
-  onCommandTextChange,
-  speech,
-  voiceNotice,
 }: PossessionModeProps) {
-  const [editingVoice, setEditingVoice] = useState(false);
-  const cmdId = useId();
+  const activeScenario = getScenarioDef(result?.scenario ?? scenario);
+  const ghostState = ghostStateFromResult(result, isRunning);
+  const steps =
+    liveSteps ??
+    (isRunning ? stepsFromLive(liveEvents, activeScenario.submitLabel) : stepsFromResult(result, runDetails, activeScenario.submitLabel));
+  const isBlocked = !isRunning && result?.verdict === 'BLOCKED';
+  const effectiveVariant = isRunning ? variant : (result?.variant ?? variant);
+  const isFixed = effectiveVariant === 'fixed';
 
-  const isVoice = agent === 'voice';
-  const shownResult = isVoice ? voiceRun?.result ?? null : result;
-  const activeBusy = isVoice ? voiceRun?.phase === 'running' : isRunning;
+  // Local manual edits only override agent live/result display if tester interacts with sandbox inputs directly
+  const [manualValues, setManualValues] = useState({ recipient: '', amount: '', reference: '' });
+  const [dirty, setDirty] = useState({ recipient: false, amount: false, reference: false });
 
-  const activeScenario = getScenarioDef(shownResult?.scenario ?? scenario);
-  const ghostState = ghostStateFromResult(shownResult, activeBusy);
-  const steps = liveSteps ?? stepsFromResult(result, runDetails, activeScenario.submitLabel);
-  const isBlocked = shownResult?.verdict === 'BLOCKED';
-  const isPassed = shownResult?.verdict === 'PASSED';
-  const isFixed = shownResult?.variant === 'fixed';
+  useEffect(() => {
+    if (isRunning) {
+      setManualValues({ recipient: '', amount: '', reference: '' });
+      setDirty({ recipient: false, amount: false, reference: false });
+    }
+  }, [isRunning, scenario]);
 
-  const voiceCommands = commandsFrom(commandText);
-  const displayRecipient = runDetails?.recipient ?? details?.recipient ?? '';
-  const displayAmount = runDetails?.amount ?? details?.amount ?? '';
-  const displayReference = runDetails?.reference ?? details?.reference ?? '';
+  const latestEvent = liveEvents[liveEvents.length - 1] ?? null;
+  const activeField = isRunning ? focusedFieldFromHint(latestEvent?.focused_after?.selector_hint) : null;
+
+  const sourceEvents = isRunning ? liveEvents : result?.step_events ?? [];
+  const agentRecipient = isRunning
+    ? typedIntoEvents(liveEvents, '#recipient') ?? ''
+    : runDetails
+      ? typedIntoEvents(sourceEvents, '#recipient') ?? ''
+      : '';
+  const agentAmount = isRunning
+    ? typedIntoEvents(liveEvents, '#amount') ?? ''
+    : runDetails
+      ? typedIntoEvents(sourceEvents, '#amount') ?? ''
+      : '';
+  const agentReference = isRunning
+    ? typedIntoEvents(liveEvents, '#reference') ?? ''
+    : runDetails
+      ? typedIntoEvents(sourceEvents, '#reference') ?? ''
+      : '';
+
+  const recentFeed = useMemo(() => sourceEvents.slice(-4), [sourceEvents]);
 
   return (
-    <section id="journeys" aria-labelledby="possession-heading">
+    <section id="journeys" aria-labelledby="possession-heading" className="panel-glow overflow-hidden">
       <h2 id="possession-heading" className="sr-only">
-        Possession Mode — {isVoice ? 'Voice-command demonstration' : 'Keyboard-only demonstration'}
+        Possession Mode — Keyboard-only demonstration
       </h2>
 
-      {/* Responsive Split: stacked cleanly on mobile/tablet, 2-col side-by-side on desktop */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(310px,1fr)]">
-        {/* Left: Target Sandbox Application */}
-        <Card className="v9-card overflow-hidden text-white shadow-none">
-          <CardBody className="flex flex-col p-0 md:flex-row">
-            <aside
-              className="flex flex-col gap-1 border-b border-[#2b3254] bg-[#0e1226]/90 p-3.5 md:w-48 md:shrink-0 md:border-r md:border-b-0"
-              aria-label="Sandbox page links"
+      {/* Top breadcrumb bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-base-line bg-bank-bar px-4 py-3 sm:px-5">
+        <nav aria-label="Journey breadcrumb" className="min-w-0">
+          <ol className="m-0 flex list-none flex-wrap items-center gap-1.5 p-0 text-sm sm:text-base font-ui text-ink-muted">
+            <li className="flex items-center gap-1.5">
+              <Ghost size={17} aria-hidden="true" />
+              <span>Kiro</span>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight size={15} />
+            </li>
+            <li>
+              Journey: <span className="font-bold text-ink">{activeScenario.submitLabel}</span>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight size={15} />
+            </li>
+            <li aria-current="page" className="text-glow-violet font-bold text-ink">
+              Possession Mode
+            </li>
+          </ol>
+        </nav>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`${API_BASE}/sandbox/${encodeURIComponent(activeScenario.id)}?variant=${encodeURIComponent(effectiveVariant)}${result?.run_id ? `&run_id=${encodeURIComponent(result.run_id)}` : ''}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-base-line bg-base-surface/80 px-2.5 py-1 text-xs font-semibold text-violet-300 hover:border-violet-neon hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+          >
+            <span>Open Live Site</span>
+            <ExternalLink size={12} aria-hidden="true" />
+          </a>
+          {isRunning ? (
+            <span
+              className="flex items-center gap-2 rounded-full border border-amber-400/50 bg-amber-500/15 px-3 py-1 text-xs sm:text-sm font-ui font-semibold text-amber-300"
+              role="status"
+              aria-live="polite"
             >
-              <div className="mb-2 flex items-center gap-2.5">
-                <Landmark size={24} style={{ color: '#5ec8ff' }} aria-hidden="true" className="shrink-0" />
-                <div className="min-w-0">
-                  <b className="block truncate text-sm font-bold text-white">{activeScenario.name}</b>
-                  <span className="text-xs text-ink-muted">Test site</span>
-                </div>
+              <Loader2 size={14} className="motion-safe:animate-spin" aria-hidden="true" />
+              Live Agent Working ({liveEvents.length} steps)
+            </span>
+          ) : (
+            <span
+              className="flex items-center gap-2 rounded-full border border-base-line px-3 py-1 text-xs sm:text-sm font-ui text-ink-muted"
+              role="status"
+              aria-live="polite"
+            >
+              {result ? `Last run: ${result.verdict}` : 'Not run yet'}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Responsive Sandbox + Step Checklist grid */}
+      <div className="grid grid-cols-1 gap-4 p-3 sm:p-4 xl:grid-cols-[minmax(0,72fr)_minmax(0,28fr)]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,28fr)_minmax(0,72fr)]">
+          {/* Sandbox sidebar card tailored to the active scenario */}
+          <aside
+            className="rounded-xl border border-bank-line bg-bank-sidebar p-4"
+            style={{ borderTopColor: activeScenario.accentHex, borderTopWidth: '3px' }}
+            aria-label={`${activeScenario.name} navigation`}
+          >
+            <div className="mb-3 flex items-start gap-3">
+              <Landmark size={24} className="mt-0.5 shrink-0" style={{ color: activeScenario.accentHex }} aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="m-0 text-base sm:text-lg font-bold leading-tight text-ink font-ui">
+                  {activeScenario.name}
+                </p>
+                <p className="m-0 text-xs sm:text-sm text-ink-muted font-ui">{activeScenario.category} sandbox</p>
               </div>
-              <div className="flex flex-wrap gap-1 md:flex-col">
-                {NAV_ITEMS.map(({ label, Icon }) => {
-                  const displayLabel = label === 'Send Payment' ? activeScenario.submitLabel : label;
-                  const active = label === 'Send Payment';
+            </div>
+            <nav aria-label="Sandbox page links">
+              <ul className="m-0 grid list-none grid-cols-2 gap-1.5 p-0 sm:flex sm:flex-wrap lg:flex-col">
+                {NAV_ITEMS.map(({ Icon }, index) => {
+                  const displayLabel = activeScenario.navItems[index] ?? activeScenario.submitLabel;
+                  const active = index === 1;
                   return (
-                    <a
-                      key={label}
-                      href="#journeys"
-                      aria-current={active ? 'page' : undefined}
-                      className={[
-                        'flex min-h-9 items-center gap-2.5 rounded-xl px-3 text-sm no-underline transition-colors',
-                        active
-                          ? 'bg-[#1c2b4d] font-semibold text-[#7cc4ff] shadow-[inset_0_0_0_1px_#3b82f655]'
-                          : 'text-[#d7dbef] hover:text-white',
-                      ].join(' ')}
-                    >
-                      <Icon size={16} aria-hidden="true" className="shrink-0" />
-                      <span className="truncate">{displayLabel}</span>
-                    </a>
+                    <li key={displayLabel} className="min-w-0">
+                      <a
+                        href="#journeys"
+                        className={[
+                          'flex min-h-10 items-center gap-2.5 rounded-lg border px-2.5 text-sm sm:text-base font-ui truncate',
+                          FOCUS,
+                          active
+                            ? 'border-bank-nav-line bg-bank-nav text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink',
+                        ].join(' ')}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        <Icon size={17} className="shrink-0" aria-hidden="true" />
+                        <span className="truncate">{displayLabel}</span>
+                      </a>
+                    </li>
                   );
                 })}
-              </div>
-            </aside>
+              </ul>
+            </nav>
+          </aside>
 
-            <div
-              id="pm-replica-card"
-              className="relative flex-1 p-5 sm:p-6"
-              aria-label={`${activeScenario.submitLabel} form preview`}
-            >
-              <h3 className="m-0 mb-4 text-xl sm:text-2xl font-extrabold text-white">
-                {activeScenario.submitLabel}
-              </h3>
-
-              <div className="flex max-w-lg flex-col gap-3">
-                <div>
-                  <label htmlFor="pm-recipient" className="mb-1 block text-xs sm:text-sm font-semibold text-white">
-                    Recipient
-                  </label>
-                  <Input
-                    id="pm-recipient"
-                    aria-label="Recipient"
-                    isReadOnly
-                    value={displayRecipient}
-                    classNames={{
-                      inputWrapper: 'min-h-10 rounded-xl border border-[#2f3760] bg-[#121731] shadow-none',
-                      input: 'text-sm text-white',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="pm-amount" className="mb-1 block text-xs sm:text-sm font-semibold text-white">
-                    Amount
-                  </label>
-                  <Input
-                    id="pm-amount"
-                    aria-label="Amount"
-                    isReadOnly
-                    value={displayAmount ? `€${displayAmount}` : ''}
-                    classNames={{
-                      inputWrapper: 'min-h-10 rounded-xl border border-[#2f3760] bg-[#121731] shadow-none',
-                      input: 'text-sm text-white',
-                    }}
-                  />
-                  <div className="v9-amtbar" aria-hidden="true" />
-                </div>
-
-                {displayReference && (
-                  <div>
-                    <label htmlFor="pm-reference" className="mb-1 block text-xs sm:text-sm font-semibold text-white">
-                      Reference
-                    </label>
-                    <Input
-                      id="pm-reference"
-                      aria-label="Reference"
-                      isReadOnly
-                      value={displayReference}
-                      classNames={{
-                        inputWrapper: 'min-h-10 rounded-xl border border-[#2f3760] bg-[#121731] shadow-none',
-                        input: 'text-sm text-white',
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-4">
-                {isFixed || isPassed ? (
-                  <button
-                    id="pm-send-payment"
-                    type="button"
-                    className="v9-paybtn ok"
-                    aria-label={activeScenario.submitLabel}
-                  >
-                    {activeScenario.submitLabel}
-                  </button>
-                ) : (
-                  <div
-                    id="pm-send-payment"
-                    role="button"
-                    tabIndex={0}
-                    aria-disabled="true"
-                    aria-label={`${activeScenario.submitLabel} — blocked when element is a div without keyboard support`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
-                    }}
-                    className={`v9-paybtn ${isBlocked ? '' : 'idle'}`}
-                  >
-                    {activeScenario.submitLabel}
-                  </div>
-                )}
-
-                {ghostState !== 'ready' && (
-                  <div className="shrink-0">
-                    <PossessionGhost size={86} state={ghostState === 'verified' ? 'verified' : 'blocked'} />
-                  </div>
-                )}
-              </div>
-
-              {isBlocked && (
-                <div className="mt-3 max-w-sm">
-                  <Alert
-                    color="danger"
-                    variant="faded"
-                    icon={<Ban size={18} aria-hidden="true" />}
-                    title="Journey Blocked"
-                    description={
-                      isVoice
-                        ? `"${activeScenario.submitLabel}" is not a button, so a voice user cannot say its name to press it.`
-                        : `The ${activeScenario.submitLabel} button cannot be reached using keyboard navigation.`
-                    }
-                    classNames={{
-                      base: 'border-[#ff5a5a] bg-[#1a0c16f2]',
-                      title: 'text-sm sm:text-base font-extrabold text-[#ff7a7a]',
-                      description: 'text-xs sm:text-sm text-ink',
-                    }}
-                  />
-                </div>
-              )}
-
-              {isPassed && (
-                <div className="mt-3 max-w-sm">
-                  <Alert
-                    color="success"
-                    variant="faded"
-                    title="Journey Completed"
-                    description={`The ${activeScenario.submitLabel} action completed on the test site.`}
-                    classNames={{
-                      base: 'border-[#22c55e] bg-[#0b1d14f2]',
-                      title: 'text-sm sm:text-base font-extrabold text-[#6ee7a0]',
-                      description: 'text-xs sm:text-sm text-ink',
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Right: Possession Mode Control Rail */}
-        <Card className="v9-card text-white shadow-none" aria-label="Possession Mode control and steps">
-          <CardBody className="flex flex-col gap-3 p-4">
-            <div className="flex items-start gap-3 border-b border-[#2b3254] pb-3">
-              <span className="v9-neon shrink-0" aria-hidden="true">
-                {isVoice ? <Mic size={32} /> : <Keyboard size={32} />}
+          {/* Sandbox Form Card with Real-Time Agent Activity Simulation */}
+          <div
+            id="pm-replica-card"
+            className="relative min-w-0 rounded-xl border border-bank-line bg-bank-card p-4 sm:p-6"
+            aria-label={`${activeScenario.submitLabel} form demonstration`}
+          >
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="m-0 text-xl sm:text-2xl font-bold text-ink font-ui">{activeScenario.submitLabel}</h3>
+              <span className="rounded-md border border-bank-line bg-bank-input px-2.5 py-0.5 text-xs font-mono text-ink-muted">
+                {effectiveVariant}
               </span>
-              <div>
-                <h3 className="m-0 text-lg font-extrabold text-white">Possession Mode</h3>
-                <p className="m-0 mt-0.5 text-sm text-ink-muted">
-                  {isVoice ? 'Voice-command demonstration' : 'Keyboard-only demonstration'}
-                </p>
-              </div>
             </div>
 
-            {onAgentChange && (
-              <div className="v9-agentseg">
-                <Tabs
-                  fullWidth
-                  size="sm"
-                  aria-label="Agent switch"
-                  selectedKey={agent}
-                  isDisabled={activeBusy}
-                  onSelectionChange={(k) => {
-                    if (k === 'keyboard' || k === 'voice') onAgentChange(k);
-                  }}
-                  classNames={{
-                    tabList: 'w-full rounded-xl border border-[#2b3254] bg-[#0d1022] p-1',
-                    cursor: 'bg-gradient-to-b from-[#4b23a8] to-[#32178a] shadow-[0_0_12px_#8b5cf688]',
-                    tab: 'h-9 text-sm font-semibold',
-                    tabContent: 'text-ink-muted group-data-[selected=true]:text-white flex items-center gap-2',
-                  }}
-                >
-                  <Tab
-                    key="keyboard"
-                    title={
-                      <span className="flex items-center gap-1.5">
-                        <Keyboard size={15} aria-hidden="true" />
-                        <span>Keyboard</span>
-                      </span>
-                    }
-                  />
-                  <Tab
-                    key="voice"
-                    title={
-                      <span className="flex items-center gap-1.5">
-                        <Mic size={15} aria-hidden="true" />
-                        <span>Voice</span>
-                      </span>
-                    }
-                  />
-                </Tabs>
-              </div>
-            )}
-
-            {!isVoice ? (
-              <ol
-                className="m-0 flex list-none flex-col p-0"
-                aria-label="Tab step results"
+            {/* Live Sandbox Agent Feed: shows real steps happening inside the browser during & after runs */}
+            {(isRunning || recentFeed.length > 0) && (
+              <div
+                className={`mb-4 rounded-xl border px-3 py-2.5 text-xs sm:text-sm ${
+                  isRunning
+                    ? 'border-amber-400/50 bg-amber-500/10 text-amber-200'
+                    : isBlocked
+                      ? 'border-ghost-blocked/40 bg-ghost-blocked/10 text-ink'
+                      : 'border-ghost-verified/40 bg-ghost-verified/10 text-ink'
+                }`}
                 aria-live="polite"
               >
-                {steps.map((step, i) => {
-                  const stuck = step.label.endsWith(' (stuck)');
-                  const main = stuck ? step.label.slice(0, -' (stuck)'.length) : step.label;
-                  return (
-                    <li
-                      key={i}
-                      className="flex min-h-[44px] items-center gap-3 border-b border-[#262c4b] py-2 text-[15px] font-medium last:border-b-0"
-                    >
-                      <V9Dot
-                        state={step.status === 'pass' ? 'ok' : step.status === 'fail' ? 'bad' : 'wait'}
-                        size={22}
-                      />
-                      <span className="min-w-0 text-ink">
-                        {main}
-                        {stuck && <small className="block text-xs font-bold text-[#ff7373]">(stuck)</small>}
-                        {step.typed !== undefined && (
-                          <span className="block font-mono text-xs text-ink-muted">Typed: {step.typed}</span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <ol className="m-0 flex list-none flex-col p-0" aria-label="Voice command steps" aria-live="polite">
-                  {voiceCommands.length === 0 ? (
-                    <li className="flex min-h-[44px] items-center gap-3 py-2 text-sm text-ink-muted">
-                      <V9Dot state="wait" size={22} />
-                      <span>Type details above or use Push to talk / Edit.</span>
-                    </li>
-                  ) : (
-                    voiceCommands.map((cmd, idx) => {
-                      const executed = voiceRun?.steps[idx];
-                      const dotState = !executed ? 'wait' : executed.outcome === 'done' ? 'ok' : 'bad';
-                      return (
-                        <li
-                          key={`${idx}-${cmd}`}
-                          className="flex min-h-[44px] items-center gap-3 border-b border-[#262c4b] py-2 text-[14.5px] last:border-b-0"
-                        >
-                          <V9Dot state={dotState} size={22} />
-                          <span className="min-w-0 break-words text-ink">
-                            Say <code className="font-mono text-xs text-violet-200">&quot;{cmd}&quot;</code>
-                            {executed && executed.outcome !== 'done' && (
-                              <small className="block text-xs font-bold text-[#ff7373]">
-                                {executed.message}
-                              </small>
-                            )}
-                          </span>
-                        </li>
-                      );
-                    })
-                  )}
-                </ol>
-
-                {editingVoice && onCommandTextChange && (
-                  <Textarea
-                    id={cmdId}
-                    aria-label="Voice commands, one per line"
-                    minRows={3}
-                    value={commandText}
-                    onValueChange={(val) => onCommandTextChange(val, 'typed')}
-                    classNames={{
-                      inputWrapper: 'rounded-xl border border-[#2b3254] bg-[#0d1022]',
-                      input: 'font-mono text-xs text-ink',
-                    }}
-                  />
-                )}
-
-                {speech?.listening && (
-                  <p className="m-0 text-xs text-violet-200" role="status">
-                    Listening… {speech.heard || '(speak now)'}
-                  </p>
-                )}
-                {voiceNotice && (
-                  <p className="m-0 text-xs text-[#ff7373]" role="alert">
-                    {voiceNotice}
-                  </p>
-                )}
-                {speech?.error && (
-                  <p className="m-0 text-xs text-[#ff7373]" role="alert">
-                    {speech.error}
-                  </p>
-                )}
-                {(voiceRun?.phase === 'failed' || voiceRun?.phase === 'refused' || voiceRun?.phase === 'offline') &&
-                  voiceRun.message && (
-                    <p className="m-0 text-xs text-[#ff7373]" role="alert">
-                      {voiceRun.message}
-                    </p>
-                  )}
-
-                <div className="flex flex-col gap-2 pt-1">
-                  {onRun && (
-                    <Button
-                      type="button"
-                      isDisabled={activeBusy}
-                      onPress={onRun}
-                      startContent={activeBusy ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
-                      className="h-10 w-full rounded-xl border border-[#a78bfa] bg-gradient-to-b from-[#3b1f86] to-[#2a1466] text-sm font-bold text-white shadow-[0_0_16px_#8b5cf666]"
-                    >
-                      {activeBusy ? 'Running…' : 'Run voice journey'}
-                    </Button>
-                  )}
-                  <div className="grid grid-cols-2 gap-2">
-                    {speech?.supported && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        aria-pressed={speech.listening}
-                        onPress={() => (speech.listening ? speech.stop() : speech.start())}
-                        startContent={speech.listening ? <MicOff size={14} /> : <Mic size={14} />}
-                        className="h-9 rounded-xl border border-[#353c60] bg-[#1e2340] text-xs font-semibold text-[#dfe3ff]"
-                      >
-                        {speech.listening ? 'Stop' : 'Push to talk'}
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      size="sm"
-                      aria-expanded={editingVoice}
-                      onPress={() => setEditingVoice((v) => !v)}
-                      startContent={<Pencil size={14} />}
-                      className={`h-9 rounded-xl border border-[#353c60] bg-[#1e2340] text-xs font-semibold text-[#dfe3ff] ${
-                        speech?.supported ? '' : 'col-span-2'
-                      }`}
-                    >
-                      {editingVoice ? 'Done editing' : 'Edit'}
-                    </Button>
-                  </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
+                  <span className="flex items-center gap-2">
+                    {isRunning && <Loader2 size={14} className="motion-safe:animate-spin text-amber-300" aria-hidden="true" />}
+                    <span>
+                      {isRunning
+                        ? latestEvent
+                          ? `Agent running · Step ${latestEvent.step}: ${latestEvent.tool}${
+                              latestEvent.focused_after?.selector_hint
+                                ? ` → ${latestEvent.focused_after.selector_hint}`
+                                : ''
+                            }`
+                          : 'Launching sandbox browser…'
+                        : isBlocked
+                          ? `Agent stopped: ${result?.reason_code ?? 'BLOCKED'} at ${result?.blocked_element?.selector ?? 'target'}`
+                          : `Agent completed ${activeScenario.submitLabel} in ${result?.step_events.length ?? 0} steps`}
+                    </span>
+                  </span>
                 </div>
+                {recentFeed.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {recentFeed.map((ev) => (
+                      <span
+                        key={ev.step}
+                        className="rounded border border-white/10 bg-base/70 px-2 py-0.5 font-mono text-[11px] text-ink-muted"
+                      >
+                        #{ev.step} {ev.tool}
+                        {ev.focused_after?.selector_hint ? `→${ev.focused_after.selector_hint}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            <div className="mt-auto pt-2">
-              {activeBusy ? (
-                <div
-                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-dashed border-[#4b5375] text-sm font-semibold text-ink-muted"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                  <span>Journey running…</span>
+            <div className="flex w-full max-w-xl flex-col gap-4">
+              <div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="block text-sm sm:text-base font-ui text-ink" htmlFor="pm-recipient">
+                    {activeScenario.recipientLabel}
+                  </label>
+                  {activeField === 'recipient' && (
+                    <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-mono font-semibold text-amber-300">
+                      Agent cursor active
+                    </span>
+                  )}
                 </div>
-              ) : isBlocked ? (
-                <div
-                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#ff5a5a] bg-[#3a0f1a] text-base font-extrabold text-[#ffd0d0] shadow-[0_0_18px_#ef444466]"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <TriangleAlert size={18} aria-hidden="true" />
-                  <span>Barrier Detected!</span>
+                <input
+                  id="pm-recipient"
+                  type="text"
+                  autoComplete="off"
+                  value={dirty.recipient ? manualValues.recipient : agentRecipient || manualValues.recipient}
+                  onChange={(e) => {
+                    setDirty((d) => ({ ...d, recipient: true }));
+                    setManualValues((v) => ({ ...v, recipient: e.target.value }));
+                  }}
+                  className={`h-11 w-full rounded-lg border bg-bank-input px-3 text-base font-ui text-ink ${FOCUS} ${
+                    activeField === 'recipient' ? AGENT_ACTIVE_RING : 'border-bank-line'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="block text-sm sm:text-base font-ui text-ink" htmlFor="pm-amount">
+                    {activeScenario.amountLabel}
+                  </label>
+                  {activeField === 'amount' && (
+                    <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-mono font-semibold text-amber-300">
+                      Agent cursor active
+                    </span>
+                  )}
                 </div>
-              ) : isPassed ? (
-                <div
-                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#22c55e] bg-[#0f2a1b] text-base font-extrabold text-[#c9f7da] shadow-[0_0_18px_#22c55e55]"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <V9Dot state="ok" size={20} />
-                  <span>No barrier found</span>
+                <input
+                  id="pm-amount"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={dirty.amount ? manualValues.amount : agentAmount || manualValues.amount}
+                  onChange={(e) => {
+                    setDirty((d) => ({ ...d, amount: true }));
+                    setManualValues((v) => ({ ...v, amount: e.target.value }));
+                  }}
+                  className={`h-11 w-full rounded-lg border bg-bank-input px-3 text-base font-ui text-ink ${FOCUS} ${
+                    activeField === 'amount' ? AGENT_ACTIVE_RING : 'border-bank-line'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="block text-sm sm:text-base font-ui text-ink" htmlFor="pm-reference">
+                    {activeScenario.referenceLabel}
+                  </label>
+                  {activeField === 'reference' && (
+                    <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-mono font-semibold text-amber-300">
+                      Agent cursor active
+                    </span>
+                  )}
                 </div>
+                <input
+                  id="pm-reference"
+                  type="text"
+                  autoComplete="off"
+                  maxLength={60}
+                  value={dirty.reference ? manualValues.reference : agentReference || manualValues.reference}
+                  onChange={(e) => {
+                    setDirty((d) => ({ ...d, reference: true }));
+                    setManualValues((v) => ({ ...v, reference: e.target.value }));
+                  }}
+                  className={`h-11 w-full rounded-lg border bg-bank-input px-3 text-base font-ui text-ink ${FOCUS} ${
+                    activeField === 'reference' ? AGENT_ACTIVE_RING : 'border-bank-line'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Send Payment demo element + ghost companion */}
+            <div className="relative mt-6 flex flex-col gap-4 sm:mt-8 sm:flex-row sm:items-center">
+              {isFixed ? (
+                <button
+                  id="pm-send-payment"
+                  type="button"
+                  className={`min-h-11 w-full sm:w-auto sm:min-w-[14rem] rounded-lg border border-violet-neon/50 bg-violet-600 px-6 text-base font-bold font-ui text-white ${FOCUS} ${
+                    activeField === 'send-payment' ? AGENT_ACTIVE_RING : ''
+                  }`}
+                  aria-label={activeScenario.submitLabel}
+                >
+                  {activeScenario.submitLabel}
+                </button>
               ) : (
-                <div className="flex min-h-11 items-center justify-center rounded-xl border border-dashed border-[#4b5375] text-sm font-semibold text-ink-muted">
-                  Run a journey to look for barriers
+                <div
+                  id="pm-send-payment"
+                  role="button"
+                  tabIndex={0}
+                  aria-disabled="true"
+                  aria-label={`${activeScenario.submitLabel} — blocked: this element is not keyboard accessible in the test fixture`}
+                  className={[
+                    'grid min-h-11 w-full sm:w-auto sm:min-w-[14rem] cursor-not-allowed place-items-center rounded-lg',
+                    'border-2 border-dashed border-bank-dash bg-bank-dash-fill px-6',
+                    'text-base font-semibold font-ui text-ink',
+                    FOCUS,
+                  ].join(' ')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+                  }}
+                >
+                  {activeScenario.submitLabel}
                 </div>
               )}
 
-              {!isVoice && <FocusTrailReplay result={result} isRunning={isRunning} />}
+              {ghostState === 'blocked' && (
+                <span className="shrink-0 self-start sm:self-center">
+                  <PossessionGhost size={88} />
+                </span>
+              )}
+              {ghostState === 'verified' && (
+                <span className="shrink-0 self-start sm:self-center">
+                  <PossessionGhost size={88} state="verified" />
+                </span>
+              )}
             </div>
-          </CardBody>
-        </Card>
+
+            {isBlocked && (
+              <div
+                className="mt-4 flex items-start gap-3 rounded-lg border border-bank-tip-line bg-bank-tip p-3.5"
+                role="alert"
+                aria-live="assertive"
+              >
+                <Ban size={20} className="mt-0.5 shrink-0 text-ghost-blocked" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="m-0 text-base font-bold font-ui text-ghost-blocked">Journey Blocked</p>
+                  <p className="m-0 mt-0.5 text-sm sm:text-base font-ui text-ink">
+                    {activeScenario.submitLabel} cannot be reached using keyboard navigation ({result?.reason_code ?? 'TARGET_NOT_FOCUSABLE'}).
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Possession Mode checklist rail */}
+        <aside className="rounded-xl border border-bank-line bg-bank-rail p-4 sm:p-5" aria-label="Possession Mode tab step results">
+          <div className="mb-3 flex items-start gap-3">
+            <span
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-violet-neon text-violet-neon"
+              aria-hidden="true"
+            >
+              <Keyboard size={22} />
+            </span>
+            <div className="min-w-0">
+              <p className="m-0 text-lg sm:text-xl font-bold leading-tight text-ink font-ui" aria-hidden="true">
+                Possession Mode
+              </p>
+              <p className="m-0 mt-1 text-sm sm:text-base text-ink-muted font-ui">Keyboard-only demonstration</p>
+            </div>
+          </div>
+
+          <ol className="m-0 flex list-none flex-col p-0" aria-label="Tab step results" aria-live="polite" aria-atomic="false">
+            {steps.map((step, i) => (
+              <StepRow key={i} {...step} />
+            ))}
+          </ol>
+
+          {isBlocked && (
+            <div
+              className="mt-4 flex items-center justify-center gap-2 rounded-lg border-2 border-bank-barrier-line bg-bank-barrier px-3 py-2"
+              role="status"
+              aria-live="polite"
+            >
+              <TriangleAlert size={20} className="shrink-0 text-ghost-blocked" aria-hidden="true" />
+              <span className="text-base font-bold font-ui text-ink">Barrier Detected!</span>
+            </div>
+          )}
+          <FocusTrailReplay result={result} isRunning={isRunning} />
+        </aside>
       </div>
     </section>
   );
