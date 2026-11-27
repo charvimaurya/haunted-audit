@@ -7,8 +7,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agent.fixes.diffcheck import apply_reverse, check
+from agent.fixes.diffcheck import TARGET, apply_reverse, check
 from agent.fixes.exorcist import page_source
+from agent.keyboard_agent.scenarios import get_scenario
 
 REPO = Path(__file__).resolve().parents[2]
 VERIFY_ROOT = REPO / "artifacts" / "verify"
@@ -24,15 +25,17 @@ def _write(fix_id: str, name: str, text: str) -> Path:
     return path
 
 
-def patched_copy(fix_id: str, diff: str) -> Path:
-    """The bank with the approved diff applied. The diff is re-checked against today's file first."""
-    checked = check(diff, page_source())
+def patched_copy(fix_id: str, diff: str, *, scenario: str = "haunted-bank") -> Path:
+    """The sandbox with the approved diff applied. The diff is re-checked against today's file first."""
+    target_file = get_scenario(scenario).rel_path if scenario else TARGET
+    checked = check(diff, page_source(target_file))
     return _write(fix_id, "patched.html", checked.patched)
 
 
-def reintroduced_copy(fix_id: str, diff: str) -> Path:
+def reintroduced_copy(fix_id: str, diff: str, *, scenario: str = "haunted-bank") -> Path:
     """The patched copy with the same diff reversed: the bug put back on purpose."""
-    checked = check(diff, page_source())
+    target_file = get_scenario(scenario).rel_path if scenario else TARGET
+    checked = check(diff, page_source(target_file))
     return _write(fix_id, "reintroduced.html", apply_reverse(checked.diff, checked.patched))
 
 

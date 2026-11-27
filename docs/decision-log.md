@@ -43,3 +43,8 @@ One entry per decision. Facts only. Each entry names the files that hold the evi
 - 2026-11-25: Verify starts only when a person presses it; the AutoLoopCard is no longer rendered on Possession Mode (commit `f39d344`; its source and tests are kept), default from team rules; open for Shilpa's review.
 - 2026-11-25: The Regression card lists "Keyboard journey" and "Voice-command simulation" instead of v9's `send_payment.spec.ts` and `send_payment_voice.spec.ts`, because no such files run in this check; v9's layout kept, true names used (team rules: plain and true words); open for Shilpa's review.
 - 2026-11-25: The voice FAILED line on the Regression card shows the voice agent's own first failed step (today "Could not type in Amount: no accessible label", because the bug put back includes the Amount label), not v9's sample text "no button named Send Payment"; open for Shilpa's review.
+
+## 2026-11-27: Public URL scan-only mode (`POST /scan`, Plan items 25–26)
+
+**Decision.** Added `POST /scan` with the Playwright + axe-core Ghost Hunter scanner (`backend/scanner/axe_scanner.py`) and SSRF guard (`agent/api/url_guard.py`). Agents remain restricted to the bundled Haunted Bank fixture; the external scanner operates strictly read-only (no clicks, no typing, no login, no stored page HTML) and limits public URL scans to 1 per minute per client IP.
+**Evidence.** Default approved from the deck (slide 16) and `.kiro/steering/product-rules.md`; guarded by `agent/tests/test_scan_routes_use_guard.py` and `agent/tests/test_ghost_scanner.py`.

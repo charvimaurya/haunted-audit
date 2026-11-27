@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 expect.extend(toHaveNoViolations);
 import { ImmersionProvider } from '../immersion/ImmersionContext';
-import { SettingsMenu } from '../components/SettingsMenu';
+import { SettingsMenu } from '../components/layout/SettingsMenu';
 
 describe('SettingsMenu', () => {
   it('opens by keyboard, shows the four settings, and Escape returns focus to the button', async () => {

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { RunControls } from '../components/RunControls';
-import { detailsProblems } from '../components/TestDetailsForm';
-import { PossessionMode } from '../components/PossessionMode';
+import { RunControls } from '../components/journey/RunControls';
+import { detailsProblems } from '../components/journey/TestDetailsForm';
+import { PossessionMode } from '../components/journey/PossessionMode';
 import { commandsFromDetails } from '../voice/commandsFromDetails';
 import { recordedDetails } from '../runs/record';
 import type { JourneyResult, StepEvent, TestDetails } from '../types';
@@ -32,7 +32,7 @@ describe('Test details form', () => {
       expect(f.value).toBe('');
       expect(f.maxLength).toBe(40);
     }
-    expect(fields.map((f) => f.placeholder)).toEqual(['Test recipient name', 'e.g. 10.00', 'Optional, e.g. Test payment']);
+    expect(fields.map((f) => f.placeholder)).toEqual(['Test recipient name', 'e.g. 90 or 90.55', 'Optional, e.g. Test payment']);
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -47,7 +47,7 @@ describe('Test details form', () => {
     expect(recipient).toHaveFocus();
     expect(recipient).toHaveAttribute('aria-invalid', 'true');
     expect(recipient).toHaveAccessibleDescription('Type a made-up name to continue');
-    expect(screen.getByLabelText('Amount (EUR)')).toHaveAccessibleDescription('Use two decimals, like 10.00, up to 1000.00. Type a made-up amount to continue');
+    expect(screen.getByLabelText('Amount (EUR)')).toHaveAccessibleDescription('Whole euros or cents, like 90 or 90.55, up to 1000.00. Type a made-up amount to continue');
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -73,33 +73,35 @@ describe('Test details form', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('a bad amount is refused with "Use two decimals, like 10.00" and focus on Amount; a good one runs', async () => {
+  it('a bad amount is refused with "Whole euros or cents, like 90 or 90.55" and focus on Amount; a good one runs', async () => {
     const onRun = vi.fn();
     const user = userEvent.setup();
     const { container } = render(<Harness onRun={onRun} />);
     const amount = screen.getByLabelText('Amount (EUR)');
-    expect(amount).toHaveAccessibleDescription('Use two decimals, like 10.00, up to 1000.00.');
+    expect(amount).toHaveAccessibleDescription('Whole euros or cents, like 90 or 90.55, up to 1000.00.');
     await user.type(screen.getByLabelText('Recipient'), 'Test recipient');
-    await user.type(amount, '100');
+    await user.type(amount, '90.555');
     await user.click(screen.getByRole('button', { name: 'Run Journey' }));
     expect(onRun).not.toHaveBeenCalled();
     expect(amount).toHaveFocus();
     expect(amount).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByRole('alert').textContent).toBe('Use two decimals, like 10.00');
+    expect(screen.getByRole('alert').textContent).toBe('Whole euros or cents, like 90 or 90.55');
     expect(await axe(container)).toHaveNoViolations();
-    await user.type(amount, '.00');
+    await user.clear(amount);
+    await user.type(amount, '90');
     await user.click(screen.getByRole('button', { name: 'Run Journey' }));
     expect(onRun).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('the amount rule matches the bank: two decimals, more than 0.00, at most 1000.00', () => {
+  it('the amount rule matches the bank: whole euros or up to two decimals, more than 0.00, at most 1000.00', () => {
     const p = (amount: string) => detailsProblems({ recipient: 'Test recipient', amount, reference: '' }).amount;
-    for (const good of ['100.00', '0.01', '1000.00', '10.00']) expect(p(good)).toBeUndefined();
-    for (const bad of ['100', '100.0', '€100.00', '100,00', '1,000.00', '050.00', '5e1', '-5.00']) {
-      expect(p(bad)).toBe('Use two decimals, like 10.00');
+    for (const good of ['90', '90.5', '90.55', '100.00', '0.01', '1000.00', '10.00']) expect(p(good)).toBeUndefined();
+    for (const bad of ['90.555', '050', '€100.00', '100,00', '1,000.00', '050.00', '5e1', '-5.00', 'abc']) {
+      expect(p(bad)).toBe('Whole euros or cents, like 90 or 90.55');
     }
-    expect(p('0.00')).toBe('Use more than 0.00. Use two decimals, like 10.00');
+    expect(p('0')).toBe('Use more than 0.00. Whole euros or cents, like 90 or 90.55');
+    expect(p('0.00')).toBe('Use more than 0.00. Whole euros or cents, like 90 or 90.55');
     expect(p('1000.01')).toBe('Use 1000.00 or less (the test balance)');
   });
 

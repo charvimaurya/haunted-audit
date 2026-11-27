@@ -67,7 +67,12 @@ export function useVoiceRun() {
 
   useEffect(() => () => sseRef.current?.close(), []);
 
-  const start = useCallback(async (variant: Variant, commands: string[], source: VoiceInputSource) => {
+  const start = useCallback(async (
+    variant: Variant,
+    commands: string[],
+    source: VoiceInputSource,
+    scenario = 'haunted-bank',
+  ) => {
     sseRef.current?.close();
     const seq = ++seqRef.current;
     const current = () => seqRef.current === seq;
@@ -79,7 +84,7 @@ export function useVoiceRun() {
       res = await fetch(`${API_BASE}/voice-runs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variant, commands, input_source: source }),
+        body: JSON.stringify({ variant, scenario, commands, input_source: source }),
       });
     } catch {
       update(() => ({ ...IDLE, phase: 'offline', message: 'The audit service did not answer.', runSeq: seq }));

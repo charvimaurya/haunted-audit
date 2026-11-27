@@ -1,10 +1,10 @@
 {
   "mcpServers": {
     "haunted-audit": {
-      "command": ".venv/bin/python",
+      "command": "python",
       "args": ["backend/mcp_server.py"],
       "disabled": false,
-      "autoApprove": ["scan_page"]
+      "autoApprove": ["scan_page", "run_journey"]
     }
   }
 }

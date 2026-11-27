@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { VoiceCommandsCard } from '../components/VoiceCommandsCard';
-import { AgentToggle } from '../components/AgentToggle';
+import { VoiceCommandsCard } from '../components/journey/VoiceCommandsCard';
+import { AgentToggle } from '../components/journey/AgentToggle';
 
 const speech = { supported: true, listening: false, heard: '', error: null, start: () => {}, stop: () => {} };
 const idle = { phase: 'idle' as const, steps: [], result: null, message: null };

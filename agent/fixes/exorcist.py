@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agent.fixes.diffcheck import TARGET, CheckedDiff, DiffError, check
+from agent.keyboard_agent.scenarios import get_scenario
 
 REPO = Path(__file__).resolve().parents[2]
 PROMPT_PATH = REPO / "prompts" / "exorcist.md"
@@ -50,26 +51,28 @@ class Proposal:
     raw_output: str | None = None
 
 
-def page_source() -> str:
+def page_source(target_file: str = TARGET) -> str:
     """Read-only. The Exorcist is given this file's text and nothing else."""
-    return (REPO / TARGET).read_text(encoding="utf-8")
+    return (REPO / target_file).read_text(encoding="utf-8")
 
 
-def _scripted_diff(source: str, finding: dict) -> tuple[str, str]:
+def _scripted_diff(source: str, finding: dict, *, target_file: str = TARGET, submit_label: str = "Send Payment") -> tuple[str, str]:
     el = finding.get("blocked_element") or {}
     if finding.get("reason_code") != "TARGET_NOT_FOCUSABLE" or (el.get("tag") or "").lower() != "div":
         raise Refused("UNKNOWN_BARRIER",
                       "The scripted Exorcist only knows one barrier: a div used as a button that the keyboard cannot reach.")
+    broken_send = f"""'<div class="pay-btn" id="send-payment" onclick="window.submitPayment()">{submit_label}</div>'"""
+    fixed_send = f"""'<button type="submit" class="btn-primary" id="send-payment">{submit_label}</button>'"""
     lines = source.split("\n")
-    hits = [i for i, l in enumerate(lines) if _BROKEN_SEND in l]
+    hits = [i for i, l in enumerate(lines) if broken_send in l]
     if len(hits) != 1:
-        raise Refused("UNKNOWN_BARRIER", "The div that acts as Send Payment was not found exactly once in the page.")
+        raise Refused("UNKNOWN_BARRIER", f"The div that acts as {submit_label} was not found exactly once in the page.")
     i = hits[0]
     old = lines[i]
-    new = old.replace(_BROKEN_SEND, _FIXED_SEND)
-    body = [f"--- a/{TARGET}", f"+++ b/{TARGET}",
+    new = old.replace(broken_send, fixed_send)
+    body = [f"--- a/{target_file}", f"+++ b/{target_file}",
             f"@@ -{i},3 +{i},3 @@", " " + lines[i - 1], "-" + old, "+" + new, " " + lines[i + 1]]
-    reason = "Send Payment is a div with a click handler, so Tab never reaches it; a real submit button can be reached and pressed."
+    reason = f"{submit_label} is a div with a click handler, so Tab never reaches it; a real submit button can be reached and pressed."
     # Second barrier (bank/PLANTED.md): the Amount field has a visible caption but no label, so a voice user cannot name it.
     amount = [j for j, l in enumerate(lines) if _BROKEN_AMOUNT in l]
     if len(amount) == 1:
@@ -91,11 +94,12 @@ def _aws_credentials_error() -> str | None:
     return None
 
 
-def propose(finding: dict, mode: str = "scripted") -> Proposal:
+def propose(finding: dict, mode: str = "scripted", *, scenario: str = "haunted-bank") -> Proposal:
     started = time.perf_counter()
     if mode == "scripted":
-        source = page_source()
-        diff, reason = _scripted_diff(source, finding)
+        scen = get_scenario(scenario)
+        source = page_source(scen.rel_path)
+        diff, reason = _scripted_diff(source, finding, target_file=scen.rel_path, submit_label=scen.submit_label)
         try:
             checked = check(diff, source)
         except DiffError as exc:  # the rule's own diff must pass the same gate

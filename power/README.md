@@ -9,8 +9,8 @@ Format: Kiro Powers (Agent Plugins 1.0.0), from kiro.dev/docs/powers/create (rea
 | Path | What | Part of the Powers format? |
 |---|---|---|
 | `plugin.json` | manifest: name, description, keywords | yes |
-| `mcp.json` | the `haunted-audit` stdio MCP server, tool `scan_page` | yes |
-| `skills/` | `wcag-ghost-mapper`, `accessible-ui-review` (in use); `exorcise-fix`, `journey-test-writer` (unverified drafts) | yes |
+| `mcp.json` | the `haunted-audit` stdio MCP server, tools `scan_page` and `run_journey` | yes |
+| `skills/` | `wcag-ghost-mapper`, `accessible-ui-review`, `exorcise-fix`, `journey-test-writer` | yes |
 | `server/` | `mcp_server.py` and `scan_file.py`, Python standard library plus `mcp` | yes (the server the manifest runs) |
 | `hooks/scan-on-save.json` | scan a saved file automatically | **no**, copy it by hand (step 4) |
 | `steering/accessibility.md` | the accessibility rules | **no**, copy it by hand (step 4) |
@@ -30,13 +30,13 @@ You need Python 3.11 or newer, git and Kiro IDE.
    - Windows: `py -3 -m pip install "mcp>=2.3,<3"`
    - Check: `python3 -c "import mcp.server.mcpserver"` (Windows: `py -3 -c ...`) prints nothing.
 3. **Install the power in Kiro.** Open Kiro, then **Powers** panel, then **Add Custom Power**, then **Import power from a folder**, and pick the `power/` folder. (Or **Import power from GitHub** with the repository URL and the `power` folder.)
-   - Windows: open `power/mcp.json` first and change `"command": "python3"` to `"command": "py"` with `"args": ["-3", "${PLUGIN_ROOT}/server/mcp_server.py"]`.
+   - Windows: `power/mcp.json` uses `"command": "python"` cleanly; if your Windows setup uses `py`, set `"command": "py"` with `"args": ["-3", "${PLUGIN_ROOT}/server/mcp_server.py"]`, or inside this repo use `.venv\Scripts\python` in `.kiro/settings/mcp.json`.
 4. **Optional: the save hook and the steering, in the project you want to check.**
    - Copy `power/server/scan_file.py` to `backend/scan_file.py` in that project.
    - Copy `power/hooks/scan-on-save.json` to `.kiro/hooks/` (on Windows change `python3` to `py -3` in it).
    - Copy `power/steering/accessibility.md` to `.kiro/steering/`.
    - Start a new Kiro session. Hooks load when a session starts.
-5. **Try it.** Open a project with an HTML or TSX form and ask Kiro: "scan src/form.html for missing labels". The power activates on words like *accessibility*, *a11y*, *WCAG*, *form label*. Kiro calls `scan_page`. Then ask "explain this finding".
+5. **Try it.** Open a project with an HTML or TSX form and ask Kiro: "scan src/form.html for missing labels" or "run the payment journey on the haunted bank". The power activates on words like *accessibility*, *a11y*, *WCAG*, *form label*, and calls `scan_page` or `run_journey`. Then ask "explain this finding".
 
 ## What `scan_page` will and will not do
 

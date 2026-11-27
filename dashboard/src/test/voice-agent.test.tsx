@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { describe, expect, it } from 'vitest';
-import { GhostHuntSection } from '../components/GhostHuntSection';
-import { VoiceAgentPanel } from '../components/VoiceAgentPanel';
+import { GhostHuntSection } from '../components/journey/GhostHuntSection';
+import { VoiceAgentPanel } from '../components/journey/VoiceAgentPanel';
 import type { JourneyResult } from '../types';
 import {
   extractTargetName,

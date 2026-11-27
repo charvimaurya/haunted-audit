@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isSafari } from '../components/SafariTabTip';
+import { isSafari } from '../components/journey/SafariTabTip';
 
 describe('Safari Tab tip', () => {
   it('shows only for Safari', () => {

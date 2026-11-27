@@ -21,6 +21,11 @@ function noSamplesInApp(): Plugin {
   };
 }
 
+const API_PROXY = {
+  target: 'http://127.0.0.1:8000',
+  changeOrigin: true,
+};
+
 // https://vite.dev/config/
 const pages = process.env.GITHUB_PAGES === 'true';
 export default defineConfig({
@@ -28,17 +33,15 @@ export default defineConfig({
   plugins: [noSamplesInApp(), react()],
   server: {
     port: 5173,
-    allowedHosts: true,
-    // Proxy API calls to the FastAPI backend during development
+    allowedHosts: true, // includes Codespaces *.app.github.dev hosts
+    // Proxy all FastAPI routes during development (when VITE_API_URL is blank)
     proxy: {
-      '/runs': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-      },
-      '/health': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-      },
+      '/runs': API_PROXY,
+      '/voice-runs': API_PROXY,
+      '/fixes': API_PROXY,
+      '/scan': API_PROXY,
+      '/health': API_PROXY,
+      '/ping': API_PROXY,
     },
   },
 });

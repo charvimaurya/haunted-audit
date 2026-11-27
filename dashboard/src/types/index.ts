@@ -87,6 +87,8 @@ export interface JourneyResult {
   agent_kind?: 'keyboard' | 'voice';
   /** Where the agent's input came from. */
   input_source?: 'keyboard' | 'typed' | 'speech';
+  /** Bundled Possession sandbox scenario id (defaults to haunted-bank). */
+  scenario?: string;
 }
 
 /** A run record as returned by GET /runs/{id} */

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { GhostHuntSection } from '../../components/GhostHuntSection';
-import { Page } from '../../components/Page';
+import { GhostHuntSection } from '../../components/journey/GhostHuntSection';
+import { Page } from '../../components/layout/Page';
 import { useRun } from '../../runs/runContext';
 import { to } from '../../routes';
 

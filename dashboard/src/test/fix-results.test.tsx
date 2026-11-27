@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
-import { OutcomeCard } from '../components/OutcomeCard';
+import { OutcomeCard } from '../components/results/OutcomeCard';
 import { FixContext, type CopyRun, type Fix, type FixValue } from '../fixes/fixContext';
 import { verifiedPct } from '../fixes/verifiedPct';
 

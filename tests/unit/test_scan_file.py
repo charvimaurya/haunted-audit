@@ -141,7 +141,7 @@ def test_hook_prints_finding_for_bank_page():
     "README.md",
     "agent/keyboard_agent/checker.py",
     "dashboard/src/test/a11y.test.tsx",
-    "dashboard/src/components/RunControls.tsx",  # in scope but clean
+    "dashboard/src/components/journey/RunControls.tsx",  # in scope but clean
     "../outside.html",
 ])
 def test_hook_is_quiet(path):

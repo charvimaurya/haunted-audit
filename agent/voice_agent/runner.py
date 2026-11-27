@@ -147,11 +147,16 @@ def run_voice_journey(
     on_event: Callable[[StepEvent], None] | None = None,
     run_id: str | None = None,
     start_url: str | None = None,
+    scenario: str = "haunted-bank",
 ) -> JourneyResult:
-    """Open the bundled bank, run the commands, then let the checker decide.
-    start_url is set only by the Verifier, for a copy of the bank under artifacts/verify/."""
+    """Open the bundled sandbox scenario, run the commands, then let the checker decide."""
     run_id = run_id or str(uuid.uuid4())
-    config = build_journey_config(variant, "scripted", **({"start_url": start_url} if start_url else {}))
+    config = build_journey_config(
+        variant,
+        "scripted",
+        scenario=scenario,
+        **({"start_url": start_url} if start_url else {}),
+    )
     commands = plan_commands(commands, MAX_COMMANDS, MAX_STEPS)  # split, expand, no repeat (REQ-VA-21)
     goal = "Voice commands: " + " / ".join(c.strip() for c in commands)
     started = time.perf_counter()

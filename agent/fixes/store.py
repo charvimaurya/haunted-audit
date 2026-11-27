@@ -12,10 +12,10 @@ _COLUMNS = [
     "fix_id", "run_id", "variant", "reason_code", "blocked_element", "reason", "diff", "diff_sha256",
     "changed_lines", "exorcist_mode", "exorcist_model_id", "input_tokens", "output_tokens", "cost_usd",
     "latency_ms", "status", "error", "decided_by", "decided_at", "decision_note", "agent_mode", "created_at",
-    "verify_run_id", "regression_run_id", "verify_voice_run_id", "regression_voice_run_id",
+    "verify_run_id", "regression_run_id", "verify_voice_run_id", "regression_voice_run_id", "scenario",
 ]
 # Added after the first release; opened databases get them with ALTER TABLE ADD COLUMN (no row is touched).
-_ADDED_COLUMNS = ("verify_voice_run_id", "regression_voice_run_id")
+_ADDED_COLUMNS = ("verify_voice_run_id", "regression_voice_run_id", "scenario")
 
 
 def now() -> str:
@@ -38,7 +38,8 @@ class FixStore:
                     output_tokens INTEGER, cost_usd REAL, latency_ms REAL, status TEXT NOT NULL, error TEXT,
                     decided_by TEXT, decided_at TEXT, decision_note TEXT, agent_mode TEXT, created_at TEXT NOT NULL,
                     verify_run_id TEXT, regression_run_id TEXT,
-                    verify_voice_run_id TEXT, regression_voice_run_id TEXT
+                    verify_voice_run_id TEXT, regression_voice_run_id TEXT,
+                    scenario TEXT DEFAULT 'haunted-bank'
                 );
                 CREATE TABLE IF NOT EXISTS fix_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, fix_id TEXT NOT NULL, at TEXT NOT NULL,

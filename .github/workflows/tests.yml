@@ -2,7 +2,6 @@ name: tests
 
 on:
   push:
-    branches: [main]
   pull_request:
 
 jobs:
@@ -29,6 +28,9 @@ jobs:
         run: npm ci
       - name: Run pytest
         run: python -m pytest
+      - name: Run Playwright journey regression guard
+        working-directory: tests/journeys
+        run: npx playwright test
       - name: Browser test with the real API (user-typed test details)
         working-directory: dashboard
         env:

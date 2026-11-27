@@ -24,12 +24,14 @@ from agent.keyboard_agent.models import (
     clean_amount,
     clean_detail,
 )
+from agent.keyboard_agent.scenarios import get_scenario, scenario_path
 from agent.keyboard_agent.scripted_walker import run_scripted_walker
 from agent.keyboard_agent.tools import KeyboardSession
 
 FIXTURE_PATH = (
     Path(__file__).resolve().parents[2] / "fixtures" / "haunted_bank" / "index.html"
 )
+SCENARIOS_ROOT = FIXTURE_PATH.parents[1] / "scenarios"
 BROKEN_TARGET = "div.pay-btn"
 FIXED_TARGET = "button.btn-primary"
 SUCCESS_SELECTOR = "[data-testid='payment-confirmation']"
@@ -52,6 +54,7 @@ def _is_bundled_url(url: str) -> bool:
         url == "about:blank"
         or url.startswith("data:")
         or url.startswith(FIXTURE_PATH.parent.as_uri() + "/")
+        or url.startswith(SCENARIOS_ROOT.as_uri() + "/")
         or url.startswith(VERIFY_ROOT.as_uri() + "/")
     )
 
@@ -71,6 +74,8 @@ def build_journey_config(
 ) -> JourneyConfig:
     """Build a config. Checker selectors are set here and stay out of the prompt."""
     _load_env()
+    scenario_def = get_scenario(overrides.pop("scenario", None))
+    scen_file = scenario_path(scenario_def.id)
     recipient = clean_detail(overrides.pop("recipient", None) or INTERNAL_DEFAULT_DETAILS["recipient"], required=True)
     amount = clean_amount(overrides.pop("amount", None) or INTERNAL_DEFAULT_DETAILS["amount"], required=True)
     # No "reference" key: the internal default (reference-field REQ-RF-04). Key given as None: no reference
@@ -81,13 +86,13 @@ def build_journey_config(
     if mode not in {"llm", "scripted"}:
         raise ValueError("mode must be llm or scripted")
     goal = (
-        f"Send a payment of EUR {amount} to {recipient}"
+        f"Complete {scenario_def.name} ({scenario_def.submit_label}) of EUR {amount} for {recipient}"
         + (f" with the reference {reference}. " if reference else ". ")
         + ("Fill the recipient, the amount and the reference" if reference else "Fill the recipient and the amount")
-        + ", then activate the control that sends the payment."
+        + f", then activate {scenario_def.submit_label}."
     )
     values = {
-        "start_url": f"{FIXTURE_PATH.as_uri()}?variant={variant}",
+        "start_url": f"{scen_file.as_uri()}?variant={variant}",
         "goal": goal,
         "target_selector": BROKEN_TARGET if variant == "broken" else FIXED_TARGET,
         "success_selector": SUCCESS_SELECTOR,

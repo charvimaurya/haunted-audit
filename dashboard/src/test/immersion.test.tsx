@@ -6,8 +6,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { GhostMascot } from '../components/GhostMascot';
-import { MetricValueDisplay } from '../components/MetricValue';
+import { GhostMascot } from '../components/ghost/GhostMascot';
+import { MetricValueDisplay } from '../components/results/MetricValue';
 import { AmbientLayer } from '../immersion/AmbientLayer';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
 import { SenseControls } from '../immersion/SenseControls';

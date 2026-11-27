@@ -3,10 +3,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { GhostHuntSection } from '../components/GhostHuntSection';
-import { GhostMascot } from '../components/GhostMascot';
-import { PossessionMode } from '../components/PossessionMode';
-import { RunStateBadge } from '../components/RunStateBadge';
+import { GhostHuntSection } from '../components/journey/GhostHuntSection';
+import { GhostMascot } from '../components/ghost/GhostMascot';
+import { PossessionMode } from '../components/journey/PossessionMode';
+import { RunStateBadge } from '../components/journey/RunStateBadge';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
 import { SenseControls } from '../immersion/SenseControls';
 import { CONTRAST_STORAGE_KEY } from '../immersion/useHighContrast';

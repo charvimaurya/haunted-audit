@@ -1,162 +1,278 @@
-/**
- * AppLayout: sidebar, breadcrumbs and main for /app/* pages, under the shared top menu.
- * Breadcrumbs come from the route table; the last crumb matches the page H1.
- */
-import { useState, useRef, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { ChartColumn, Ghost, LayoutGrid, Menu, Send, ShieldCheck, Shield, TriangleAlert, Users, Wrench, X, type LucideIcon } from 'lucide-react';
-import { RunStateBadge } from '../components/RunStateBadge';
-import { SiteBand } from '../components/SiteBand';
+import { useState, useEffect, type ComponentType } from 'react';
+import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  BreadcrumbItem,
+  Breadcrumbs,
+  Button,
+  ScrollShadow,
+  Select,
+  SelectItem,
+} from '@heroui/react';
+import {
+  CheckCircle2,
+  Code2,
+  Compass,
+  FileBarChart2,
+  Home,
+  LayoutGrid,
+  RefreshCw,
+  ScanSearch,
+  Users,
+} from 'lucide-react';
+import { GhostFigure } from '../components/ghost/GhostFigure';
+import { GhostShieldIcon } from '../components/ghost/GhostShieldIcon';
+import { InteractiveTour } from '../components/hero/InteractiveTour';
+import { RunStateBadge } from '../components/journey/RunStateBadge';
 import { APP_NAV, NOT_FOUND_TITLE, pageFor, to, trailFor } from '../routes';
+import { useRun } from '../runs/runContext';
+import { getScenarioDef } from '../runs/scenarios';
 
-const ICONS: Record<string, LucideIcon> = {
-  Overview: LayoutGrid,
-  Journeys: Send,
+type SidebarIcon = ComponentType<{ size?: number; className?: string }>;
+
+const SIDE_ICONS: Record<string, SidebarIcon> = {
+  Overview: Home,
   Agents: Users,
-  Findings: TriangleAlert,
-  Fixes: Wrench,
-  Verification: ShieldCheck,
-  Regression: Shield,
-  Kiro: Ghost,
-  Reports: ChartColumn,
+  Findings: ScanSearch,
+  Fixes: Code2,
+  Verification: CheckCircle2,
+  Regression: RefreshCw,
+  Kiro: GhostShieldIcon,
+  Reports: FileBarChart2,
 };
 
 export function AppLayout() {
   const { pathname } = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const burgerRef = useRef<HTMLButtonElement>(null);
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { scenario, variant, mode, isRunning, setVariant, history, result } = useRun();
+  const [tourOpen, setTourOpen] = useState(false);
   const current = pageFor(pathname);
   const trail = current ? trailFor(current.id) : [];
+  const isPossession = current?.id === 'possession';
+  const activeScenario = getScenarioDef(scenario);
+  const activeStepParam = params.get('step');
+  const latestRunId = result?.run_id ?? history[0]?.run_id;
 
   useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && menuOpen) {
-        setMenuOpen(false);
-        burgerRef.current?.focus();
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    setMenuOpen(false);
+    setTourOpen(false);
   }, [pathname]);
 
-  const linkClass = (isActive: boolean) =>
-    [
-      'flex min-h-11 w-full items-center rounded-lg px-3 text-base font-ui transition-colors',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon',
-      isActive
-        ? 'bg-violet-600/25 font-bold text-ink'
-        : 'text-ink-muted hover:bg-base-surface/60 hover:text-ink',
-    ].join(' ');
+  function resolveSidebarTarget(label: string, fallback: string): string {
+    if (label === 'Verification' && latestRunId) {
+      return `${to('app-fixes')}/${latestRunId}?step=verify`;
+    }
+    if (label === 'Regression' && latestRunId) {
+      return `${to('app-fixes')}/${latestRunId}?step=regression`;
+    }
+    return fallback;
+  }
 
-  const navList = (
-    <ul className="m-0 flex list-none flex-col gap-1 p-0" role="list">
-      {APP_NAV.map((item) => (
-        <li key={item.label}>
-          <Link
-            to={item.to}
-            className={linkClass(item.isCurrent(pathname))}
-            aria-current={item.isCurrent(pathname) ? 'page' : undefined}
-            onClick={() => setMenuOpen(false)}
-          >
-            {(() => {
-              const Icon = ICONS[item.label];
-              return Icon ? <Icon size={18} className="mr-3 shrink-0" aria-hidden="true" /> : null;
-            })()}
-            {item.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  function isSidebarItemActive(label: string, defaultCurrent: boolean): boolean {
+    if (label === 'Overview') return defaultCurrent || isPossession;
+    if (label === 'Verification') return pathname.startsWith('/app/fixes') && activeStepParam === 'verify';
+    if (label === 'Regression') return pathname.startsWith('/app/fixes') && activeStepParam === 'regression';
+    if (label === 'Fixes') {
+      return pathname.startsWith('/app/fixes') && activeStepParam !== 'verify' && activeStepParam !== 'regression';
+    }
+    return defaultCurrent;
+  }
 
   return (
-    <div className="flex min-h-screen flex-col pt-14 md:flex-row">
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden w-56 shrink-0 border-r border-base-line bg-base-panel md:block"
-        aria-label="App"
-      >
-        <nav aria-label="App" className="sticky top-14 p-3">
-          {navList}
-        </nav>
-      </aside>
+    <div className="flex flex-1 flex-col pb-8">
+      <div className="v9-frame v9-appframe">
+        {/* Sticky v9 Sub-Header Bar matching design/v9/index.html */}
+        <div className="v9-apphead">
+          <div className="flex min-w-0 items-center gap-2.5">
+            {isPossession ? (
+              <GhostShieldIcon size={20} className="shrink-0 text-[#c4b5fd]" />
+            ) : (
+              <GhostFigure tone="white" face="happy" size={26} className="shrink-0" />
+            )}
 
-      {/* Mobile: the sidebar opens from a button under the top menu */}
-      <div className="flex h-12 items-center border-b border-base-line bg-base/95 px-4 md:hidden">
-        <button
-          ref={burgerRef}
-          type="button"
-          className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-base font-ui text-ink-muted
-                     hover:bg-base-surface/60 hover:text-ink
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-          aria-expanded={menuOpen}
-          aria-controls="app-mobile-nav"
-          onClick={() => setMenuOpen((o) => !o)}
-        >
-          {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
-          {menuOpen ? 'Close app menu' : 'App menu'}
-        </button>
-      </div>
-      {menuOpen && (
-        <div
-          id="app-mobile-nav"
-          ref={menuRef}
-          className="border-b border-base-line bg-base-panel p-3 md:hidden"
-          role="region"
-          aria-label="App menu"
-        >
-          <nav aria-label="App">{navList}</nav>
-        </div>
-      )}
+            <Breadcrumbs
+              aria-label="Breadcrumb"
+              size="sm"
+              variant="light"
+              separator={<span className="px-1 text-base text-[#7d74a8]">›</span>}
+              classNames={{
+                list: 'flex-wrap gap-0.5 text-[15px]',
+              }}
+            >
+              {isPossession ? (
+                <BreadcrumbItem onPress={() => navigate(to('kiro'))} className="cursor-pointer font-semibold text-[#d2d5ee] hover:text-white">
+                  Kiro
+                </BreadcrumbItem>
+              ) : (
+                <BreadcrumbItem onPress={() => navigate(to('app-home'))} className="cursor-pointer font-bold text-white">
+                  Haunted Audit
+                </BreadcrumbItem>
+              )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="relative flex flex-wrap items-center gap-3 border-b border-base-line px-4 py-2 sm:px-6">
-        <SiteBand />
-        <nav aria-label="Breadcrumb" className="relative z-[1] text-base font-ui text-ink-muted">
-          <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
-            <li>
-              <Link
-                to={to('app-home')}
-                className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
-              >
-                App
-              </Link>
-            </li>
-            {(current ? trail.filter((p) => p.id !== 'app-home') : [null]).map((p, i, all) => (
-              <li key={p?.id ?? 'not-found'} className="flex items-center gap-2">
-                <span aria-hidden="true">/</span>
-                {p && i < all.length - 1 ? (
-                  <Link
-                    to={to(p.id)}
-                    className="inline-flex min-h-11 items-center rounded hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"
+              {isPossession ? (
+                [
+                  <BreadcrumbItem
+                    key="journey-label"
+                    onPress={() => navigate(to('app-journeys'))}
+                    className="cursor-pointer text-[#d2d5ee] hover:text-white"
                   >
-                    {p.h1}
-                  </Link>
-                ) : (
-                  <span aria-current="page" className="font-semibold text-ink">
-                    {p ? p.h1 : NOT_FOUND_TITLE}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
-        <RunStateBadge />
+                    Journey: <b className="text-white">{activeScenario.submitLabel}</b>
+                  </BreadcrumbItem>,
+                  <BreadcrumbItem key="possession-mode" isCurrent className="font-bold text-[#c9b5ff] text-glow-violet">
+                    Possession Mode
+                  </BreadcrumbItem>,
+                ]
+              ) : (
+                (current ? trail.filter((p) => p.id !== 'app-home') : [null]).map((p, i, all) => {
+                  const isLast = i === all.length - 1;
+                  return (
+                    <BreadcrumbItem
+                      key={p?.id ?? 'not-found'}
+                      isCurrent={isLast}
+                      onPress={p && !isLast ? () => navigate(to(p.id)) : undefined}
+                      className={
+                        isLast
+                          ? 'font-bold text-[#c9b5ff] text-glow-violet'
+                          : 'cursor-pointer text-[#d2d5ee] hover:text-white'
+                      }
+                    >
+                      {p ? p.h1 : NOT_FOUND_TITLE}
+                    </BreadcrumbItem>
+                  );
+                })
+              )}
+            </Breadcrumbs>
+          </div>
+
+          <div className="ml-auto flex flex-wrap items-center gap-2.5">
+            {isPossession && (
+              <div className="hidden md:flex items-center gap-2 text-sm text-ink-muted">
+                <label htmlFor="v9-head-variant" className="text-xs font-medium text-ink-muted">
+                  Variant
+                </label>
+                <Select
+                  id="v9-head-variant"
+                  aria-label="Variant"
+                  size="sm"
+                  disallowEmptySelection
+                  selectedKeys={[variant]}
+                  isDisabled={isRunning}
+                  onSelectionChange={(keys) => {
+                    const v = Array.from(keys)[0];
+                    if (v === 'broken' || v === 'fixed') setVariant(v);
+                  }}
+                  className="w-48"
+                  classNames={{
+                    trigger: 'h-8 min-h-8 rounded-lg border border-[#2b3254] bg-[#0d1022] text-white',
+                    value: 'text-xs font-medium text-white',
+                    popoverContent: 'border border-[#2b3254] bg-[#151a33] text-white',
+                  }}
+                >
+                  <SelectItem key="broken" textValue="broken (barrier present)">
+                    broken (barrier present)
+                  </SelectItem>
+                  <SelectItem key="fixed" textValue="fixed (barrier repaired)">
+                    fixed (barrier repaired)
+                  </SelectItem>
+                </Select>
+                <span className="text-xs text-ink-muted">
+                  · {mode === 'scripted' ? 'scripted, no AI' : 'Bedrock LLM'}
+                </span>
+              </div>
+            )}
+
+            {current && (
+              <Button
+                type="button"
+                size="sm"
+                radius="full"
+                variant="flat"
+                startContent={<Compass size={13} className="text-violet-300" aria-hidden="true" />}
+                onPress={() => setTourOpen(true)}
+                className="h-7 border border-[#2b3254] bg-[#1d2140] px-2.5 text-xs font-semibold text-white hover:border-violet-400"
+              >
+                Tour
+              </Button>
+            )}
+            <RunStateBadge />
+          </div>
         </div>
-        <main
-          id="main-content"
-          tabIndex={-1}
-          aria-label="Haunted Audit app"
-          className="relative z-[1] flex-1 px-4 py-4 sm:px-6 pb-16 focus-visible:outline-none"
+
+        {/* Tablet/Mobile (< lg): Single compact horizontally scrollable v9 Workspace Strip */}
+        <nav
+          aria-label="Workspace tabs"
+          className="flex items-center gap-1.5 overflow-x-auto border-b border-[#2a2350] bg-[#100c22] px-3 py-2 lg:hidden"
         >
-          <Outlet />
-        </main>
+          {APP_NAV.map((item) => {
+            const Icon = SIDE_ICONS[item.label] ?? LayoutGrid;
+            const active = isSidebarItemActive(item.label, item.isCurrent(pathname));
+            const target = resolveSidebarTarget(item.label, item.to);
+            return (
+              <Button
+                key={item.label}
+                as={Link}
+                to={target}
+                role="link"
+                size="sm"
+                radius="lg"
+                variant="flat"
+                startContent={<Icon size={14} className="shrink-0 text-[#c4b5fd]" aria-hidden="true" />}
+                aria-current={active ? 'page' : undefined}
+                className={
+                  active
+                    ? 'h-8 shrink-0 bg-gradient-to-r from-[#3a2479] to-[#2a1a5c] px-3 text-xs font-bold text-white shadow-[0_0_12px_#7c3aed55]'
+                    : 'h-8 shrink-0 border border-[#2b3254] bg-[#14172f] px-3 text-xs font-medium text-[#d6d9f0]'
+                }
+              >
+                {item.label}
+              </Button>
+            );
+          })}
+        </nav>
+
+        {/* Workspace Body: Full-height design/v9 Sidebar Rail + Fluid Content */}
+        <div className="v9-appbody">
+          <aside className="v9-side hidden lg:block">
+            <ScrollShadow className="sticky top-[106px] max-h-[calc(100dvh-120px)] pr-0.5">
+              <nav aria-label="App" className="flex flex-col gap-1">
+                {APP_NAV.map((item) => {
+                  const Icon = SIDE_ICONS[item.label] ?? LayoutGrid;
+                  const active = isSidebarItemActive(item.label, item.isCurrent(pathname));
+                  const target = resolveSidebarTarget(item.label, item.to);
+                  return (
+                    <Link
+                      key={item.label}
+                      to={target}
+                      aria-current={active ? 'page' : undefined}
+                      className={[
+                        'flex min-h-[38px] items-center gap-[12px] rounded-[12px] px-[12px] text-[15px] no-underline transition-all',
+                        active
+                          ? 'bg-gradient-to-r from-[#3a2479] to-[#2a1a5c] font-bold text-white shadow-[inset_3px_0_0_#b794ff,0_0_16px_#7c3aed55]'
+                          : 'font-medium text-[#d6d9f0] hover:bg-[#1c143d] hover:text-white',
+                      ].join(' ')}
+                    >
+                      <Icon size={19} className="shrink-0 text-[#c4b5fd]" aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </ScrollShadow>
+          </aside>
+
+          <main
+            id="main-content"
+            tabIndex={-1}
+            aria-label="Haunted Audit app"
+            className="v9-content focus-visible:outline-none"
+          >
+            <Outlet />
+          </main>
+        </div>
       </div>
+
+      {current && (
+        <InteractiveTour isOpen={tourOpen} onClose={() => setTourOpen(false)} pageId={current.id} />
+      )}
     </div>
   );
 }

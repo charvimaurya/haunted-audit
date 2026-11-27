@@ -5,7 +5,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import { PossessionJourney } from '../components/PossessionJourney';
+import { PossessionJourney } from '../components/journey/PossessionJourney';
 import { RunContext, type RunValue } from '../runs/runContext';
 import { FixProvider } from '../fixes/FixProvider';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
@@ -45,20 +45,5 @@ describe('Possession Mode has no automatic Find-Fix-Verify loop', () => {
     );
     expect(screen.queryByRole('button', { name: 'Run the whole loop' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Run the whole loop' })).toBeNull();
-  });
-
-  it('also does not render it on the Try page', () => {
-    render(
-      <ImmersionProvider>
-        <MemoryRouter>
-          <RunContext.Provider value={ctx}>
-            <FixProvider>
-              <PossessionJourney pageId="try" />
-            </FixProvider>
-          </RunContext.Provider>
-        </MemoryRouter>
-      </ImmersionProvider>,
-    );
-    expect(screen.queryByRole('button', { name: 'Run the whole loop' })).toBeNull();
   });
 });

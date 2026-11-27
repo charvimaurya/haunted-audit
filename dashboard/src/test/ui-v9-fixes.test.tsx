@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { describe, expect, it, vi } from 'vitest';
-import { PipelineSection } from '../components/PipelineSection';
+import { PipelineSection } from '../components/fixes/PipelineSection';
 import type { CopyRun, Fix, FixValue } from '../fixes/fixContext';
 import type { JourneyResult } from '../types';
 

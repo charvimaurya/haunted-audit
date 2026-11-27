@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { BlockedElement, JourneyResult } from '../types';
+import type { TrackedFixRound } from '../runs/possessionHistory';
 
 /** A copy run started by the Verifier or the regression check (data-contract.md, "Fix"). */
 export interface CopyRun {
@@ -46,6 +47,14 @@ export interface Fix {
 
 export interface FixValue {
   fix: Fix | null;
+  /** Selected run ID in the Fixes workspace (defaults to the current RunContext result). */
+  selectedRunId?: string | null;
+  /** Loaded JourneyResult for selectedRunId when picking from localStorage history. */
+  selectedResult?: JourneyResult | null;
+  /** Switch active run ID on the unified Fixes hub. */
+  selectRun?: (runId: string) => void;
+  /** Persisted fix round states keyed by run_id. */
+  trackedFixes?: Record<string, TrackedFixRound>;
   /** The Verifier's finished keyboard run on the patched copy (its steps fill the checklist). */
   verifyResult: JourneyResult | null;
   /** The Verifier's finished voice run on the patched copy (its steps fill the voice row). */

@@ -12,10 +12,10 @@ import { join, relative } from 'node:path';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../AppRoutes';
-import { EXAMPLE_TEXT, ExampleLabel } from '../components/ExampleLabel';
-import { PipelineSection } from '../components/PipelineSection';
-import { NOT_RUN_TEXT, OFFLINE_TEXT, ResultState } from '../components/ResultState';
-import { ResultsSection } from '../components/ResultsSection';
+import { EXAMPLE_TEXT, ExampleLabel } from '../components/ui/ExampleLabel';
+import { PipelineSection } from '../components/fixes/PipelineSection';
+import { NOT_RUN_TEXT, OFFLINE_TEXT, ResultState } from '../components/results/ResultState';
+import { ResultsSection } from '../components/results/ResultsSection';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
 import { PAGES, to } from '../routes';
 import type { JourneyResult } from '../types';
@@ -72,7 +72,7 @@ function renderAt(path: string) {
 }
 
 /** Pages that show run results. Each must say "Not run yet" (online) or the offline text (offline). */
-const RESULT_PAGES = ['app-agents', 'app-reports', 'results', 'app-fixes-find', 'app-fixes-fix', 'app-fixes-verify', 'app-fixes-regression'] as const;
+const RESULT_PAGES = ['app-agents', 'app-reports', 'results', 'app-fixes'] as const;
 
 afterEach(() => {
   vi.unstubAllGlobals();

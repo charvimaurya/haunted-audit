@@ -16,6 +16,8 @@ import os
 import re
 from dataclasses import dataclass
 
+from agent.keyboard_agent.scenarios import ALLOWED_SCENARIO_TARGETS
+
 TARGET = "fixtures/haunted_bank/index.html"
 MAX_CHANGED_LINES = int(os.getenv("HAUNTED_AUDIT_MAX_DIFF_LINES", "10"))
 
@@ -53,6 +55,14 @@ def _strip_prefix(path: str) -> str:
     return path[2:] if path.startswith(("a/", "b/")) else path
 
 
+def _diff_target(diff: str) -> str:
+    lines = diff.splitlines()
+    old = [l for l in lines if l.startswith("--- ")]
+    if len(old) != 1:
+        return TARGET
+    return _strip_prefix(old[0][4:])
+
+
 def parse(diff: str) -> list[Hunk]:
     if not isinstance(diff, str) or not diff.strip():
         raise DiffError("The diff is empty.")
@@ -71,8 +81,8 @@ def parse(diff: str) -> list[Hunk]:
     for p in (a, b):
         if p.startswith("/") or ".." in p.split("/") or re.match(r"^[A-Za-z]:", p):
             raise DiffError("The diff path must be relative and stay inside the repo.")
-    if a != TARGET or b != TARGET:
-        raise DiffError(f"Only {TARGET} may be changed.")
+    if a != b or a not in ALLOWED_SCENARIO_TARGETS:
+        raise DiffError(f"Only {TARGET} (or a bundled scenario fixture) may be changed.")
     hunks: list[Hunk] = []
     cur: dict | None = None
     started = False
@@ -153,9 +163,9 @@ def _handler_functions(html: str) -> set[str]:
     return names
 
 
-def _canonical(placed: list[tuple[int, Hunk]]) -> str:
+def _canonical(placed: list[tuple[int, Hunk]], target_file: str = TARGET) -> str:
     """Correct headers and line numbers; hunk lines in the diff's own order."""
-    out = [f"--- a/{TARGET}", f"+++ b/{TARGET}"]
+    out = [f"--- a/{target_file}", f"+++ b/{target_file}"]
     shift = 0
     for at, h in placed:
         out.append(f"@@ -{at + 1},{len(h.before)} +{at + 1 + shift},{len(h.after)} @@")
@@ -167,6 +177,7 @@ def _canonical(placed: list[tuple[int, Hunk]]) -> str:
 def check(diff: str, source: str) -> CheckedDiff:
     """Validate the diff against the file's text. Raises DiffError with one plain sentence."""
     hunks = parse(diff)
+    target_file = _diff_target(diff)
     changed = sum(h.added + h.removed for h in hunks)
     if changed > MAX_CHANGED_LINES:
         raise DiffError(f"The diff changes {changed} lines; at most {MAX_CHANGED_LINES} are allowed.")
@@ -179,7 +190,7 @@ def check(diff: str, source: str) -> CheckedDiff:
     lost_fns = {f for f in _handler_functions(source) if not re.search(rf"\b{re.escape(f)}\b", outside)}
     if lost_fns:
         raise DiffError(f"The diff removes functions that inline handlers call: {', '.join(sorted(lost_fns))}.")
-    canon = _canonical(placed)
+    canon = _canonical(placed, target_file=target_file)
     return CheckedDiff(diff=canon, sha256=sha256(canon), changed_lines=changed, patched=patched)
 
 

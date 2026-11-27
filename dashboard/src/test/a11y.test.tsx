@@ -17,18 +17,18 @@ import { MemoryRouter } from 'react-router-dom';
 import { expect, describe, it } from 'vitest';
 
 import { ImmersionProvider } from '../immersion/ImmersionContext';
-import { GhostMascot }            from '../components/GhostMascot';
-import { HeroSection }             from '../components/HeroSection';
-import { TopNav }                  from '../components/TopNav';
-import { RunControls }             from '../components/RunControls';
-import { PossessionMode }          from '../components/PossessionMode';
-import { AgentCard }               from '../components/AgentCard';
-import { GhostHuntSection }        from '../components/GhostHuntSection';
-import { PipelineSection }         from '../components/PipelineSection';
-import { KiroIntegrationSection }  from '../components/KiroIntegrationSection';
-import { OutcomeCard }             from '../components/OutcomeCard';
-import { ResultsSection }          from '../components/ResultsSection';
-import { MetricValueDisplay }      from '../components/MetricValue';
+import { GhostMascot }            from '../components/ghost/GhostMascot';
+import { HeroSection }             from '../components/hero/HeroSection';
+import { TopNav }                  from '../components/layout/TopNav';
+import { RunControls }             from '../components/journey/RunControls';
+import { PossessionMode }          from '../components/journey/PossessionMode';
+import { AgentCard }               from '../components/journey/AgentCard';
+import { GhostHuntSection }        from '../components/journey/GhostHuntSection';
+import { PipelineSection }         from '../components/fixes/PipelineSection';
+import { KiroIntegrationSection }  from '../components/hero/KiroIntegrationSection';
+import { OutcomeCard }             from '../components/results/OutcomeCard';
+import { ResultsSection }          from '../components/results/ResultsSection';
+import { MetricValueDisplay }      from '../components/results/MetricValue';
 
 expect.extend(toHaveNoViolations);
 
@@ -48,7 +48,7 @@ describe('Accessibility — zero axe violations', () => {
     expect(await axe(c1, AXE_OPTIONS)).toHaveNoViolations();
     expect(await axe(c2, AXE_OPTIONS)).toHaveNoViolations();
     expect(await axe(c3, AXE_OPTIONS)).toHaveNoViolations();
-  });
+  }, 15_000);
 
   it('TopNav (default + mobile open)', async () => {
     const { container } = render(

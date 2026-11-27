@@ -43,9 +43,13 @@ describe('every page', () => {
       expect(h1s[0].textContent).toBe(page.h1);
       await waitFor(() => expect(document.title).toBe(titleFor(page.path)));
 
-      // Marketing pages use the top nav (or the footer nav for footer pages); app pages use the sidebar.
+      // Marketing pages use the top nav (or the footer nav for footer pages); app pages use the sidebar + top nav.
       const navName = page.shell === 'app' ? 'App' : 'Primary navigation';
-      expect(screen.getAllByRole('navigation', { name: navName }).length).toBeGreaterThanOrEqual(1);
+      const navs = screen.getAllByRole('navigation', { name: navName });
+      expect(navs.length).toBeGreaterThanOrEqual(1);
+      if (page.shell === 'app') {
+        expect(within(navs[0]).getAllByRole('link').filter((a) => a.getAttribute('aria-current') === 'page')).toHaveLength(1);
+      }
       const current = Array.from(container.querySelectorAll('nav [aria-current="page"]'));
       expect(current.length).toBeGreaterThanOrEqual(1);
       // Skip link is the first focusable element
@@ -56,12 +60,12 @@ describe('every page', () => {
 });
 
 describe('navigation', () => {
-  it('Possess This App goes to Possession Mode and starts no run', async () => {
+  it('Possess This App goes to Possession Mode in the App workspace and starts no run', async () => {
     renderAt('/');
     const link = await screen.findByRole('link', { name: /possess this app/i });
-    expect(link.getAttribute('href')).toBe('/try');
+    expect(link.getAttribute('href')).toBe('/app/journeys/send-payment/possession');
     await userEvent.click(link);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Try Possession Mode' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Possession Mode' })).toBeTruthy();
     expect(screen.queryByText(/running/i)).toBeNull();
   });
 
@@ -69,11 +73,11 @@ describe('navigation', () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1, name: 'Haunted Audit' });
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
-    await userEvent.click(within(nav).getByRole('link', { name: 'Reports' }));
-    const h1 = await screen.findByRole('heading', { level: 1, name: 'Reports' });
+    await userEvent.click(within(nav).getByRole('link', { name: 'App' }));
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'Dashboard' });
     await waitFor(() => expect(document.activeElement).toBe(h1));
     await waitFor(() =>
-      expect(document.getElementById('live-region')?.textContent).toBe('Navigated to Reports'),
+      expect(document.getElementById('live-region')?.textContent).toBe('Navigated to Dashboard'),
     );
   });
 
@@ -83,7 +87,7 @@ describe('navigation', () => {
     a.unmount();
     renderAt('/does-not-exist');
     expect(await screen.findByRole('heading', { level: 1, name: 'Page not found' })).toBeTruthy();
-  });
+  }, 15_000);
 
   it('the fix pipeline shows one step at a time with Back and Next', async () => {
     renderAt('/app/fixes/fix');

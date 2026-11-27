@@ -1,0 +1,21 @@
+{
+  "name": "Haunted Audit",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt && python -m playwright install --with-deps chromium && cd dashboard && npm ci",
+  "forwardPorts": [5173, 8000],
+  "portsAttributes": {
+    "5173": {
+      "label": "Dashboard",
+      "onAutoForward": "openBrowser"
+    },
+    "8000": {
+      "label": "API",
+      "onAutoForward": "notify"
+    }
+  }
+}

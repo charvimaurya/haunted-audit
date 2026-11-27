@@ -2,7 +2,7 @@
 /** Reference field in Possession Mode (spec .kiro/specs/reference-field, REQ-RF-06). */
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { PossessionMode } from '../components/PossessionMode';
+import { PossessionMode } from '../components/journey/PossessionMode';
 import type { JourneyResult } from '../types';
 
 const snap = (hint: string, name: string) => ({

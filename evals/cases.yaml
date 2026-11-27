@@ -191,7 +191,40 @@ cases:
     label_source: fixtures/haunted_bank/index.html (toCents, validate, let balance = 100000)
     status: fixed
     next: >-
-      Amount is checked with the bank's rule in the API (clean_amount, 422), the dashboard form ("Use two decimals,
-      like 10.00") and record_seed.py, which also refuses to write the seed unless broken is BLOCKED /
-      TARGET_NOT_FOCUSABLE and fixed is PASSED.
+      Amount is checked with the bank's rule in the API (clean_amount, 422), the dashboard form ("Whole euros or cents, like 90 or 90.55") and record_seed.py, which also refuses to write the seed unless broken is BLOCKED / TARGET_NOT_FOCUSABLE and fixed is PASSED.
     recorded: 2026-11-24
+
+  - id: bank-002
+    kind: planted_barrier
+    target: fixtures/haunted_bank/index.html?variant=broken
+    barrier: Amount (EUR) field uses a plain span caption instead of a label tied to #amount.
+    element: "#amount"
+    wcag: ["1.3.1", "3.3.2", "4.1.2"]
+    expected:
+      axe_rule: label
+      element: "#amount"
+    label_source: bank/PLANTED.md (barrier 2)
+    status: open
+    recorded: 2026-11-27
+
+  - id: bank-003
+    kind: planted_barrier
+    target: fixtures/haunted_bank/index.html?variant=broken
+    barrier: Helper text under Recipient fails 4.5:1 color contrast (measured 3.52:1).
+    element: "#recipient-hint"
+    wcag: ["1.4.3"]
+    expected:
+      axe_rule: color-contrast
+      element: "#recipient-hint"
+    label_source: bank/PLANTED.md (barrier 3)
+    status: open
+    recorded: 2026-11-27
+
+  - id: variant-clean-01
+    kind: clean_variant
+    target: fixtures/eval_variants/clean_transfer.html
+    expected:
+      axe_violations: 0
+    label_source: fixtures/eval_variants/clean_transfer.html
+    status: open
+    recorded: 2026-11-27

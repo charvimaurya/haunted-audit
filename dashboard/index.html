@@ -1,18 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#08060f" />
+    <meta
+      name="description"
+      content="Haunted Audit — The accessibility guardrail for AI-built applications. Keyboard-only and voice-command journey testing, AI diff proposals, and regression proof."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Haunted Audit — Accessibility Guardrail" />
+    <meta
+      property="og:description"
+      content="Feel the barrier. Fix the cause. Prove the journey. Real keyboard and voice accessibility verification."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Haunted Audit" />
+    <meta
+      name="twitter:description"
+      content="Keyboard-only and voice-command accessibility testing, fix proposals, and regression verification."
+    />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <title>Haunted Audit</title>
     <script>
-      /* Apply saved display settings before first paint (product-ux.md). */
       (function () {
         try {
           var d = document.documentElement;
-          d.dataset.contrast = localStorage.getItem('haunted-audit.contrast') === 'on' ? 'high' : 'normal';
+          d.dataset.theme = 'dark';
+          d.classList.add('dark');
           if (localStorage.getItem('haunted-audit.calm') === 'on') d.dataset.calm = 'true';
-          var t = localStorage.getItem('haunted-audit.text-size');
-          d.dataset.textSize = t === '125' || t === '150' ? t : '100';
         } catch (e) {}
       })();
     </script>

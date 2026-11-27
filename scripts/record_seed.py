@@ -66,7 +66,7 @@ def problems(records: dict[str, dict]) -> list[str]:
 
 
 def record(details: dict, out: Path = OUT) -> int:
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         db = Path(tmp) / "runs.db"
         client = TestClient(create_app(db, seed_path=None))
         records = {}

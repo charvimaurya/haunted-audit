@@ -1,6 +1,33 @@
 # Haunted Audit
 
-Kiroween 2026, Costume Contest. An accessibility engineer for AI-built applications.
+Kiroween 2026, Costume Contest — built by **Shilpa, Sukhda & Charvi**. An accessibility engineer for AI-built applications.
+
+## Judge Quick Start
+
+### Option 1: Live Link (when deployed)
+1. Open `[live link]` in Chrome or Edge.
+2. Leave **Variant** on `broken` and **Agent mode** on `scripted`, fill any made-up Recipient and Amount (e.g. `Test Ghost` and `90` or `90.55`), then click **Run Journey**.
+3. Watch the keyboard runner get blocked (`TARGET_NOT_FOCUSABLE`) beside Send Payment.
+4. Click **Approve** on the proposed fix, run **Verify**, then run **Regression** to catch the returned barrier.
+5. Switch **Variant** to `fixed` and run again to observe `PASSED`.
+
+### Option 2: Run in GitHub Codespaces (browser, ~5 minutes)
+1. Click **Code -> Codespaces -> Create codespace on main** (`.devcontainer/devcontainer.json` installs Python, Chromium, and dashboard packages).
+2. Terminal 1 — API:
+   ```bash
+   python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000
+   ```
+3. Terminal 2 — Dashboard:
+   ```bash
+   cd dashboard && npm run dev -- --host 0.0.0.0 --port 5173
+   ```
+4. Open the forwarded port `5173` and run Option 1 from step 2.
+
+### Option 3: On Your Own Laptop with Kiro (Windows or macOS)
+1. Clone: `git clone https://github.com/charvimaurya/haunted-audit.git && cd haunted-audit`
+2. Create `.venv`, install `requirements.txt`, run `<venv python> -m playwright install chromium`, and copy `.env.example` -> `.env` plus `dashboard/.env.example` -> `dashboard/.env`.
+3. Start the API (`<venv python> -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000`) and dashboard (`cd dashboard && npm install && npm run dev -- --host 127.0.0.1 --port 5173`).
+4. Open `http://127.0.0.1:5173` and verify `http://127.0.0.1:8000/health`.
 
 ## Project Overview
 
@@ -209,6 +236,7 @@ API routes for the loop:
 - `POST /runs/{id}/fixes`, `GET /fixes/{id}`
 - `POST /fixes/{id}/approve` (with the `diff_sha256` you reviewed) and `POST /fixes/{id}/reject`
 - `POST /fixes/{id}/verify`, then `POST /fixes/{id}/regression` (the bug put back on a copy, from **Put the bug back and run both tests**). Each returns `run_id` (keyboard) and `voice_run_id`.
+- `POST /scan` (`backend/scanner/axe_scanner.py` + `agent/api/url_guard.py`) for bundled Haunted Bank axe-core scans (`{"variant": "broken"|"fixed"}`) or read-only SSRF-guarded public URL scans (`{"url": "https://..."}`, max 1/min per IP).
 
 The regression guard, from the repo root. Node.js is needed once for the journey test:
 
@@ -248,16 +276,43 @@ Specs, steering rules, and the axe-on-save hook live in `.kiro/`. Rules decide a
 | Path | Role |
 | --- | --- |
 | `agent/keyboard_agent/` | Agent, scripted walker, tools, checker, runner |
-| `agent/eval/run_eval.py` | Repeated runs and the GO / NO-GO report |
-| `agent/api/main.py` | FastAPI app. This is the API entry point |
+| `agent/voice_agent/` | Voice grammar and accessible-name runner |
+| `agent/fixes/` | Exorcist diff proposer, verifier, and regression guard |
+| `agent/eval/` | Repeated runs and the GO / NO-GO report |
+| `agent/api/` | FastAPI app. This is the API entry point |
 | `agent/tests/` | pytest and Hypothesis |
+| `backend/` | `mcp_server.py` and `scan_file.py` hook scanner |
+| `bank/` | `PLANTED.md` barrier answer key |
 | `fixtures/haunted_bank/` | Static test site, broken and fixed |
-| `dashboard/` | Vite + React UI. Entry is `dashboard/src/main.tsx` |
+| `dashboard/` | Vite + React + HeroUI + Tailwind UI (`dashboard/src/main.tsx`) |
+| `power/` | Kiro Power package (`hooks/`, `server/`, `skills/`) |
+| `tests/` | Playwright journey regression tests and unit tests |
 | `requirements.txt` | Python packages |
 | `.env.example` | Placeholder environment variables |
-| `.kiro/` | Specs, steering, and the axe-on-save hook |
-| `docs/` | Team plans, schedule, judge deck, and evidence |
+| `.kiro/` | Specs, steering, skills, and the axe-on-save hook |
+| `docs/` | Team plans, archived notes, judge deck, and evidence |
+
+## Tools we used
+
+- **Kiro**: specs (`.kiro/specs/`), custom steering rules (`.kiro/steering/`), save hooks (`.kiro/hooks/`), MCP server (`backend/mcp_server.py`), and Power (`power/`).
+- **Claude AI via Kiro**: assisted during implementation and code reviews (recorded in `docs/devlog.md`).
+- **Cursor**: used for six initial commits (22 Nov) that were later reviewed and hardened inside Kiro.
+
+## Third-party assets and licences
+
+| Package / Font | Role | Licence |
+| --- | --- | --- |
+| `fastapi`, `pydantic`, `mcp`, `pytest` | Python API, validation, MCP server, unit tests | MIT |
+| `uvicorn`, `python-dotenv`, `httpx` | ASGI server, env loader, HTTP test client | BSD-3-Clause |
+| `playwright`, `strands-agents`, `boto3` | Browser automation, agent SDK, AWS client | Apache-2.0 |
+| `hypothesis` | Property-based testing | MPL-2.0 |
+| `axe-core`, `@axe-core/playwright` | WCAG 2.x accessibility rule engine | MPL-2.0 |
+| `react`, `react-dom`, `react-router-dom`, `@heroui/react`, `framer-motion`, `tailwindcss`, `vite`, `vitest` | Dashboard UI framework, components, motion, styling, build & unit tests | MIT |
+| `lucide-react` | UI icons | ISC |
+| `@fontsource-variable/bricolage-grotesque`, `@fontsource/rubik-wet-paint`, `@fontsource/jetbrains-mono` | Self-hosted UI, display, and monospace fonts | OFL-1.1 |
+| `dashboard/src/assets/hero-bg.jpg`, `dashboard/public/favicon.svg`, procedural Web Audio SFX | Hero artwork, SVG ghost favicon, synthesized Web Audio cues | Project repository assets (`haunted-audit`) |
 
 ## Known issues
 - **Internal test details.** A direct API call to `POST /runs` without `recipient` and `amount` (pytest, the eval scripts, the command line, Night Watch) still uses one built-in made-up name and amount: `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py`. That default is never sent to the dashboard as a typed value and never fills in a field. The same name also appears as test input in `agent/tests/` and `agent/eval/run_voice_eval.py`. The full list is in `docs/user-typed-test-details-audit.md`.
 - **Design image.** The frozen v7 design image (`design/Haunted_Audit_Final_UI_v7.png`) shows an example name in the Recipient field. The app does not copy it.
+- **Public URL deploy & Bedrock LLM:** Live cloud deployment and Amazon Bedrock LLM evals are not active offline until AWS/Vercel deployment steps (`docs/handover.md`) are executed with credentials.

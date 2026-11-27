@@ -27,9 +27,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from agent.api.limits import LimitSettings, Refusal, RunLimiter, client_ip
+from agent.api.limits import LimitSettings, Refusal, RunLimiter, SlidingWindow, client_ip
+from agent.api.url_guard import BlockedTarget, check_url
 from agent.keyboard_agent.models import clean_amount, clean_detail
 from agent.keyboard_agent.runner import build_journey_config, run_journey
+from agent.keyboard_agent.scenarios import SCENARIOS, get_scenario
 
 load_dotenv()
 
@@ -70,7 +72,13 @@ class RunCreate(BaseModel):
 
     variant: Literal["broken", "fixed"] = "broken"
     mode: Literal["llm", "scripted"] = "scripted"
+    scenario: str = "haunted-bank"
     max_steps: int = Field(default=25, ge=1, le=80)
+
+    @field_validator("scenario")
+    @classmethod
+    def _scenario_ok(cls, v: str) -> str:
+        return get_scenario(v).id
     timeout_seconds: float = Field(default=90, ge=0, le=300)
     # The details the tester typed (user-typed-test-details REQ-TD-03, 07). Left out, the run uses
     # INTERNAL_DEFAULT_DETAILS, so old requests and Night Watch keep working (REQ-TD-06).
@@ -107,8 +115,14 @@ class VoiceRunCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     variant: Literal["broken", "fixed"] = "broken"
+    scenario: str = "haunted-bank"
     commands: list[Annotated[str, StringConstraints(min_length=1, max_length=200)]] = Field(min_length=1, max_length=10)
     input_source: Literal["typed", "speech"] = "typed"
+
+    @field_validator("scenario")
+    @classmethod
+    def _voice_scenario_ok(cls, v: str) -> str:
+        return get_scenario(v).id
 
 
 class FixCreate(BaseModel):
@@ -130,6 +144,15 @@ class FixReject(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     note: Annotated[str, StringConstraints(max_length=300)] | None = None
+
+
+class ScanCreate(BaseModel):
+    """POST /scan for bundled fixture scan or SSRF-guarded public URL scan-only check."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    variant: Literal["broken", "fixed"] | None = None
+    url: str | None = None
 
 
 class RunStore:
@@ -173,6 +196,8 @@ class RunStore:
                 self._conn.execute("ALTER TABLE runs ADD COLUMN recorded_at TEXT")
             if "test_details" not in columns:  # nullable, so existing rows keep everything (REQ-TD-05)
                 self._conn.execute("ALTER TABLE runs ADD COLUMN test_details TEXT")
+            if "scenario" not in columns:
+                self._conn.execute("ALTER TABLE runs ADD COLUMN scenario TEXT DEFAULT 'haunted-bank'")
             self._conn.commit()
 
     def load_seed(self, path: Path) -> int:
@@ -249,11 +274,11 @@ class RunStore:
                 except OSError:
                     continue
 
-    def insert_running(self, run_id: str, variant: str, mode: str, test_details: dict | None = None) -> None:
+    def insert_running(self, run_id: str, variant: str, mode: str, test_details: dict | None = None, scenario: str = "haunted-bank") -> None:
         with self._lock:
             self._conn.execute(
-                "INSERT INTO runs (run_id, variant, mode, status, test_details) VALUES (?, ?, ?, 'running', ?)",
-                (run_id, variant, mode, json.dumps(test_details) if test_details is not None else None),
+                "INSERT INTO runs (run_id, variant, mode, status, test_details, scenario) VALUES (?, ?, ?, 'running', ?, ?)",
+                (run_id, variant, mode, json.dumps(test_details) if test_details is not None else None, scenario),
             )
             self._conn.commit()
 
@@ -291,7 +316,7 @@ class RunStore:
     def get_run(self, run_id: str) -> dict | None:
         with self._lock:
             row = self._conn.execute(
-                "SELECT run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at, test_details "
+                "SELECT run_id, variant, mode, status, verdict, reason_code, json, seeded, recorded_at, test_details, scenario "
                 "FROM runs WHERE run_id = ?",
                 (run_id,),
             ).fetchone()
@@ -302,6 +327,7 @@ class RunStore:
             "run_id": row["run_id"],
             "variant": row["variant"],
             "mode": row["mode"],
+            "scenario": row["scenario"] or "haunted-bank",
             "status": row["status"],
             "verdict": row["verdict"],
             "reason_code": row["reason_code"],
@@ -387,6 +413,8 @@ def create_app(
     from agent.fixes.store import FixStore
     app.state.fixes = FixStore(path)
     app.state.limiter = RunLimiter(settings or LimitSettings.from_env(), clock)
+    app.state.scan_window = SlidingWindow()
+    app.state.clock = clock
     app.state.artifacts_root = artifacts_root
 
     seed = DEFAULT_SEED_PATH if seed_path is _USE_DEFAULT_SEED else seed_path
@@ -403,6 +431,35 @@ def create_app(
     def health() -> dict:
         return {"status": "ok"}
 
+    @app.post("/scan")
+    def scan_target(body: ScanCreate, request: Request) -> dict:
+        from backend.scanner.axe_scanner import scan_bundled_bank, scan_public_url
+
+        if body.url and body.variant:
+            raise HTTPException(status_code=422, detail="Provide either 'variant' or 'url', not both.")
+        if not body.url:
+            return scan_bundled_bank(body.variant or "broken")
+
+        try:
+            resolved = check_url(body.url)
+        except BlockedTarget as exc:
+            raise HTTPException(status_code=422, detail=exc.message)
+
+        ip = client_ip(request)
+        now = app.state.clock()
+        wait = app.state.scan_window.peek(ip, limit=1, window_s=60.0, now=now)
+        if wait is not None:
+            secs = max(1, int(wait))
+            raise HTTPException(
+                status_code=429,
+                detail=f"Public URL scan is limited to 1 per minute. Try again in {secs} seconds.",
+                headers={"Retry-After": str(secs)},
+            )
+        app.state.scan_window.record(ip, now=now)
+        result = scan_public_url(resolved.url)
+        log_event(msg="public_scan_finished", findings=result["count"])
+        return result
+
     @app.post("/runs", status_code=202)
     def create_run(body: RunCreate, request: Request) -> dict:
         limiter: RunLimiter = app.state.limiter
@@ -413,7 +470,7 @@ def create_app(
             raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
         run_id = str(uuid.uuid4())
         try:
-            app.state.store.insert_running(run_id, body.variant, body.mode, body.test_details())
+            app.state.store.insert_running(run_id, body.variant, body.mode, body.test_details(), body.scenario)
             thread = threading.Thread(
                 target=_execute_run,
                 args=(app.state.store, run_id, body, limiter, app.state.artifacts_root),
@@ -437,7 +494,7 @@ def create_app(
             raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
         run_id = str(uuid.uuid4())
         try:
-            app.state.store.insert_running(run_id, body.variant, "scripted")
+            app.state.store.insert_running(run_id, body.variant, "scripted", None, body.scenario)
             thread = threading.Thread(
                 target=_execute_voice_run,
                 args=(app.state.store, run_id, body, limiter),
@@ -490,12 +547,13 @@ def create_app(
             raise HTTPException(status_code=409, detail={"code": "NOTHING_TO_FIX",
                                                         "message": "Only a finished, BLOCKED keyboard run has a finding to fix."})
         finding = {"reason_code": result.get("reason_code"), "blocked_element": result.get("blocked_element")}
+        scenario = rec.get("scenario") or "haunted-bank"
         try:
-            prop = propose(finding, body.exorcist_mode)
+            prop = propose(finding, body.exorcist_mode, scenario=scenario)
         except Refused as exc:
             raise HTTPException(status_code=409, detail={"code": exc.code, "message": str(exc)})
         fix_id = app.state.fixes.create({
-            "run_id": run_id, "variant": rec["variant"], "reason_code": finding["reason_code"],
+            "run_id": run_id, "variant": rec["variant"], "scenario": scenario, "reason_code": finding["reason_code"],
             "blocked_element": finding["blocked_element"], "reason": prop.reason,
             "diff": prop.checked.diff if prop.checked else None,
             "diff_sha256": prop.checked.sha256 if prop.checked else None,
@@ -547,17 +605,17 @@ def create_app(
         except Refusal as refusal:
             headers = {"Retry-After": str(refusal.retry_after)} if refusal.retry_after else None
             raise HTTPException(status_code=refusal.status, detail=refusal.message, headers=headers)
+        scen = fix.get("scenario") or "haunted-bank"
         try:
-            copy = (verifier.patched_copy if kind == "verify" else verifier.reintroduced_copy)(fix["fix_id"], fix["diff"])
+            copy = (verifier.patched_copy if kind == "verify" else verifier.reintroduced_copy)(
+                fix["fix_id"], fix["diff"], scenario=scen,
+            )
         except Exception as exc:
             limiter.release()
             raise HTTPException(status_code=409, detail={"code": "DIFF_NO_LONGER_APPLIES", "message": str(exc)})
-        # Keyboard and voice on the same copy, each with its own run ID (loop-evidence REQ-LE-01, 02).
-        # One thread runs them one after the other and holds one limiter slot for both.
         run_id, voice_run_id = str(uuid.uuid4()), str(uuid.uuid4())
-        # Both replays type the details of the run the fix came from (user-typed-test-details REQ-TD-03).
         original = app.state.store.get_run(fix["run_id"]) or {}
-        body = RunCreate(variant="broken", mode="scripted", **(original.get("test_details") or {}))
+        body = RunCreate(variant="broken", mode="scripted", scenario=scen, **(original.get("test_details") or {}))
         voice_commands = _voice_commands(body)
         store = app.state.store
         url = verifier.start_url(copy)
@@ -570,7 +628,7 @@ def create_app(
                              start_url=url)
                 voice_started = True
                 _execute_voice_run(store, voice_run_id,
-                                   VoiceRunCreate(variant="broken", commands=voice_commands, input_source="typed"),
+                                   VoiceRunCreate(variant="broken", scenario=scen, commands=voice_commands, input_source="typed"),
                                    None, start_url=url)
             finally:
                 if not voice_started:  # never leave the voice run "running" when it could not start
@@ -579,8 +637,8 @@ def create_app(
                 limiter.release()
 
         try:
-            store.insert_running(run_id, "broken", "scripted", body.test_details())
-            store.insert_running(voice_run_id, "broken", "scripted")
+            store.insert_running(run_id, "broken", "scripted", body.test_details(), scen)
+            store.insert_running(voice_run_id, "broken", "scripted", None, scen)
             app.state.fixes.link_run(fix["fix_id"], kind, run_id, voice_run_id)
             threading.Thread(target=both, daemon=True, name=f"{kind}-{run_id[:8]}").start()
         except Exception:
@@ -641,8 +699,9 @@ VOICE_REPLAY = ('type "Test Recipient" in Recipient', "type 10.00 in Amount", "c
 
 def _voice_commands(body: RunCreate) -> list[str]:
     """The voice replay types the original run's details when the tester typed them, else VOICE_REPLAY."""
+    submit = f"click {get_scenario(body.scenario).submit_label}"
     if body.test_details() is None:
-        return list(VOICE_REPLAY)
+        return [VOICE_REPLAY[0], VOICE_REPLAY[1], submit]
 
     def quoted(v: str) -> str:
         return f"'{v}'" if '"' in v and "'" not in v else f'"{v}"'
@@ -652,7 +711,7 @@ def _voice_commands(body: RunCreate) -> list[str]:
         commands.append(f"type {quoted(body.amount)} in Amount")
     if body.reference:
         commands.append(f"type {quoted(body.reference)} in Reference")
-    return commands + ["click Send Payment"]
+    return commands + [submit]
 
 
 def _execute_run(
@@ -673,6 +732,7 @@ def _execute_run(
         config = build_journey_config(
             body.variant,
             body.mode,
+            scenario=body.scenario,
             max_steps=body.max_steps,
             timeout_seconds=body.timeout_seconds,
             artifacts_dir="artifacts/api",
@@ -722,6 +782,7 @@ def _execute_voice_run(store: RunStore, run_id: str, body: VoiceRunCreate, limit
             on_event=lambda event: store.append_event(run_id, event.model_dump(mode="json")),
             run_id=run_id,
             start_url=start_url,
+            scenario=body.scenario,
         )
         status = "error" if result.error else "complete"
         verdict = result.verdict

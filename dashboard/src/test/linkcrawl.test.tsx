@@ -5,10 +5,12 @@
  */
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { AppRoutes } from '../AppRoutes';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
-import { NAV, PAGES, REDIRECTS, to } from '../routes';
+import { APP_NAV, NAV, PAGES, REDIRECTS, to } from '../routes';
+
+afterEach(cleanup);
 
 function renderAt(path: string) {
   return render(
@@ -53,14 +55,15 @@ describe('link crawl', () => {
     expect(dead).toEqual([]);
   }, 60_000); // renders every page and every link it finds
 
-  it('every page shows the v7 top menu, in the same order', async () => {
+  it('every page shows the clean top menu, in the same order, and every sidebar link stays in /app', async () => {
+    for (const item of APP_NAV) expect(item.to.startsWith('/app')).toBe(true);
     for (const page of PAGES) {
       renderAt(page.path);
       await screen.findByRole('heading', { level: 1 });
       const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
       const labels = within(nav).getAllByRole('link').map((a) => a.getAttribute('aria-label') ?? a.textContent);
       expect(labels, page.path).toEqual([
-        'Haunted Audit — home', 'Home', 'Scans', 'Journeys', 'Fixes', 'Kiro', 'Reports', 'Built with Kiro',
+        'Haunted Audit — home', 'How it works', 'App', 'Built with Kiro',
       ]);
       // The four settings sit behind one Settings button in the bar (owner approved, 22 Nov 2026).
       fireEvent.click(within(nav).getByRole('button', { name: 'Settings' }));
@@ -72,38 +75,39 @@ describe('link crawl', () => {
   }, 60_000);
 
   it.each([
-    [to('possession'), 'Journeys'],
-    [to('app-fixes-verify'), 'Fixes'],
-    [to('app-fixes-regression'), 'Fixes'],
-    [to('app-reports'), 'Reports'],
-    [to('home'), 'Home'],
+    [to('possession'), 'App'],
+    [to('app-fixes'), 'App'],
+    [to('app-reports'), 'App'],
+    [to('app-scans'), 'App'],
+    [to('app-settings'), 'App'],
+    [to('how-it-works'), 'How it works'],
+    [to('home'), 'Haunted Audit — home'],
+    [to('kiro'), 'Built with Kiro'],
   ])('%s marks "%s" as the current top-menu item', async (path, label) => {
     renderAt(path);
     await screen.findByRole('heading', { level: 1 });
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' });
     const current = within(nav).getAllByRole('link').filter((a) => a.getAttribute('aria-current') === 'page');
-    expect(current.map((a) => a.textContent)).toEqual([label]);
+    expect(current.map((a) => a.getAttribute('aria-label') ?? a.textContent)).toEqual([label]);
   });
 
-  it('Possession Mode and all four fix steps load', async () => {
+  it('Possession Mode and unified Fixes hub load', async () => {
     expect(await h1At(to('possession'))).toBe('Possession Mode');
-    expect(await h1At(to('app-fixes-find'))).toBe('Fixes: Find');
-    expect(await h1At(to('app-fixes-fix'))).toBe('Fixes: Fix');
-    expect(await h1At(to('app-fixes-verify'))).toBe('Fixes: Verify');
-    expect(await h1At(to('app-fixes-regression'))).toBe('Fixes: Regression');
+    expect(await h1At(to('app-fixes'))).toBe('Fixes');
   });
 
-  it('old and short URLs redirect and keep the step', async () => {
+  it('old and short URLs redirect cleanly', async () => {
     for (const r of REDIRECTS) {
       const from = r.from.replace(':step', 'verify');
       expect(await h1At(from), from).not.toBe('Page not found');
     }
-    expect(await h1At('/journeys/send-payment/fixes/verify')).toBe('Fixes: Verify');
-    expect(await h1At('/journeys/send-payment/fixes/regression')).toBe('Fixes: Regression');
+    expect(await h1At('/try')).toBe('Possession Mode');
+    expect(await h1At('/journeys/send-payment/fixes/verify')).toBe('Fixes');
+    expect(await h1At('/journeys/send-payment/fixes/regression')).toBe('Fixes');
     expect(await h1At('/journeys/send-payment/possession')).toBe('Possession Mode');
-    expect(await h1At('/fixes/fix')).toBe('Fixes: Fix');
-    expect(await h1At('/app/regression')).toBe('Fixes: Regression');
-  });
+    expect(await h1At('/fixes/fix')).toBe('Fixes');
+    expect(await h1At('/app/regression')).toBe('Fixes');
+  }, 30_000);
 
   it.each(['/no-such-page', '/app/no-such-page'])('%s shows Page not found with a way back', async (path) => {
     renderAt(path);

@@ -11,14 +11,14 @@ Where things live. Match by purpose; do not move files to fit an older plan.
 | `fixtures/haunted_bank/` | the test bank page (`?variant=broken` or `fixed`) |
 | `dashboard/` | Vite + React app and its tests |
 | `evals/cases.yaml` | one case per planted barrier and per failure seen |
-| `docs/` | `devlog.md`, `decision-log.md`, `evidence.md`, plans |
-| `scripts/` | helper scripts (seed export, container smoke test) |
-| `.kiro/steering/` | rules Kiro reads on every request |
-| `.kiro/specs/` | one folder per feature: requirements, design, tasks |
-| `.kiro/agents/` | the seven agent files |
-| `.kiro/hooks/` | hooks and `.kiro/scripts/` for their scripts |
-
-Placeholders (a README only, no code yet): `backend/`, `bank/`, `prompts/`, `skills/`, `power/`, `tests/journeys/`, `tests/unit/`.
+| `docs/` | `devlog.md`, `decision-log.md`, `evidence.md`, archived notes (`docs/archive/`), plans |
+| `scripts/` | helper scripts (seed export, planted export, container smoke test) |
+| `.kiro/` | steering, specs, agents, hooks, skills, and scripts |
+| `backend/` | `mcp_server.py` and `scan_file.py` (shared with `power/server/`) |
+| `bank/` | `PLANTED.md` barrier answer key |
+| `prompts/` | agent prompt templates |
+| `power/` | Kiro Power package (`mcp.json`, `hooks/`, `server/`, `skills/`) |
+| `tests/` | `journeys/` Playwright regression tests and `unit/` Python unit tests |
 
 Rules:
 - Keep the existing layout. Say so in the pull request if a task needs a new folder.

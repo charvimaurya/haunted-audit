@@ -172,16 +172,16 @@ VALIDATION = [
     ("   ", "50.00", "Enter a recipient.", None),
     ("A" * 61, "50.00", "Recipient must be 60 characters or fewer.", None),
     ("Alex Carter", "", None, "Enter an amount."),
-    ("Alex Carter", "50", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "50.0", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "50.000", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "0.00", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "-5.00", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "5e1", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "abc", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
-    ("Alex Carter", "050.00", None, "Enter the amount as a positive number with two decimals, for example 50.00."),
+    ("Alex Carter", "50.000", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "0", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "0.00", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "-5.00", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "5e1", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "abc", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "050", None, "Enter whole euros or cents, like 90 or 90.55."),
+    ("Alex Carter", "050.00", None, "Enter whole euros or cents, like 90 or 90.55."),
     ("Alex Carter", "1000.01", None, "The amount is more than your balance (EUR 1000.00)."),
-    ("", "abc", "Enter a recipient.", "Enter the amount as a positive number with two decimals, for example 50.00."),
+    ("", "abc", "Enter a recipient.", "Enter whole euros or cents, like 90 or 90.55."),
 ]
 
 
@@ -199,7 +199,7 @@ def test_validation_messages(browser, base_url, variant, recipient, amount, want
     context.close()
 
 
-@pytest.mark.parametrize("valid", [("Alex Carter", "50.00"), ("A" * 60, "0.01"), ("Alex", "1000.00")])
+@pytest.mark.parametrize("valid", [("Alex Carter", "50.00"), ("Alex Carter", "90"), ("Alex Carter", "90.5"), ("A" * 60, "0.01"), ("Alex", "1000.00")])
 def test_valid_input_is_accepted(browser, base_url, valid) -> None:
     context, page, _ = open_bank(browser, base_url, "broken")
     fill(page, *valid)

@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { axe } from 'jest-axe';
 import { describe, it, expect } from 'vitest';
-import { HeroSection } from '../components/HeroSection';
+import { HeroSection } from '../components/hero/HeroSection';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
 
 describe('hero castle', () => {

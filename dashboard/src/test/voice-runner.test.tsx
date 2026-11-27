@@ -7,7 +7,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { VoiceAgentPanel } from '../components/VoiceAgentPanel';
+import { VoiceAgentPanel } from '../components/journey/VoiceAgentPanel';
 import { RunContext, type RunValue } from '../runs/runContext';
 import { commandsFrom } from '../voice/useVoiceRun';
 

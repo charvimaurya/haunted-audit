@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PipelineSection } from '../components/PipelineSection';
+import { PipelineSection } from '../components/fixes/PipelineSection';
 import { FixProvider } from '../fixes/FixProvider';
 import { useFix, type Fix } from '../fixes/fixContext';
 import { RunContext, type RunValue } from '../runs/runContext';

@@ -21,7 +21,11 @@ import json
 from agent.keyboard_agent.models import FocusSnapshot, JourneyConfig
 from agent.keyboard_agent.tools import KeyboardSession
 
-_SUBMIT_TOKENS = ("send", "pay", "submit", "transfer")
+_SUBMIT_TOKENS = (
+    "send", "pay", "submit", "transfer", "complete", "order",
+    "confirm", "visit", "request", "invite", "renewal", "enrollment",
+    "dispute", "cancellation",
+)
 
 
 def run_scripted_walker(session: KeyboardSession, config: JourneyConfig) -> None:

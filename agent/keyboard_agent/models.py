@@ -53,27 +53,29 @@ def clean_detail(value: str | None, *, required: bool) -> str | None:
     return v
 
 
-# The bank's own amount rule (fixtures/haunted_bank/index.html, toCents and validate). An amount the bank
-# refuses can never complete the journey, so it is refused before a run starts instead of ending as
-# BLOCKED / NO_ACTIVATION on the fixed page.
-AMOUNT_PATTERN = re.compile(r"^(0|[1-9]\d*)\.\d{2}$", re.ASCII)
+# The bank's own amount rule (fixtures/haunted_bank/index.html, toCents and validate). Accepts whole
+# euros or up to two decimals (e.g. 90, 90.5, 90.55) and normalizes to two decimals ("90.00").
+AMOUNT_PATTERN = re.compile(r"^(0|[1-9]\d*)(?:\.(\d{1,2}))?$", re.ASCII)
 BANK_START_BALANCE_CENTS = 100_000  # `let balance = 100000;` in the fixture: EUR 1000.00, fresh on every page load
-AMOUNT_HINT = "Use two decimals, like 10.00"
+AMOUNT_HINT = "Whole euros or cents, like 90 or 90.55"
 
 
 def clean_amount(value: str | None, *, required: bool = True) -> str | None:
-    """clean_detail, then the bank's rule: two decimals, more than 0.00, at most the EUR 1000.00 test balance."""
+    """clean_detail, then normalize to two decimals, more than 0.00, at most the EUR 1000.00 test balance."""
     v = clean_detail(value, required=required)
     if v is None:
         return None
-    if not AMOUNT_PATTERN.match(v):
+    m = AMOUNT_PATTERN.match(v)
+    if not m:
         raise ValueError(AMOUNT_HINT)
-    cents = int(v.replace(".", ""))
+    euros, raw_dec = m.group(1), m.group(2) or ""
+    normalized = f"{euros}.{raw_dec.ljust(2, '0')}"
+    cents = int(euros + raw_dec.ljust(2, "0"))
     if cents <= 0:
         raise ValueError(f"must be more than 0.00. {AMOUNT_HINT}")
     if cents > BANK_START_BALANCE_CENTS:
         raise ValueError("must be 1000.00 or less (the test balance)")
-    return v
+    return normalized
 AgentKind = Literal["keyboard", "voice"]
 InputSource = Literal["keyboard", "typed", "speech"]
 

@@ -209,7 +209,17 @@
     // Fake money: whole cents, memory only. Nothing typed here is stored or sent anywhere.
     let balance = 100000;
     const fmt = (cents) => Math.floor(cents / 100) + "." + String(cents % 100).padStart(2, "0");
-    const toCents = (text) => (/^(0|[1-9]\d*)\.\d{2}$/.test(text) ? parseInt(text.replace(".", ""), 10) : null);
+    const AMOUNT_RE = /^(0|[1-9]\d*)(?:\.(\d{1,2}))?$/;
+    const normalizeAmount = (text) => {
+      const m = AMOUNT_RE.exec(text);
+      if (!m) return null;
+      const dec = (m[2] || "").padEnd(2, "0");
+      return { formatted: m[1] + "." + dec, cents: parseInt(m[1] + dec, 10) };
+    };
+    const toCents = (text) => {
+      const n = normalizeAmount(text);
+      return n ? n.cents : null;
+    };
 
     function validate(recipient, amountText, referenceText) {
       const errors = {};
@@ -217,12 +227,13 @@
       const a = amountText.trim();
       if (!r) errors.recipient = "Enter a recipient.";
       else if (r.length > 60) errors.recipient = "Recipient must be 60 characters or fewer.";
-      const cents = a === "" ? null : toCents(a);
+      const parsed = a === "" ? null : normalizeAmount(a);
+      const cents = parsed ? parsed.cents : null;
       if (a === "") errors.amount = "Enter an amount.";
-      else if (cents === null || cents <= 0) errors.amount = "Enter the amount as a positive number with two decimals, for example 50.00.";
+      else if (cents === null || cents <= 0) errors.amount = "Enter whole euros or cents, like 90 or 90.55.";
       else if (cents > balance) errors.amount = "The amount is more than your balance (EUR " + fmt(balance) + ").";
       const ref = (referenceText || "").trim();
-      return { errors: errors, cents: cents, recipient: r, amount: a, reference: ref };
+      return { errors: errors, cents: cents, recipient: r, amount: parsed ? parsed.formatted : a, reference: ref };
     }
 
     function showErrors(errors) {

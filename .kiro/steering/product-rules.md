@@ -70,6 +70,7 @@ Rules:
 ## Agent Mode Contract
 
 - Both `"llm"` and `"scripted"` modes must use the same nine keyboard tools and the same checker.
+- Agents act only on the bundled bank; the Ghost Hunter scanner (`POST /scan`) may read a public page (scan-only via `axe-core`, no clicks, no typing, no login), guarded by `agent/api/url_guard.py`.
 - LLM mode uses Amazon Bedrock (Strands Agents SDK). Missing AWS credentials raise `RuntimeError`; no fake token counts or reliability scores are invented.
 - Scripted mode is the deterministic baseline. It always produces the correct verdict and records zero tokens and zero cost.
 

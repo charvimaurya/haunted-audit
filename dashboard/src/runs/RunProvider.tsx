@@ -14,10 +14,20 @@
  * API base URL: VITE_API_URL, default http://127.0.0.1:8000
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { RunNoticeProps } from '../components/RunNotice';
+import type { RunNoticeProps } from '../components/journey/RunNotice';
 import type { AgentMode, JourneyResult, RecordedDetails, RunStatus, StepEvent, TestDetails, Variant } from '../types';
 import { RunContext, type ApiStatus, type RunValue } from './runContext';
 import { recordedDetails, shownRun, type RunRecordLike } from './record';
+import { formatAmount } from '../components/journey/TestDetailsForm';
+import {
+  clearPossessionHistory,
+  readAuditDefaults,
+  readLastSavedResult,
+  readPossessionHistory,
+  savePossessionRun,
+  type SavedPossessionRun,
+} from './possessionHistory';
+import { normalizeScenarioId, type ScenarioId } from './scenarios';
 
 import { API_BASE } from './api';
 const HEALTH_EVERY_MS = 30_000;
@@ -37,18 +47,44 @@ async function checkHealth(): Promise<ApiStatus> {
 }
 
 export function RunProvider({ children }: { children: ReactNode }) {
-  const [variant, setVariant]       = useState<Variant>('broken');
-  const [mode, setMode]             = useState<AgentMode>('scripted');
+  const initialDefaults = useMemo(() => readAuditDefaults(), []);
+  const [scenario, setScenarioState] = useState<ScenarioId>('haunted-bank');
+  const [variant, setVariant]       = useState<Variant>(initialDefaults.variant);
+  const [mode, setMode]             = useState<AgentMode>(initialDefaults.mode);
   const [details, setDetails]       = useState<TestDetails>({ recipient: '', amount: '', reference: '' });
   const [runDetails, setRunDetails] = useState<RecordedDetails | null>(null);
   const [runStatus, setRunStatus]   = useState<RunStatus | null>(null);
-  const [result, setResult]         = useState<JourneyResult | null>(null);
+  const [result, setResult]         = useState<JourneyResult | null>(() => readLastSavedResult());
+  const [history, setHistory]       = useState<SavedPossessionRun[]>(() => readPossessionHistory());
   const [liveEvents, setLiveEvents] = useState<StepEvent[]>([]);
   const [notice, setNotice]         = useState<RunNoticeProps | null>(null);
   const [apiStatus, setApiStatus]   = useState<ApiStatus>('checking');
   const [runError, setRunError]     = useState<string | null>(null);
-  const [voiceResult, setVoiceResult] = useState<JourneyResult | null>(null);
+  const [voiceResult, setVoiceResultState] = useState<JourneyResult | null>(null);
   const sseRef = useRef<EventSource | null>(null);
+
+  const setScenario = useCallback((next: ScenarioId) => {
+    setScenarioState(normalizeScenarioId(next));
+  }, []);
+
+  const setVoiceResult = useCallback(
+    (r: JourneyResult | null) => {
+      setVoiceResultState(r);
+      if (r && !r.error) {
+        setHistory(savePossessionRun(r, normalizeScenarioId(r.scenario ?? scenario)));
+      }
+    },
+    [scenario],
+  );
+
+  const clearHistory = useCallback(() => {
+    clearPossessionHistory();
+    setHistory([]);
+    setResult(null);
+    setRunDetails(null);
+    setRunStatus(null);
+    setVoiceResultState(null);
+  }, []);
 
   // Close the stream only when the whole app goes away, not on page changes
   useEffect(() => () => sseRef.current?.close(), []);
@@ -87,9 +123,11 @@ export function RunProvider({ children }: { children: ReactNode }) {
         // The form's current values: what the tester typed, or text a voice run typed into the bank
         // (only a voice_type step with outcome "done", user-typed-test-details REQ-TD-11). Nothing is made up.
         body: JSON.stringify({
-          variant, mode,
+          scenario,
+          variant,
+          mode,
           recipient: details.recipient.trim(),
-          amount: details.amount.trim(),
+          amount: formatAmount(details.amount) ?? details.amount.trim(),
           ...(details.reference.trim() ? { reference: details.reference.trim() } : {}),
         }),
       });
@@ -132,6 +170,9 @@ export function RunProvider({ children }: { children: ReactNode }) {
             const record = (await r.json()) as RunRecordLike;
             const shown = shownRun(record);
             setResult(shown.result);
+            if (shown.result && !shown.error) {
+              setHistory(savePossessionRun(shown.result, normalizeScenarioId(shown.result.scenario ?? scenario)));
+            }
             setRunDetails(recordedDetails(record));
             setRunError(shown.error);
             setRunStatus(shown.error ? 'error' : 'complete');
@@ -155,12 +196,12 @@ export function RunProvider({ children }: { children: ReactNode }) {
       setApiStatus('offline');
       setRunStatus('error');
     }
-  }, [variant, mode, details]);
+  }, [scenario, variant, mode, details]);
 
   const isRunning = runStatus === 'running';
   const value = useMemo<RunValue>(
-    () => ({ variant, mode, details, setDetails, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setVariant, setMode, run, voiceResult, setVoiceResult }),
-    [variant, mode, details, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, run, voiceResult],
+    () => ({ scenario, variant, mode, details, setDetails, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setScenario, setVariant, setMode, run, voiceResult, setVoiceResult, history, clearHistory }),
+    [scenario, variant, mode, details, runDetails, runStatus, result, liveEvents, notice, isRunning, apiStatus, runError, setScenario, run, voiceResult, setVoiceResult, history, clearHistory],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

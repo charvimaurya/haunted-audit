@@ -1,85 +1,84 @@
+import { heroui } from '@heroui/react';
+
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
+  content: [
+    './index.html',
+    './src/**/*.{ts,tsx}',
+    './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
-        // ── Base ──────────────────────────────────────────────────────────────
         base: {
-          DEFAULT: '#0d0714',   // page background
-          panel:   '#1a0f2e',   // card / panel fill
-          surface: '#231540',   // slightly elevated surface
-          line:    '#3b2060',   // subtle dividers
+          panel:   'var(--color-panel)',
+          surface: 'var(--color-surface)',
+          line:    'var(--color-line)',
         },
-        // ── Violet accent (neon glow) ─────────────────────────────────────────
         violet: {
           50:  '#f5f0ff',
           100: '#ede5ff',
           200: '#d9c9ff',
           300: '#bfa3ff',
           400: '#a370ff',
-          500: '#8b46ff',   // primary CTA
-          600: '#7c3aed',   // border glow
+          500: '#8b46ff',
+          600: '#7c3aed',
           700: '#6621d0',
           800: '#551aab',
           900: '#3d1080',
-          neon: '#a855f7',  // hover / focus ring
+          neon: 'var(--color-violet-neon)',
         },
-        // ── Ghost state ───────────────────────────────────────────────────────
         ghost: {
-          ready:    '#c9b6ff',  // purple — waiting
-          blocked:  '#ef4444',  // red    — barrier found
-          verified: '#22c55e',  // green  — checker passed
-          caught:   '#ffffff',  // white  — the returning ghost, caught (v9 Fixes)
+          ready:    'var(--color-ghost-ready)',
+          blocked:  'var(--color-ghost-blocked)',
+          verified: 'var(--color-ghost-verified)',
+          caught:   'var(--color-ghost-caught)',
         },
-        // ── Parchment (The Outcome card) ──────────────────────────────────────
         parchment: {
           DEFAULT: '#f5e6c8',
           dark:    '#e8d0a0',
           ink:     '#3b2a0e',
         },
-        // ── Text ─────────────────────────────────────────────────────────────
         ink: {
-          DEFAULT: '#f0e8ff',   // primary text
-          muted:   '#9d89b8',   // secondary / labels
-          faint:   '#9480b2',   // quieter text. Was #6b5a8a (3.27:1 / 3.0:1 / 2.76:1, fails 4.5:1); now 5.66 / 5.20 / 4.78 on base / panel / surface
+          DEFAULT: 'var(--color-ink)',
+          muted:   'var(--color-ink-muted)',
+          faint:   'var(--color-ink-faint)',
         },
-        // ── Possession panel (sampled from design/Haunted_Audit_Final_UI_v7.png, panel 2) ──
-        // value  (x, y in the PNG, flat 7x7 median unless noted)
         bank: {
-          bar:         '#090c1a', // breadcrumb bar            (1055, 58)
-          rail:        '#0a0c1a', // right checklist card      (1275, 112)
-          card:        '#111626', // payment form card         (1055, 100)
-          line:        '#1e2437', // card outline, 1px line    (955, 86)
-          sidebar:     '#050d17', // bank sidebar card         (755, 270)
-          input:       '#151a2b', // text input fill           (985, 165)
-          nav:         '#10223c', // active nav item fill      (799, 178)
-          'nav-line':  '#144775', // active nav item outline   (702, 178) 1px line
-          'dash':      '#c83f4b', // dashed outline of Send Payment (848, 262) 1px line
-          'dash-fill': '#30243d', // Send Payment fill         (870, 256)
-          tip:         '#0f0f1f', // Journey Blocked card fill (1140, 300)
-          'tip-line':  '#561931', // Journey Blocked outline   (997, 290) 1px line
-          barrier:     '#2f0e21', // Barrier Detected fill     (1178, 268)
-          'barrier-line': '#8f223a', // Barrier Detected outline (1173, 268) 1px line
+          bar:            'var(--bank-bar)',
+          rail:           'var(--bank-rail)',
+          card:           'var(--bank-card)',
+          line:           'var(--bank-line)',
+          sidebar:        'var(--bank-sidebar)',
+          input:          'var(--bank-input)',
+          nav:            'var(--bank-nav)',
+          'nav-line':     'var(--bank-nav-line)',
+          dash:           '#c83f4b',
+          'dash-fill':    'var(--bank-dash-fill)',
+          tip:            'var(--bank-tip)',
+          'tip-line':     '#561931',
+          barrier:        'var(--bank-barrier)',
+          'barrier-line': '#8f223a',
         },
-        // ── Status aliases ────────────────────────────────────────────────────
         blocked:  '#ef4444',
         verified: '#22c55e',
         warning:  '#f59e0b',
       },
       fontFamily: {
-        display: ['"MedievalSharp"', '"Uncial Antiqua"', 'Papyrus', 'fantasy'],
-        ui:      ['"Inter"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans:    ['"Bricolage Grotesque Variable"', '"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Rubik Wet Paint"', 'fantasy'],
+        ui:      ['"Bricolage Grotesque Variable"', '"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono:    ['"JetBrains Mono"', '"Fira Code"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        glow:        '0 0 12px 2px rgba(168,85,247,0.45)',
-        'glow-sm':   '0 0 6px 1px rgba(168,85,247,0.30)',
-        'glow-red':  '0 0 10px 2px rgba(239,68,68,0.40)',
-        'glow-green':'0 0 10px 2px rgba(34,197,94,0.35)',
+        glow:         'var(--shadow-glow)',
+        'glow-sm':    '0 0 8px 1px rgba(168,85,247,0.28)',
+        'glow-red':   '0 0 10px 2px rgba(239,68,68,0.40)',
+        'glow-green': '0 0 10px 2px rgba(34,197,94,0.35)',
       },
       borderColor: {
-        panel: '#3b2060',
+        panel: 'var(--color-line)',
         glow:  '#7c3aed',
       },
       keyframes: {
@@ -89,19 +88,49 @@ export default {
         },
         'ghost-float': {
           '0%,100%': { transform: 'translateY(0px)' },
-          '50%':     { transform: 'translateY(-8px)' },
+          '50%':     { transform: 'translateY(-10px)' },
         },
         'glow-pulse': {
-          '0%,100%': { boxShadow: '0 0 8px 1px rgba(168,85,247,0.4)' },
-          '50%':     { boxShadow: '0 0 18px 4px rgba(168,85,247,0.7)' },
+          '0%,100%': { boxShadow: '0 0 12px 1px rgba(139,92,246,0.45)' },
+          '50%':     { boxShadow: '0 0 26px 6px rgba(168,85,247,0.78)' },
         },
       },
       animation: {
-        shimmer:     'shimmer 2s ease-in-out infinite',
-        float:       'ghost-float 3s ease-in-out infinite',
-        'glow-pulse':'glow-pulse 2.5s ease-in-out infinite',
+        shimmer:      'shimmer 2.2s ease-in-out infinite',
+        float:        'ghost-float 3.4s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 2.6s ease-in-out infinite',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    heroui({
+      defaultTheme: 'dark',
+      themes: {
+        dark: {
+          colors: {
+            background: '#08060f',
+            foreground: '#eef0ff',
+            divider: '#2b3254',
+            content1: { DEFAULT: '#15102b', foreground: '#eef0ff' },
+            content2: { DEFAULT: '#171c34', foreground: '#eef0ff' },
+            content3: { DEFAULT: '#1b203f', foreground: '#eef0ff' },
+            content4: { DEFAULT: '#22284d', foreground: '#eef0ff' },
+            default: {
+              DEFAULT: '#1e2340',
+              50: '#0d1022',
+              100: '#14172f',
+              200: '#1e2340',
+              300: '#2b3254',
+              foreground: '#eef0ff',
+            },
+            primary: { DEFAULT: '#8b5cf6', foreground: '#ffffff' },
+            secondary: { DEFAULT: '#7c3aed', foreground: '#ffffff' },
+            success: { DEFAULT: '#22c55e', foreground: '#ffffff' },
+            danger: { DEFAULT: '#ef4444', foreground: '#ffffff' },
+            warning: { DEFAULT: '#f59e0b', foreground: '#1f1408' },
+          },
+        },
+      },
+    }),
+  ],
 };

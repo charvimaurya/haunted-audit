@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { describe, expect, it } from 'vitest';
-import { RunNotice } from '../components/RunNotice';
+import { RunNotice } from '../components/journey/RunNotice';
 
 expect.extend(toHaveNoViolations);
 

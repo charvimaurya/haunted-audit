@@ -11,14 +11,14 @@ No test person's name appears anywhere on a screen until the tester types it. Th
 ## Requirements
 **REQ-TD-01: Run setup form.**
 - Before a run, Possession Mode and the Try page show a "Test details" group with three labelled, empty fields: Recipient, Amount, Reference. The hint "Use made-up details. This is a test bank." is under the group heading.
-- Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 10.00", "Optional, e.g. Test payment". No placeholder looks like a real person.
+- Labels are always visible. A placeholder is a hint, never the label. Placeholders are generic: "Test recipient name", "e.g. 90 or 90.55", "Optional, e.g. Test payment". No placeholder looks like a real person.
 - No field is ever filled in by the app, except the one case in REQ-TD-11 (text a voice run actually typed into the bank).
 - Reference is optional. Recipient and Amount are required.
-- Amount follows the bank's own rule: two decimals, more than 0.00, at most 1000.00 (the test balance). Its hint says "Use two decimals, like 10.00, up to 1000.00." (added 24 Nov after fail-008: an amount like "100" reached the bank and the fixed page ended BLOCKED / NO_ACTIVATION).
+- Amount follows the bank's own rule: whole euros or up to two decimals (`90`, `90.5`, `90.55`, formatted into two decimals `90.00`, `90.50`, `90.55`), more than 0.00, at most 1000.00 (the test balance). Its hint says "Whole euros or cents, like 90 or 90.55, up to 1000.00." (updated under item 42 / amount-whole-euros).
 
 **REQ-TD-02: Missing details stop the run.**
 - Run Journey (keyboard) and Run voice journey (voice, when its commands come from the form) check Recipient, then Amount.
-- If Recipient is empty, the run does not start. Under the field: a cross icon and "Type a made-up name to continue". For Amount: "Type a made-up amount to continue", and for an amount the bank would refuse: "Use two decimals, like 10.00". The message is tied to the field (`aria-describedby`, `aria-invalid`) and announced (`role="alert"`). Focus moves to the first field with a problem.
+- If Recipient is empty, the run does not start. Under the field: a cross icon and "Type a made-up name to continue". For Amount: "Type a made-up amount to continue", and for an amount the bank would refuse: "Whole euros or cents, like 90 or 90.55". The message is tied to the field (`aria-describedby`, `aria-invalid`) and announced (`role="alert"`). Focus moves to the first field with a problem.
 - Possess This App opens the setup form (it is a link to Try). It never starts a run, so it can never start one without the details.
 
 **REQ-TD-03: The typed values are what the agents type.**

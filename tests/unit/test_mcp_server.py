@@ -26,7 +26,7 @@ def test_scan_page_accepts_file_url_inside_repo():
 
 
 def test_scan_page_clean_file_has_no_findings():
-    assert ms.scan_page_impl("dashboard/src/components/RunControls.tsx")["findings"] == []
+    assert ms.scan_page_impl("dashboard/src/components/journey/RunControls.tsx")["findings"] == []
 
 
 @pytest.mark.parametrize("target,words", [

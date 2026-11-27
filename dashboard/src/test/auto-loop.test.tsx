@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AutoLoopCard } from '../components/AutoLoopCard';
+import { AutoLoopCard } from '../components/fixes/AutoLoopCard';
 
 expect.extend(toHaveNoViolations);
 

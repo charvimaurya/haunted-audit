@@ -1,13 +1,12 @@
 """Haunted Audit MCP server (stdio).
 
 Tools:
-    scan_page(target)  Scan one .html or .tsx file in this workspace for form fields with no label.
-                       Same rule and same finding shape as the scan-on-save hook (backend/scan_file.py).
+    scan_page(target)             Scan one .html or .tsx file in this workspace for form fields with no label.
+    run_journey(variant, target)  Run the scripted keyboard payment journey on the bundled Haunted Bank only.
 
-Not here yet: exorcise_page(finding_id). It needs the Exorcist agent, which does not exist
-(see docs/waiting-on.md).
-
-Run: python3 backend/mcp_server.py   (Kiro starts it from .kiro/settings/mcp.json)
+Run:
+    macOS / Linux: .venv/bin/python backend/mcp_server.py
+    Windows:       .venv\\Scripts\\python backend/mcp_server.py   (or py -3 backend/mcp_server.py)
 Spec: .kiro/specs/mcp-server-power/
 """
 from __future__ import annotations
@@ -27,8 +26,9 @@ server = MCPServer(
     name="haunted-audit",
     instructions=(
         "Haunted Audit accessibility tools. scan_page reads one .html or .tsx file in this workspace "
-        "and returns form fields that have no accessible name. It never fetches a web page and never "
-        "changes a file. A person approves any fix."
+        "and returns form fields that have no accessible name. run_journey runs the scripted keyboard "
+        "payment journey on the bundled Haunted Bank fixture (broken or fixed) and refuses web URLs. "
+        "It never changes source files; a person approves any fix."
     ),
 )
 
@@ -67,6 +67,31 @@ def scan_page_impl(target: str) -> dict:
     return {"file": rel, "findings": sf.scan_file(path)}
 
 
+def run_journey_impl(variant: str = "broken", target: str | None = None) -> dict:
+    """Run the scripted keyboard payment journey on the bundled Haunted Bank fixture only."""
+    if target is not None and str(target).strip():
+        raise ValueError("run_journey only runs on the bundled Haunted Bank. Web URLs and external targets are refused.")
+    v = (variant or "broken").strip().lower()
+    if v not in ("broken", "fixed"):
+        raise ValueError("variant must be 'broken' or 'fixed'.")
+
+    root = sf.REPO.resolve()
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+
+    from agent.keyboard_agent.runner import build_journey_config, run_journey as exec_journey  # noqa: E402
+
+    cfg = build_journey_config(variant=v, mode="scripted")
+    res = exec_journey(cfg)
+    return {
+        "run_id": res.run_id,
+        "variant": v,
+        "verdict": res.verdict,
+        "reason_code": res.reason_code,
+        "blocked_element": res.blocked_element.selector if res.blocked_element else None,
+    }
+
+
 @server.tool(
     name="scan_page",
     description=(
@@ -80,6 +105,21 @@ def scan_page(target: str) -> dict:
     try:
         return scan_page_impl(target)
     except ValueError as exc:  # a refusal, not a crash: the sentence reaches the user
+        raise ToolError(str(exc)) from None
+
+
+@server.tool(
+    name="run_journey",
+    description=(
+        "Run the scripted keyboard payment journey on the bundled Haunted Bank fixture "
+        "(variant: 'broken' or 'fixed'). Refuses any external web URL or non-bundled target. "
+        "Returns {run_id, variant, verdict, reason_code, blocked_element}."
+    ),
+)
+def run_journey(variant: str = "broken", target: str | None = None) -> dict:
+    try:
+        return run_journey_impl(variant=variant, target=target)
+    except ValueError as exc:
         raise ToolError(str(exc)) from None
 
 

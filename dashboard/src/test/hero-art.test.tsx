@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it } from 'vitest';
-import { HeroSection } from '../components/HeroSection';
+import { HeroSection } from '../components/hero/HeroSection';
 import { CALM_STORAGE_KEY } from '../immersion/motion';
 import { ImmersionProvider } from '../immersion/ImmersionContext';
 

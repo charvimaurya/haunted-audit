@@ -1,17 +1,12 @@
-import { HeroSection } from '../components/HeroSection';
+import { HeroSection } from '../components/hero/HeroSection';
 import { pageFor, to } from '../routes';
 
-/**
- * Home: marketing hero only. Other product panels live on their own routes —
- * scrolling this page must not reveal Ghost Hunt, Pipeline, or Results.
- */
 export default function Home() {
   const page = pageFor('/');
   return (
-    <>
-      <HeroSection to={to('try')} />
-      {/* The page description is for screen readers; v7 shows no caption (docs/ui-fidelity.md D3). */}
+    <div className="flex flex-1 min-h-0 flex-col items-center justify-start lg:justify-center px-1 sm:px-2 py-1 sm:py-2">
+      <HeroSection to={to('possession')} />
       {page && <p className="sr-only">{page.shows}</p>}
-    </>
+    </div>
   );
 }
