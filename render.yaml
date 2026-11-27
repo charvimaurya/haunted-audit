@@ -7,6 +7,12 @@ services:
     envVars:
       - key: HAUNTED_AUDIT_DB
         value: /tmp/runs.db
+      - key: LLM_PROVIDER
+        value: auto
+      - key: GROQ_MODEL_ID
+        value: qwen/qwen3.8-27b
+      - key: GROQ_API_KEY
+        sync: false
       - key: LLM_ENABLED
         value: "false"
       - key: CORS_ALLOWED_ORIGINS

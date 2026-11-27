@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "haunted-audit": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "HAUNTED_AUDIT_API_URL": "http://127.0.0.1:8000",
+        "HAUNTED_AUDIT_DEV_SERVER_URL": "http://localhost:5173",
+        "HAUNTED_AUDIT_DASHBOARD_DIR": "${workspaceFolder}/dashboard"
+      },
+      "disabled": false
+    }
+  }
+}

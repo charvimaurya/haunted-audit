@@ -288,7 +288,7 @@ export function PossessionMode({
         </nav>
         <div className="flex flex-wrap items-center gap-2">
           <a
-            href={`${API_BASE}/sandbox/${encodeURIComponent(activeScenario.id)}?variant=${encodeURIComponent(effectiveVariant)}${result?.run_id ? `&run_id=${encodeURIComponent(result.run_id)}` : ''}`}
+            href={`${API_BASE}/sandbox/${encodeURIComponent(activeScenario.id)}?variant=${encodeURIComponent(effectiveVariant)}${result?.run_id ? `&run_id=${encodeURIComponent(result.run_id)}${typeof window !== 'undefined' ? `&return_to=${encodeURIComponent(`${window.location.origin}/app/fixes/${result.run_id}`)}` : ''}` : ''}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border border-base-line bg-base-surface/80 px-2.5 py-1 text-xs font-semibold text-violet-300 hover:border-violet-neon hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-neon"

@@ -104,8 +104,24 @@ export function PossessionJourney({ pageId = 'possession' }: { pageId?: 'possess
     setVoiceResult(null);
     const liveTab =
       autoOpenSandbox && typeof window !== 'undefined'
-        ? window.open('about:blank', 'haunted_live_sandbox')
+        ? window.open('', '_blank')
         : null;
+    if (liveTab) {
+      try {
+        liveTab.document.open();
+        liveTab.document.write(
+          '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Launching Haunted Audit Sandbox…</title>' +
+          '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#120b24;color:#f3efff;font:600 16px/1.5 ui-sans-serif,system-ui,sans-serif}' +
+          '.box{max-width:420px;padding:24px;border:1px solid #4a3270;border-radius:16px;background:#1b1133;text-align:center}' +
+          '.sub{margin-top:8px;font-size:13px;font-weight:400;color:#cbbbe0}</style></head>' +
+          '<body><div class="box"><div>Starting Haunted Audit sandbox…</div>' +
+          '<div class="sub">Connecting to the backend runner and loading the live walkthrough.</div></div></body></html>',
+        );
+        liveTab.document.close();
+      } catch {
+        /* ignore cross-origin or restricted popup document */
+      }
+    }
     return run({ liveTab });
   }
 

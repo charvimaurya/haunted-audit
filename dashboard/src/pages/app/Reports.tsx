@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { BarChart3, Clock, Ghost, History, Layers, ShieldCheck, Target, Trash2, Wrench } from 'lucide-react';
 import { VerifierEvidence } from '../../components/fixes/VerifierEvidence';
 import { Page } from '../../components/layout/Page';
+import { NightWatchSection } from '../../components/results/NightWatchSection';
 import { OutcomeCard } from '../../components/results/OutcomeCard';
 import { ResultState } from '../../components/results/ResultState';
 import { useFix } from '../../fixes/fixContext';
@@ -317,6 +318,8 @@ export default function Reports() {
           )}
         </CardBody>
       </Card>
+
+      <NightWatchSection />
     </Page>
   );
 }

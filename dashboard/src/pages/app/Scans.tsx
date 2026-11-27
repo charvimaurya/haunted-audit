@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
-import { ArrowRight, Download, ExternalLink, FileDown, Globe, ScanSearch, ShieldAlert } from 'lucide-react';
+import { ArrowRight, Download, FileDown, Globe, ScanSearch, ShieldAlert } from 'lucide-react';
 import { GhostMascot } from '../../components/ghost/GhostMascot';
 import { Page } from '../../components/layout/Page';
 import { API_BASE } from '../../runs/api';
@@ -81,19 +81,11 @@ function openPrintablePdfReport(res: ScanResponse) {
 export default function Scans() {
   const [urlInput, setUrlInput] = useState('');
   const [auditType, setAuditType] = useState<AuditType>('all');
-  const [openInNewTab, setOpenInNewTab] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
 
   async function runScan(payload: { variant?: 'broken' | 'fixed'; url?: string }) {
-    if (openInNewTab) {
-      if (payload.url) {
-        window.open(payload.url, '_blank', 'noopener,noreferrer');
-      } else {
-        window.open(`${API_BASE}/sandbox/haunted-bank?variant=${payload.variant ?? 'broken'}`, '_blank', 'noopener,noreferrer');
-      }
-    }
     setLoading(true);
     setError(null);
     try {
@@ -129,7 +121,7 @@ export default function Scans() {
         </CardHeader>
         <CardBody className="flex flex-col gap-4 px-6 pb-6">
           <p className="m-0 text-base text-ink-muted">
-            Choose an accessibility focus, scan a live public URL or Haunted Bank, export a PDF/JSON QA report, or open the target page alongside Ghost Hunter.
+            Choose an accessibility focus, scan a live public URL or Haunted Bank, and export a PDF/JSON QA report.
           </p>
 
           <form
@@ -192,15 +184,6 @@ export default function Scans() {
               >
                 Scan Haunted Bank
               </Button>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-base-line bg-base px-3 py-2 text-xs font-medium text-ink-muted hover:text-white">
-                <input
-                  type="checkbox"
-                  checked={openInNewTab}
-                  onChange={(e) => setOpenInNewTab(e.target.checked)}
-                  className="h-3.5 w-3.5 accent-violet-500"
-                />
-                <span>Also open target URL in new tab</span>
-              </label>
             </div>
           </form>
 
@@ -253,17 +236,6 @@ export default function Scans() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {scanResult.target.startsWith('http') && (
-                    <a
-                      href={scanResult.target}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-base-line bg-base px-3 text-xs font-semibold text-white hover:border-violet-neon"
-                    >
-                      <span>Open Target</span>
-                      <ExternalLink size={13} aria-hidden="true" />
-                    </a>
-                  )}
                   <Button
                     type="button"
                     size="sm"

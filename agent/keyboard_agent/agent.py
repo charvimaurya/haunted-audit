@@ -45,14 +45,30 @@ def build_user_prompt(config: JourneyConfig) -> str:
 
 
 def run_llm_agent(session: KeyboardSession, config: JourneyConfig) -> TokenUsage:
-    """Run one Claude attempt. Raises if AWS credentials are missing.
-
-    A missing credential is a failed run, not a number we invent.
-    """
+    """Run one LLM attempt via Groq (if configured / selected) or Amazon Bedrock."""
     from dotenv import load_dotenv
 
     load_dotenv()
     prompt = build_user_prompt(config)
+    from agent.keyboard_agent.groq_client import groq_config, resolved_provider
+
+    provider = resolved_provider()
+    if provider == "groq":
+        api_key, base_url, model_id = groq_config()
+        if not api_key:
+            raise RuntimeError(
+                "GROQ_API_KEY is not configured. Set GROQ_API_KEY in .env (free at console.groq.com), "
+                "or set LLM_PROVIDER=bedrock with AWS credentials."
+            )
+        return _run_groq_agent(
+            session,
+            config,
+            prompt=prompt,
+            api_key=api_key,
+            base_url=base_url,
+            model_id=model_id,
+        )
+
     model_id = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")
     region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
     temperature = float(os.getenv("BEDROCK_TEMPERATURE", "0.1"))
@@ -76,6 +92,90 @@ def run_llm_agent(session: KeyboardSession, config: JourneyConfig) -> TokenUsage
     )
     result = agent(prompt)
     return extract_token_usage(result)
+
+
+def _trim_messages(messages: list[dict], keep_recent: int = 8) -> list[dict]:
+    """Keep system+goal prompt plus the most recent complete assistant/tool turns.
+
+    Pruning older DOM snapshots keeps Groq free-tier requests under 7,000 ITPM.
+    """
+    if len(messages) <= 2 + keep_recent:
+        return messages
+    start = len(messages) - keep_recent
+    while start < len(messages) and messages[start].get("role") != "assistant":
+        start += 1
+    if start >= len(messages):
+        return messages[:2]
+    return [*messages[:2], *messages[start:]]
+
+
+def _run_groq_agent(
+    session: KeyboardSession,
+    config: JourneyConfig,
+    *,
+    prompt: str,
+    api_key: str,
+    base_url: str,
+    model_id: str,
+    client=None,
+) -> TokenUsage:
+    from agent.keyboard_agent.groq_client import (
+        KEYBOARD_TOOL_SCHEMAS,
+        chat_completion,
+        dispatch_keyboard_tool,
+    )
+
+    temperature = float(os.getenv("GROQ_TEMPERATURE", os.getenv("BEDROCK_TEMPERATURE", "0.1")))
+    max_tokens = int(os.getenv("GROQ_MAX_TOKENS", os.getenv("BEDROCK_MAX_TOKENS", "1024")))
+    messages: list[dict] = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": prompt},
+    ]
+    in_tok = 0
+    out_tok = 0
+    tot_tok = 0
+    max_turns = max(config.max_steps + 4, 30)
+
+    for _turn in range(max_turns):
+        if session.should_stop():
+            break
+        data = chat_completion(
+            _trim_messages(messages),
+            api_key=api_key,
+            base_url=base_url,
+            model_id=model_id,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=KEYBOARD_TOOL_SCHEMAS,
+            client=client,
+        )
+        usage = data.get("usage") or {}
+        in_tok += int(usage.get("prompt_tokens") or 0)
+        out_tok += int(usage.get("completion_tokens") or 0)
+        tot_tok += int(usage.get("total_tokens") or (int(usage.get("prompt_tokens") or 0) + int(usage.get("completion_tokens") or 0)))
+
+        choices = data.get("choices") or []
+        if not choices:
+            break
+        msg = choices[0].get("message") or {}
+        messages.append(msg)
+        tool_calls = msg.get("tool_calls") or []
+        if not tool_calls:
+            break
+        for tc in tool_calls:
+            fn = tc.get("function") or {}
+            out = dispatch_keyboard_tool(session, str(fn.get("name") or ""), fn.get("arguments"))
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": str(tc.get("id") or ""),
+                    "content": out,
+                }
+            )
+            if session.should_stop():
+                break
+
+    return TokenUsage(input_tokens=in_tok, output_tokens=out_tok, total_tokens=tot_tok)
 
 
 def extract_token_usage(result: object) -> TokenUsage:

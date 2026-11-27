@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agent ./agent
 COPY backend ./backend
+COPY night_watch ./night_watch
 COPY fixtures ./fixtures
 COPY docs/evidence-seed.json ./docs/evidence-seed.json
 RUN mkdir -p /app/artifacts && chown -R pwuser:pwuser /app

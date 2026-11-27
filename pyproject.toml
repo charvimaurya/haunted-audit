@@ -28,3 +28,4 @@ include = ["agent*"]
 testpaths = ["agent/tests", "tests/unit"]
 pythonpath = ["."]
 addopts = "-q"
+markers = ["integration: marks tests requiring live browser or backend"]

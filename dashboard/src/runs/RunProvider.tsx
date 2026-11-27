@@ -210,6 +210,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
         setRunStatus('error');
       });
     } catch {
+      if (liveTab && !liveTab.closed) liveTab.close();
       setNotice({
         kind: 'offline',
         message: 'The audit service did not answer. No result is shown. Try again later.',

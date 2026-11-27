@@ -1,0 +1,19 @@
+{
+  "name": "night-watch",
+  "version": "1.0.0",
+  "description": "Night Watch scheduled accessibility regression monitor for Haunted Audit.",
+  "crons": [
+    {
+      "name": "night-watch",
+      "schedule": "0 2 * * *",
+      "timezone": "UTC",
+      "prompt": "Run the Night Watch nightly journey check: execute `python night_watch/run_journeys.py` in the workspace, capture its JSON output, and if `regressions > 0`, activate the regression-summary agent with the JSON as input. If `regressions == 0`, do not activate the regression-summary agent. Exit immediately after logging the summary. Only spend agent tokens when a regression is detected. Do not open pull requests, do not modify source files, do not push commits. Report only."
+    }
+  ],
+  "agents": [
+    {
+      "name": "regression-summary",
+      "promptPath": "night_watch/report_agent/prompt.md"
+    }
+  ]
+}

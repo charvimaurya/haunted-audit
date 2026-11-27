@@ -91,6 +91,9 @@ def build_journey_config(
         + ("Fill the recipient, the amount and the reference" if reference else "Fill the recipient and the amount")
         + f", then activate {scenario_def.submit_label}."
     )
+    from agent.keyboard_agent.groq_client import groq_config, resolved_provider
+
+    using_groq = resolved_provider() == "groq" and bool(groq_config()[0])
     values = {
         "start_url": f"{scen_file.as_uri()}?variant={variant}",
         "goal": goal,
@@ -101,8 +104,8 @@ def build_journey_config(
         "reference": reference,
         "agent_mode": mode,
         "variant": variant,
-        "input_usd_per_mtok": float(os.getenv("BEDROCK_INPUT_USD_PER_MTOK", "3")),
-        "output_usd_per_mtok": float(os.getenv("BEDROCK_OUTPUT_USD_PER_MTOK", "15")),
+        "input_usd_per_mtok": 0.0 if using_groq else float(os.getenv("BEDROCK_INPUT_USD_PER_MTOK", "3")),
+        "output_usd_per_mtok": 0.0 if using_groq else float(os.getenv("BEDROCK_OUTPUT_USD_PER_MTOK", "15")),
     }
     values.update(overrides)
     return JourneyConfig(**values)

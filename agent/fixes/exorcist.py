@@ -94,6 +94,88 @@ def _aws_credentials_error() -> str | None:
     return None
 
 
+def _propose_groq(source: str, finding: dict, *, target_file: str, client=None) -> Proposal:
+    import json
+
+    from agent.keyboard_agent.groq_client import chat_completion, groq_config
+
+    started = time.perf_counter()
+    api_key, base_url, model_id = groq_config()
+    if not api_key:
+        return Proposal(
+            "exorcist_failed",
+            None,
+            None,
+            "GROQ_API_KEY is not configured.",
+            "llm",
+            model_id,
+            None,
+            None,
+            None,
+            (time.perf_counter() - started) * 1000,
+        )
+    sys_prompt = PROMPT_PATH.read_text(encoding="utf-8") + (
+        f"\n\nTarget file path for diff headers: `{target_file}`."
+        '\nRespond ONLY with a JSON object: {"reason": "...", "diff": "..."}.'
+    )
+    user_msg = (
+        f"Finding:\n{json.dumps(finding, indent=2)}\n\n"
+        f"File `{target_file}`:\n```html\n{source}\n```"
+    )
+    raw_content = ""
+    try:
+        data = chat_completion(
+            [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_msg},
+            ],
+            api_key=api_key,
+            base_url=base_url,
+            model_id=model_id,
+            temperature=0.1,
+            max_tokens=1024,
+            response_format={"type": "json_object"},
+            client=client,
+        )
+        usage = data.get("usage") or {}
+        in_tok = int(usage.get("prompt_tokens") or 0)
+        out_tok = int(usage.get("completion_tokens") or 0)
+        raw_content = str(((data.get("choices") or [{}])[0].get("message") or {}).get("content") or "")
+        parsed = json.loads(raw_content)
+        reason = str(parsed.get("reason") or "").strip()[:200]
+        diff = str(parsed.get("diff") or "")
+        if diff and not diff.endswith("\n"):
+            diff += "\n"
+        checked = check(diff, source)
+        return Proposal(
+            "proposed",
+            reason or "Proposed accessibility repair.",
+            checked,
+            None,
+            "llm",
+            model_id,
+            in_tok,
+            out_tok,
+            0.0,
+            (time.perf_counter() - started) * 1000,
+            raw_output=raw_content,
+        )
+    except Exception as exc:
+        return Proposal(
+            "exorcist_failed",
+            None,
+            None,
+            str(exc),
+            "llm",
+            model_id,
+            None,
+            None,
+            None,
+            (time.perf_counter() - started) * 1000,
+            raw_output=raw_content or None,
+        )
+
+
 def propose(finding: dict, mode: str = "scripted", *, scenario: str = "haunted-bank") -> Proposal:
     started = time.perf_counter()
     if mode == "scripted":
@@ -108,7 +190,14 @@ def propose(finding: dict, mode: str = "scripted", *, scenario: str = "haunted-b
         return Proposal("proposed", reason, checked, None, "scripted", None, 0, 0, 0.0,
                         (time.perf_counter() - started) * 1000)
     if mode == "llm":
-        err = _aws_credentials_error() or "The llm Exorcist is not built yet; Bedrock access is needed to build and test it."
+        from agent.keyboard_agent.groq_client import groq_config, resolved_provider
+
+        api_key, _base, _model = groq_config()
+        if resolved_provider() == "groq" and api_key:
+            scen = get_scenario(scenario)
+            return _propose_groq(page_source(scen.rel_path), finding, target_file=scen.rel_path)
+
+        err = _aws_credentials_error() or "The llm Exorcist needs GROQ_API_KEY (free) or AWS Bedrock credentials."
         # Nothing was measured, so usage is null, never 0 (REQ-X-12).
         return Proposal("exorcist_failed", None, None, err, "llm", None, None, None, None,
                         (time.perf_counter() - started) * 1000)

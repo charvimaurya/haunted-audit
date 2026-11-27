@@ -1,0 +1,727 @@
+{
+  "run_id": "089f98a9-2a71-4a22-8c72-ba8d131a970d",
+  "verdict": "PASSED",
+  "reason_code": null,
+  "focus_trail": [
+    {
+      "tag": "body",
+      "role": null,
+      "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+      "selector_hint": "body",
+      "bounding_box": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1280.0,
+        "height": 800.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "accessible_name": "Skip to payment",
+      "selector_hint": "a.skip",
+      "bounding_box": {
+        "x": 12.0,
+        "y": 12.0,
+        "width": 139.125,
+        "height": 35.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "accessible_name": "Dashboard",
+      "selector_hint": "#nav-dashboard",
+      "bounding_box": {
+        "x": 200.0,
+        "y": 99.390625,
+        "width": 77.109375,
+        "height": 21.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "accessible_name": "Accounts",
+      "selector_hint": "#nav-accounts",
+      "bounding_box": {
+        "x": 293.109375,
+        "y": 99.390625,
+        "width": 64.796875,
+        "height": 21.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "accessible_name": "Transactions",
+      "selector_hint": "#nav-transactions",
+      "bounding_box": {
+        "x": 373.90625,
+        "y": 99.390625,
+        "width": 86.59375,
+        "height": 21.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "accessible_name": "See offer",
+      "selector_hint": "#nav-offer",
+      "bounding_box": {
+        "x": 476.5,
+        "y": 99.390625,
+        "width": 62.9375,
+        "height": 21.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "accessible_name": "Recipient",
+      "selector_hint": "#recipient",
+      "bounding_box": {
+        "x": 221.0,
+        "y": 296.390625,
+        "width": 495.59375,
+        "height": 45.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "accessible_name": "Amount (EUR)",
+      "selector_hint": "#amount",
+      "bounding_box": {
+        "x": 221.0,
+        "y": 409.390625,
+        "width": 495.59375,
+        "height": 45.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "accessible_name": "Reference",
+      "selector_hint": "#reference",
+      "bounding_box": {
+        "x": 221.0,
+        "y": 495.390625,
+        "width": 495.59375,
+        "height": 45.0
+      },
+      "is_visible": true
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "accessible_name": "Send Payment",
+      "selector_hint": "#send-payment",
+      "bounding_box": {
+        "x": 221.0,
+        "y": 554.796875,
+        "width": 143.5,
+        "height": 43.1875
+      },
+      "is_visible": true
+    }
+  ],
+  "step_events": [
+    {
+      "step": 1,
+      "tool": "read_page",
+      "args": {},
+      "focused_before": {
+        "tag": "body",
+        "role": null,
+        "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+        "selector_hint": "body",
+        "bounding_box": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1280.0,
+          "height": 800.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "body",
+        "role": null,
+        "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+        "selector_hint": "body",
+        "bounding_box": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1280.0,
+          "height": 800.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:10.584542+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-001-read_page.png"
+    },
+    {
+      "step": 2,
+      "tool": "read_focus",
+      "args": {},
+      "focused_before": {
+        "tag": "body",
+        "role": null,
+        "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+        "selector_hint": "body",
+        "bounding_box": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1280.0,
+          "height": 800.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "body",
+        "role": null,
+        "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+        "selector_hint": "body",
+        "bounding_box": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1280.0,
+          "height": 800.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:10.761675+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-002-read_focus.png"
+    },
+    {
+      "step": 3,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "body",
+        "role": null,
+        "accessible_name": "Skip to payment\n👻\n\nHAUNTED BANK\n\nHaunted Bank - test site\nDashboard\nAccounts\nTransactions\nSee offer\n\nPAYMENTS\n\nSend Payment\n\nMove euros to another customer. Th",
+        "selector_hint": "body",
+        "bounding_box": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1280.0,
+          "height": 800.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Skip to payment",
+        "selector_hint": "a.skip",
+        "bounding_box": {
+          "x": 12.0,
+          "y": 12.0,
+          "width": 139.125,
+          "height": 35.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:11.005545+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-003-press_tab.png"
+    },
+    {
+      "step": 4,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Skip to payment",
+        "selector_hint": "a.skip",
+        "bounding_box": {
+          "x": 12.0,
+          "y": 12.0,
+          "width": 139.125,
+          "height": 35.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Dashboard",
+        "selector_hint": "#nav-dashboard",
+        "bounding_box": {
+          "x": 200.0,
+          "y": 99.390625,
+          "width": 77.109375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:11.312665+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-004-press_tab.png"
+    },
+    {
+      "step": 5,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Dashboard",
+        "selector_hint": "#nav-dashboard",
+        "bounding_box": {
+          "x": 200.0,
+          "y": 99.390625,
+          "width": 77.109375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Accounts",
+        "selector_hint": "#nav-accounts",
+        "bounding_box": {
+          "x": 293.109375,
+          "y": 99.390625,
+          "width": 64.796875,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:11.500341+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-005-press_tab.png"
+    },
+    {
+      "step": 6,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Accounts",
+        "selector_hint": "#nav-accounts",
+        "bounding_box": {
+          "x": 293.109375,
+          "y": 99.390625,
+          "width": 64.796875,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Transactions",
+        "selector_hint": "#nav-transactions",
+        "bounding_box": {
+          "x": 373.90625,
+          "y": 99.390625,
+          "width": 86.59375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:11.744243+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-006-press_tab.png"
+    },
+    {
+      "step": 7,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "Transactions",
+        "selector_hint": "#nav-transactions",
+        "bounding_box": {
+          "x": 373.90625,
+          "y": 99.390625,
+          "width": 86.59375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "See offer",
+        "selector_hint": "#nav-offer",
+        "bounding_box": {
+          "x": 476.5,
+          "y": 99.390625,
+          "width": 62.9375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:11.919115+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-007-press_tab.png"
+    },
+    {
+      "step": 8,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "a",
+        "role": "link",
+        "accessible_name": "See offer",
+        "selector_hint": "#nav-offer",
+        "bounding_box": {
+          "x": 476.5,
+          "y": 99.390625,
+          "width": 62.9375,
+          "height": 21.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Recipient",
+        "selector_hint": "#recipient",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 296.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:12.121055+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-008-press_tab.png"
+    },
+    {
+      "step": 9,
+      "tool": "type_text",
+      "args": {
+        "text": "Alex Carter"
+      },
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Recipient",
+        "selector_hint": "#recipient",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 296.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Recipient",
+        "selector_hint": "#recipient",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 296.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:12.345978+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-009-type_text.png"
+    },
+    {
+      "step": 10,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Recipient",
+        "selector_hint": "#recipient",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 296.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Amount (EUR)",
+        "selector_hint": "#amount",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 409.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:12.514841+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-010-press_tab.png"
+    },
+    {
+      "step": 11,
+      "tool": "type_text",
+      "args": {
+        "text": "50.00"
+      },
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Amount (EUR)",
+        "selector_hint": "#amount",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 409.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Amount (EUR)",
+        "selector_hint": "#amount",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 409.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:12.766583+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-011-type_text.png"
+    },
+    {
+      "step": 12,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Amount (EUR)",
+        "selector_hint": "#amount",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 409.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Reference",
+        "selector_hint": "#reference",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 495.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:13.011433+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-012-press_tab.png"
+    },
+    {
+      "step": 13,
+      "tool": "type_text",
+      "args": {
+        "text": "Electricity bill"
+      },
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Reference",
+        "selector_hint": "#reference",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 495.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Reference",
+        "selector_hint": "#reference",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 495.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:13.234700+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-013-type_text.png"
+    },
+    {
+      "step": 14,
+      "tool": "press_tab",
+      "args": {},
+      "focused_before": {
+        "tag": "input",
+        "role": "textbox",
+        "accessible_name": "Reference",
+        "selector_hint": "#reference",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 495.390625,
+          "width": 495.59375,
+          "height": 45.0
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "button",
+        "role": "button",
+        "accessible_name": "Send Payment",
+        "selector_hint": "#send-payment",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 554.796875,
+          "width": 143.5,
+          "height": 43.1875
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:13.421495+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-014-press_tab.png"
+    },
+    {
+      "step": 15,
+      "tool": "press_enter",
+      "args": {},
+      "focused_before": {
+        "tag": "button",
+        "role": "button",
+        "accessible_name": "Send Payment",
+        "selector_hint": "#send-payment",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 554.796875,
+          "width": 143.5,
+          "height": 43.1875
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "button",
+        "role": "button",
+        "accessible_name": "Send Payment",
+        "selector_hint": "#send-payment",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 554.796875,
+          "width": 143.5,
+          "height": 43.1875
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:13.615233+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-015-press_enter.png"
+    },
+    {
+      "step": 16,
+      "tool": "declare_done",
+      "args": {
+        "outcome": "attempted_complete",
+        "reason": "Filled the recipient, the amount and the reference in tab order and pressed Enter on the send control."
+      },
+      "focused_before": {
+        "tag": "button",
+        "role": "button",
+        "accessible_name": "Send Payment",
+        "selector_hint": "#send-payment",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 554.796875,
+          "width": 143.5,
+          "height": 43.1875
+        },
+        "is_visible": true
+      },
+      "focused_after": {
+        "tag": "button",
+        "role": "button",
+        "accessible_name": "Send Payment",
+        "selector_hint": "#send-payment",
+        "bounding_box": {
+          "x": 221.0,
+          "y": 554.796875,
+          "width": 143.5,
+          "height": 43.1875
+        },
+        "is_visible": true
+      },
+      "timestamp": "2026-11-27T18:48:13.778218+00:00",
+      "screenshot_path": "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-016-declare_done.png"
+    }
+  ],
+  "screenshots": [
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-001-read_page.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-002-read_focus.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-003-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-004-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-005-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-006-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-007-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-008-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-009-type_text.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-010-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-011-type_text.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-012-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-013-type_text.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-014-press_tab.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-015-press_enter.png",
+    "artifacts\\mcp_fixtures\\089f98a9-2a71-4a22-8c72-ba8d131a970d\\step-016-declare_done.png"
+  ],
+  "blocked_element": null,
+  "agent_mode": "scripted",
+  "tokens": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "latency_ms": 15387.538000009954,
+  "cost_usd": 0.0,
+  "agent_claim": "attempted_complete",
+  "agent_claim_reason": "Filled the recipient, the amount and the reference in tab order and pressed Enter on the send control.",
+  "agent_claim_mismatch": false,
+  "target_ever_focused": true,
+  "last_focused_element": {
+    "tag": "button",
+    "role": "button",
+    "accessible_name": "Send Payment",
+    "selector_hint": "#send-payment",
+    "bounding_box": {
+      "x": 221.0,
+      "y": 554.796875,
+      "width": 143.5,
+      "height": 43.1875
+    },
+    "is_visible": true
+  },
+  "skipped_element": null,
+  "variant": "fixed",
+  "goal": "Complete Haunted Bank (Send Payment) of EUR 50.00 for Alex Carter with the reference Electricity bill. Fill the recipient, the amount and the reference, then activate Send Payment.",
+  "stop_reason": "completed",
+  "error": null,
+  "agent_kind": "keyboard",
+  "input_source": "keyboard"
+}

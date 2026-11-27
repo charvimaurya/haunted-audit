@@ -316,3 +316,52 @@ Specs, steering rules, and the axe-on-save hook live in `.kiro/`. Rules decide a
 - **Internal test details.** A direct API call to `POST /runs` without `recipient` and `amount` (pytest, the eval scripts, the command line, Night Watch) still uses one built-in made-up name and amount: `INTERNAL_DEFAULT_DETAILS` in `agent/keyboard_agent/models.py`. That default is never sent to the dashboard as a typed value and never fills in a field. The same name also appears as test input in `agent/tests/` and `agent/eval/run_voice_eval.py`. The full list is in `docs/user-typed-test-details-audit.md`.
 - **Design image.** The frozen v7 design image (`design/Haunted_Audit_Final_UI_v7.png`) shows an example name in the Recipient field. The app does not copy it.
 - **Public URL deploy & Bedrock LLM:** Live cloud deployment and Amazon Bedrock LLM evals are not active offline until AWS/Vercel deployment steps (`docs/handover.md`) are executed with credentials.
+
+## Kiro Integration
+
+The Haunted Audit Power (`mcp_server/` + `.kiro/powers/haunted-audit/`) exposes seven deterministic accessibility tools over MCP stdio (`scan_url`, `scan_file`, `run_journey`, `get_run`, `propose_fix`, `verify_fix`, `list_regression_tests`), paired with `.kiro/skills/` workflows where agents propose patches and humans approve before verification runs on a temporary copy.
+
+### Setup
+
+1. Start the FastAPI backend: `.venv\Scripts\python -m uvicorn agent.api.main:app --host 127.0.0.1 --port 8000`
+2. Start the dashboard dev server: `cd dashboard && npm run dev -- --host 127.0.0.1 --port 5173`
+3. Add the server configuration to `.kiro/settings/mcp.json` (or `~/.kiro/settings/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "haunted-audit": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "HAUNTED_AUDIT_API_URL": "http://127.0.0.1:8000",
+        "HAUNTED_AUDIT_DEV_SERVER_URL": "http://localhost:5173",
+        "HAUNTED_AUDIT_DASHBOARD_DIR": "${workspaceFolder}/dashboard"
+      },
+      "disabled": false
+    }
+  }
+}
+```
+
+4. Reconnect MCP servers in Kiro to inspect the seven tools.
+
+### Skills
+
+| Skill | Purpose |
+| --- | --- |
+| `audit-component` | Scan a modified file route with `scan_file` and group findings by deterministic severity |
+| `keyboard-journey` | Run `run_journey` and poll `get_run` to catch focus/activation barriers |
+| `fix-and-verify` | Call `propose_fix`, pause for explicit human approval, then call `verify_fix` on a temp copy |
+| `regression-guard` | Read committed test status via `list_regression_tests` without running tests |
+
+### Troubleshooting
+
+| Code | Cause | Fix |
+| --- | --- | --- |
+| `SCANNER_UNAVAILABLE` | Node.js < 18 or missing from `PATH` | Install Node.js 20/22 and `npm install --prefix dashboard` |
+| `DEV_SERVER_OFFLINE` | Vite dev server not listening on `HAUNTED_AUDIT_DEV_SERVER_URL` | Start `npm run dev` in `dashboard/` |
+| `BACKEND_ERROR` | FastAPI API unreachable at `HAUNTED_AUDIT_API_URL` | Start `uvicorn agent.api.main:app` |
+| `SCAN_IN_PROGRESS` | Concurrent `scan_url` call rejected by lock | Wait for the active scan to finish and retry |
+| `PATCH_FAILED` | Diff rejected or does not apply cleanly | Re-run `propose_fix` against the latest source file |

@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
@@ -188,6 +188,25 @@ class RunStore:
                     seq INTEGER NOT NULL,
                     json TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS night_watch (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_date      TEXT NOT NULL,
+                    run_id        TEXT,
+                    journey_id    TEXT NOT NULL,
+                    variant       TEXT NOT NULL,
+                    agent_mode    TEXT NOT NULL,
+                    verdict       TEXT,
+                    reason_code   TEXT,
+                    status        TEXT NOT NULL,
+                    input_tokens  INTEGER NOT NULL DEFAULT 0,
+                    output_tokens INTEGER NOT NULL DEFAULT 0,
+                    total_tokens  INTEGER NOT NULL DEFAULT 0,
+                    cost_usd      REAL NOT NULL DEFAULT 0.0,
+                    latency_ms    REAL,
+                    error_message TEXT,
+                    created_at    TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS ix_night_watch_date ON night_watch(run_date);
                 """
             )
             columns = {r["name"] for r in self._conn.execute("PRAGMA table_info(runs)")}
@@ -354,6 +373,46 @@ class RunStore:
         events = [{"seq": row["seq"], "json": row["json"]} for row in rows]
         return events, run["status"]
 
+    def night_watch_history(
+        self,
+        *,
+        limit: int = 100,
+        offset: int = 0,
+        status: str | None = None,
+        journey_id: str | None = None,
+        since: str | None = None,
+    ) -> dict:
+        clauses: list[str] = []
+        params: list[object] = []
+        if status:
+            clauses.append("status = ?")
+            params.append(status)
+        if journey_id:
+            clauses.append("journey_id = ?")
+            params.append(journey_id)
+        if since:
+            clauses.append("run_date >= ?")
+            params.append(since)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        with self._lock:
+            total = int(
+                self._conn.execute(f"SELECT COUNT(*) FROM night_watch {where}", params).fetchone()[0]
+            )
+            rows = self._conn.execute(
+                f"""
+                SELECT id, run_date, run_id, journey_id, variant, agent_mode,
+                       verdict, reason_code, status,
+                       input_tokens, output_tokens, total_tokens, cost_usd,
+                       latency_ms, error_message, created_at
+                FROM night_watch
+                {where}
+                ORDER BY run_date DESC, id DESC
+                LIMIT ? OFFSET ?
+                """,
+                [*params, limit, offset],
+            ).fetchall()
+        return {"rows": [dict(row) for row in rows], "count": total}
+
 
 class RequestLogMiddleware:
     """One JSON line per request. Pure ASGI so streaming responses are not buffered."""
@@ -431,6 +490,22 @@ def create_app(
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok"}
+
+    @app.get("/night-watch/history")
+    def night_watch_history(
+        limit: int = Query(default=100, ge=1, le=500),
+        offset: int = Query(default=0, ge=0),
+        status: str | None = None,
+        journey_id: str | None = None,
+        since: str | None = None,
+    ) -> dict:
+        return app.state.store.night_watch_history(
+            limit=limit,
+            offset=offset,
+            status=status,
+            journey_id=journey_id,
+            since=since,
+        )
 
     _AUDIT_RULES: dict[str, set[str]] = {
         "labels": {
