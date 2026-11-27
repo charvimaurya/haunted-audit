@@ -230,11 +230,11 @@ export function PossessionMode({
   const [dirty, setDirty] = useState({ recipient: false, amount: false, reference: false });
 
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning || result === null) {
       setManualValues({ recipient: '', amount: '', reference: '' });
       setDirty({ recipient: false, amount: false, reference: false });
     }
-  }, [isRunning, scenario]);
+  }, [isRunning, scenario, result]);
 
   const latestEvent = liveEvents[liveEvents.length - 1] ?? null;
   const activeField = isRunning ? focusedFieldFromHint(latestEvent?.focused_after?.selector_hint) : null;

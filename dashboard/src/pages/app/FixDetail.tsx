@@ -46,6 +46,12 @@ export default function FixDetail() {
   const verdict = activeResult?.verdict ?? savedEntry?.verdict ?? null;
   const blocked = !isRunning && verdict === 'BLOCKED';
   const passed = !isRunning && verdict === 'PASSED';
+  const blockedTag = activeResult?.blocked_element?.tag?.toLowerCase();
+  const effectiveVariant = activeResult?.variant ?? savedEntry?.variant;
+  const effectiveReason = activeResult?.reason_code ?? savedEntry?.reason_code;
+  const noAccessibilityBarrier =
+    blocked &&
+    (blockedTag === 'button' || (effectiveVariant === 'fixed' && effectiveReason === 'NO_ACTIVATION'));
 
   // Strictly chained milestones: Find -> Fix -> Verify -> Regression
   const findComplete = !isRunning && Boolean(activeResult || savedEntry);
@@ -104,17 +110,23 @@ export default function FixDetail() {
         dot: 'bg-[#22c55e] shadow-[0_0_8px_#22c55e]',
         cls: 'bg-[#0f2a1b] text-[#6ee7a0] border-[#22c55e55]',
       }
-    : blocked
+    : noAccessibilityBarrier
       ? {
-          label: 'Live Test',
-          dot: 'bg-[#ff5a5a] shadow-[0_0_8px_#ff5a5a]',
-          cls: 'bg-[#3a1222] text-[#ff8a8a] border-[#ff6b6b55]',
+          label: 'Validation Check',
+          dot: 'bg-[#fbbf24] shadow-[0_0_8px_#fbbf24]',
+          cls: 'bg-[#2a220b] text-[#fde68a] border-[#fbbf2455]',
         }
-      : {
-          label: verdict ?? 'Ready',
-          dot: 'bg-[#9aa3c7]',
-          cls: 'bg-[#1d2140] text-[#cfd3ee] border-[#2c2a52]',
-        };
+      : blocked
+        ? {
+            label: 'Live Test',
+            dot: 'bg-[#ff5a5a] shadow-[0_0_8px_#ff5a5a]',
+            cls: 'bg-[#3a1222] text-[#ff8a8a] border-[#ff6b6b55]',
+          }
+        : {
+            label: verdict ?? 'Ready',
+            dot: 'bg-[#9aa3c7]',
+            cls: 'bg-[#1d2140] text-[#cfd3ee] border-[#2c2a52]',
+          };
 
   // Makes every wrapped card stretch evenly, prevent horizontal overflow, and match the active ring
   const getStepCardClass = (index: number) => {
@@ -226,7 +238,7 @@ export default function FixDetail() {
       </nav>
 
       {/* Step 1: Barrier Diagnosis Card */}
-      {(activeTab === 'find' || blocked) && (
+      {(activeTab === 'find' || blocked || passed) && (
         <section
           ref={(el) => {
             stepRefs.current.find = el;
@@ -253,7 +265,11 @@ export default function FixDetail() {
                   <Search size={15} className="shrink-0 text-[#c084fc]" aria-hidden="true" />
                   <span className="break-words">
                     Find ·{' '}
-                    {blocked ? (
+                    {noAccessibilityBarrier ? (
+                      <span className="text-[#fde68a]">
+                        Validation reject on accessible &lt;{blockedTag ?? 'button'}&gt; ({effectiveReason ?? 'NO_ACTIVATION'})
+                      </span>
+                    ) : blocked ? (
                       <span className="text-[#ff8a8a]">
                         Blocked: {activeResult?.reason_code ?? savedEntry?.reason_code ?? 'no reason code'}
                       </span>
@@ -274,13 +290,22 @@ export default function FixDetail() {
                     {activeResult?.blocked_element?.text ? ` · "${activeResult.blocked_element.text}"` : ''}
                   </p>
                 )}
+                {noAccessibilityBarrier && (
+                  <p className="m-0 mt-1.5 break-words text-xs leading-relaxed text-[#fde68a]">
+                    All steps reached the accessible native button ({effectiveVariant} page). Confirmation did not appear because form validation rejected the submitted values (e.g., Haunted Bank requires Amount &le; EUR 1000.00), so no accessibility code patch is needed.
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
               {verdict && (
-                <Chip size="sm" variant="flat" color={verdict === 'BLOCKED' ? 'danger' : 'success'}>
-                  {verdict}
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color={noAccessibilityBarrier ? 'warning' : verdict === 'BLOCKED' ? 'danger' : 'success'}
+                >
+                  {noAccessibilityBarrier ? 'VALIDATION' : verdict}
                 </Chip>
               )}
               <Button

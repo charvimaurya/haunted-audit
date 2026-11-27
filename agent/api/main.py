@@ -153,6 +153,7 @@ class ScanCreate(BaseModel):
 
     variant: Literal["broken", "fixed"] | None = None
     url: str | None = None
+    audit_type: Literal["all", "keyboard", "labels", "contrast"] = "all"
 
 
 class RunStore:
@@ -431,6 +432,32 @@ def create_app(
     def health() -> dict:
         return {"status": "ok"}
 
+    _AUDIT_RULES: dict[str, set[str]] = {
+        "labels": {
+            "label", "button-name", "link-name", "image-alt", "input-button-name", "select-name",
+            "aria-allowed-attr", "aria-required-attr", "aria-valid-attr", "aria-valid-attr-value",
+            "html-has-lang", "frame-title", "document-title", "aria-hidden-focus",
+        },
+        "contrast": {"color-contrast", "color-contrast-enhanced"},
+        "keyboard": {
+            "tabindex", "bypass", "accesskeys", "focus-order-semantics",
+            "scrollable-region-focusable", "nested-interactive", "region",
+        },
+    }
+
+    def _filter_scan_result(result: dict, audit_type: str) -> dict:
+        if audit_type == "all" or audit_type not in _AUDIT_RULES:
+            return {**result, "audit_type": "all"}
+        allowed = _AUDIT_RULES[audit_type]
+        filtered = [f for f in result.get("findings", []) if f.get("rule") in allowed]
+        return {
+            **result,
+            "findings": filtered,
+            "count": len(filtered),
+            "total_wcag_count": result.get("count", len(filtered)),
+            "audit_type": audit_type,
+        }
+
     @app.post("/scan")
     def scan_target(body: ScanCreate, request: Request) -> dict:
         from backend.scanner.axe_scanner import scan_bundled_bank, scan_public_url
@@ -438,7 +465,8 @@ def create_app(
         if body.url and body.variant:
             raise HTTPException(status_code=422, detail="Provide either 'variant' or 'url', not both.")
         if not body.url:
-            return scan_bundled_bank(body.variant or "broken")
+            raw = scan_bundled_bank(body.variant or "broken")
+            return _filter_scan_result(raw, body.audit_type)
 
         try:
             resolved = check_url(body.url)
@@ -465,10 +493,15 @@ def create_app(
                 detail=f"Public site scan could not complete ({msg}). Try a fast public URL like https://www.w3.org/WAI/demos/bad/before/home.html.",
             ) from exc
         log_event(msg="public_scan_finished", findings=result["count"])
-        return result
+        return _filter_scan_result(result, body.audit_type)
 
     @app.get("/sandbox/{scenario_id}", response_class=HTMLResponse)
-    def serve_sandbox(scenario_id: str, variant: Literal["broken", "fixed"] = "broken", run_id: str | None = None) -> HTMLResponse:
+    def serve_sandbox(
+        scenario_id: str,
+        variant: Literal["broken", "fixed"] = "broken",
+        run_id: str | None = None,
+        return_to: str | None = None,
+    ) -> HTMLResponse:
         from agent.keyboard_agent.scenarios import scenario_path
 
         try:
@@ -477,21 +510,48 @@ def create_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         html = path.read_text(encoding="utf-8")
         if run_id:
+            from urllib.parse import urlsplit
+
             safe_run = json.dumps(run_id)
             safe_api = json.dumps("")
+            # Allow relative /app/fixes paths or full URLs on an allowed CORS origin (for split Vercel + API deploys).
+            resolved_redirect = f"/app/fixes/{run_id}"
+            if return_to:
+                if return_to.startswith("/app/fixes"):
+                    resolved_redirect = return_to
+                else:
+                    parsed = urlsplit(return_to)
+                    origin = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else ""
+                    if origin in allowed_origins() and parsed.path.startswith("/app/fixes"):
+                        resolved_redirect = return_to
+            safe_redirect = json.dumps(resolved_redirect)
             observer = (
                 "<script>(function(){"
                 "const runId=" + safe_run + ";"
                 "const api=" + safe_api + "||window.location.origin;"
+                "const nextUrl=" + safe_redirect + ";"
+                "const ghost=document.createElement('div');"
+                "ghost.setAttribute('aria-hidden','true');"
+                "ghost.style.cssText='position:fixed;z-index:9998;pointer-events:none;transition:left .32s ease,top .32s ease,transform .25s ease;left:24px;top:24px;display:flex;align-items:center;gap:8px';"
+                "function ghostSvg(tone){"
+                "const fill=tone==='red'?'#ff5a5a':tone==='green'?'#22c55e':'#a855f7';"
+                "const glow=tone==='red'?'rgba(239,68,68,.75)':tone==='green'?'rgba(34,197,94,.75)':'rgba(168,85,247,.7)';"
+                "return '<svg width=\"48\" height=\"48\" viewBox=\"0 0 120 120\" style=\"filter:drop-shadow(0 0 10px '+glow+')\"><path d=\"M60 6C36 6 24 26 24 48c0 6-4 12-12 18 8 3 14 1 18-2-2 14-6 26-14 38 12 2 22-2 28-8 4 10 12 14 22 12 8 6 18 6 24-2 8 6 18 4 22-2-8-12-10-26-10-40 4 3 10 5 18 2-8-6-12-12-12-18C96 26 84 6 60 6z\" fill=\"'+fill+'\"/><ellipse cx=\"47\" cy=\"52\" rx=\"6\" ry=\"8\" fill=\"#120b24\"/><ellipse cx=\"73\" cy=\"52\" rx=\"6\" ry=\"8\" fill=\"#120b24\"/></svg>';"
+                "}"
+                "const bubble=document.createElement('span');"
+                "bubble.style.cssText='background:#120b24;color:#fff;border:1px solid #a855f7;border-radius:10px;padding:6px 10px;font:700 12px/1.3 ui-sans-serif,system-ui,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.55);max-width:220px';"
+                "bubble.textContent='Walking page...';"
+                "ghost.innerHTML=ghostSvg('green');ghost.appendChild(bubble);document.body.appendChild(ghost);"
                 "const bar=document.createElement('div');"
-                "bar.style.cssText='position:fixed;bottom:14px;right:14px;z-index:9999;max-width:380px;background:#120b24;color:#f3efff;border:1.5px solid #a855f7;border-radius:12px;padding:12px 14px;font:600 13px/1.4 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.6)';"
-                "bar.innerHTML='<div style=\"color:#c084fc;font-size:11px;text-transform:uppercase;letter-spacing:.08em\">Haunted Audit Live Agent</div><div id=\"ha-live-msg\">Connecting to sandbox runner...</div>';"
+                "bar.style.cssText='position:fixed;bottom:12px;right:12px;left:12px;z-index:9999;max-width:390px;margin-left:auto;background:#120b24;color:#f3efff;border:1.5px solid #22c55e;border-radius:12px;padding:12px 14px;font:600 13px/1.4 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.6)';"
+                "bar.innerHTML='<div style=\"color:#6ee7a0;font-size:11px;text-transform:uppercase;letter-spacing:.08em\">Haunted Audit Live Ghost Guide</div><div id=\"ha-live-msg\">Connecting to sandbox runner...</div>';"
                 "document.body.appendChild(bar);"
                 "let lastHighlighted=null;"
-                "function highlight(sel,label){"
+                "function highlight(sel,label,tone){"
                 "if(lastHighlighted){lastHighlighted.style.outline='';lastHighlighted.style.boxShadow='';}"
-                "if(!sel)return;"
-                "try{const el=document.querySelector(sel);if(el){lastHighlighted=el;el.style.outline='3px solid #fbbf24';el.style.boxShadow='0 0 18px rgba(251,191,36,.55)';el.scrollIntoView({block:'nearest'});}}catch(e){}"
+                "const color=tone==='red'?'#ef4444':tone==='green'?'#22c55e':'#fbbf24';"
+                "const glow=tone==='red'?'rgba(239,68,68,.55)':tone==='green'?'rgba(34,197,94,.5)':'rgba(251,191,36,.55)';"
+                "if(sel){try{const el=document.querySelector(sel);if(el){lastHighlighted=el;el.style.outline='3px solid '+color;el.style.boxShadow='0 0 18px '+glow;el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();ghost.firstElementChild.outerHTML=ghostSvg(tone||'green');ghost.style.left=Math.max(8,Math.min(window.innerWidth-260,r.right-24))+'px';ghost.style.top=Math.max(8,r.top-8)+'px';bubble.style.borderColor=color;bubble.textContent=label||'Inspecting';}}catch(e){}}"
                 "if(label)document.getElementById('ha-live-msg').textContent=label;"
                 "}"
                 "const es=new EventSource(api+'/runs/'+encodeURIComponent(runId)+'/events');"
@@ -499,13 +559,18 @@ def create_app(
                 "const hint=d.focused_after&&d.focused_after.selector_hint;"
                 "const targetBefore=d.focused_before&&d.focused_before.selector_hint;"
                 "if(d.tool==='type_text'&&d.args&&typeof d.args.text==='string'){const f=targetBefore?document.querySelector(targetBefore):document.activeElement;if(f&&'value' in f){f.value=d.args.text;}}"
-                "highlight(hint,'Step '+d.step+': '+d.tool+(hint?' -> '+hint:''));"
+                "const t=d.tool==='declare_done'?'amber':'green';"
+                "highlight(hint,'Step '+d.step+': '+d.tool+(hint?' -> '+hint:''),t);"
                 "}catch(e){}};"
                 "es.addEventListener('done',function(){es.close();fetch(api+'/runs/'+encodeURIComponent(runId)).then(r=>r.json()).then(rec=>{"
                 "const res=rec.result||rec;const blocked=res.verdict==='BLOCKED';"
                 "bar.style.borderColor=blocked?'#ef4444':'#22c55e';"
-                "document.getElementById('ha-live-msg').textContent=blocked?('BLOCKED: '+(res.reason_code||'')+' '+(res.blocked_element&&res.blocked_element.selector||'')):'PASSED cleanly';"
-                "if(blocked&&res.blocked_element&&res.blocked_element.selector){highlight(res.blocked_element.selector);}"
+                "bar.firstElementChild.style.color=blocked?'#ff8a8a':'#6ee7a0';"
+                "const msg=blocked?('BLOCKED: '+(res.reason_code||'')+' '+(res.blocked_element&&res.blocked_element.selector||'')):'PASSED cleanly'; "
+                "document.getElementById('ha-live-msg').textContent=msg+' · Redirecting to Fixes...';"
+                "if(blocked&&res.blocked_element&&res.blocked_element.selector){highlight(res.blocked_element.selector,'Ghost caught: '+res.reason_code,'red');}"
+                "else if(!blocked){highlight('[data-testid=\"payment-confirmation\"]','Journey Verified!','green');}"
+                "setTimeout(function(){window.location.assign(nextUrl);},1400);"
                 "}).catch(function(){});});"
                 "})();</script>"
             )

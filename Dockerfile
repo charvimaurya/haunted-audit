@@ -16,6 +16,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agent ./agent
+COPY backend ./backend
 COPY fixtures ./fixtures
 COPY docs/evidence-seed.json ./docs/evidence-seed.json
 RUN mkdir -p /app/artifacts && chown -R pwuser:pwuser /app
@@ -23,4 +24,4 @@ RUN mkdir -p /app/artifacts && chown -R pwuser:pwuser /app
 USER pwuser
 EXPOSE 8000
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["uvicorn", "agent.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+CMD ["sh", "-c", "exec uvicorn agent.api.main:app --host 0.0.0.0 --port ${PORT:-8000} --no-access-log"]

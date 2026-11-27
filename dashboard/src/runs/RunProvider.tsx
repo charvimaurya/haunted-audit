@@ -64,7 +64,21 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const sseRef = useRef<EventSource | null>(null);
 
   const setScenario = useCallback((next: ScenarioId) => {
-    setScenarioState(normalizeScenarioId(next));
+    const normalized = normalizeScenarioId(next);
+    setScenarioState((prev) => {
+      if (prev !== normalized) {
+        sseRef.current?.close();
+        setDetails({ recipient: '', amount: '', reference: '' });
+        setRunDetails(null);
+        setResult(null);
+        setLiveEvents([]);
+        setNotice(null);
+        setRunError(null);
+        setRunStatus(null);
+        setVoiceResultState(null);
+      }
+      return normalized;
+    });
   }, []);
 
   const setVoiceResult = useCallback(
@@ -150,7 +164,9 @@ export function RunProvider({ children }: { children: ReactNode }) {
       }
       const { run_id } = (await res.json()) as { run_id: string };
       if (liveTab && !liveTab.closed) {
-        liveTab.location.href = `${API_BASE}/sandbox/${encodeURIComponent(scenario)}?variant=${encodeURIComponent(variant)}&run_id=${encodeURIComponent(run_id)}`;
+        const returnTo =
+          typeof window !== 'undefined' ? `${window.location.origin}/app/fixes/${encodeURIComponent(run_id)}` : `/app/fixes/${encodeURIComponent(run_id)}`;
+        liveTab.location.href = `${API_BASE}/sandbox/${encodeURIComponent(scenario)}?variant=${encodeURIComponent(variant)}&run_id=${encodeURIComponent(run_id)}&return_to=${encodeURIComponent(returnTo)}`;
       }
 
       // SSE stream

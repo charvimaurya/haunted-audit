@@ -19,14 +19,16 @@ from agent.api.url_guard import MAX_SECONDS, check_url
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AXE_SCRIPT_PATH = REPO_ROOT / "dashboard" / "node_modules" / "axe-core" / "axe.min.js"
+BUNDLED_AXE_SCRIPT_PATH = Path(__file__).resolve().parent / "axe.min.js"
 FIXTURE_ROOT = REPO_ROOT / "fixtures" / "haunted_bank"
 WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]
 
 
 def _axe_source() -> str:
-    if not AXE_SCRIPT_PATH.is_file():
-        raise RuntimeError(f"axe-core script not found at {AXE_SCRIPT_PATH}")
-    return AXE_SCRIPT_PATH.read_text(encoding="utf-8")
+    for candidate in (AXE_SCRIPT_PATH, BUNDLED_AXE_SCRIPT_PATH):
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8")
+    raise RuntimeError(f"axe-core script not found at {AXE_SCRIPT_PATH} or {BUNDLED_AXE_SCRIPT_PATH}")
 
 
 def _serve_bank_once(variant: str):

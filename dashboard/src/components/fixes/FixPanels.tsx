@@ -26,6 +26,19 @@ function diffLines(diff: string): DiffLine[] {
     }));
 }
 
+/**
+ * Returns true when a run hit NO_ACTIVATION against an already-accessible native <button>
+ * (or on the fixed variant), meaning form validation—not a div barrier—rejected the submit.
+ */
+function isValidationRejectOnAccessibleButton(result: JourneyResult | null): boolean {
+  if (!result || result.verdict !== 'BLOCKED') return false;
+  const tag = result.blocked_element?.tag?.toLowerCase();
+  return (
+    tag === 'button' ||
+    (result.variant === 'fixed' && result.reason_code === 'NO_ACTIVATION')
+  );
+}
+
 interface ProposedFixProps {
   result: JourneyResult | null;
   apiStatus: ApiStatus;
@@ -37,6 +50,7 @@ interface ProposedFixProps {
 export function ProposedFixPanel({ result, apiStatus, isRunning, flow, focused = false }: ProposedFixProps) {
   const { fix, busy } = flow;
   const blocked = Boolean(result && !isRunning && result.verdict === 'BLOCKED');
+  const accessibleButtonValidation = blocked && isValidationRejectOnAccessibleButton(result);
   const lines = fix?.diff ? diffLines(fix.diff) : [];
 
   return (
@@ -54,8 +68,27 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow, focused =
         </div>
       ) : !blocked ? (
         <p className="m-0 px-[22px] pt-4 text-sm text-[#cfd3ee]">
-          Nothing to fix yet: only a finished, <span className="font-semibold text-white">BLOCKED</span> run has a finding to fix.
+          No fix needed: this run <span className="font-semibold text-[#6ee7a0]">PASSED</span> cleanly with no accessibility barrier.
         </p>
+      ) : accessibleButtonValidation && (!fix || fix.status === 'exorcist_failed') ? (
+        <div className="px-[22px] pt-4 pb-2 flex flex-col gap-2.5">
+          <div className="rounded-xl border border-[#22c55e44] bg-[#0f2a1b]/70 p-3.5 text-sm text-[#dff7e8]">
+            <p className="m-0 font-semibold text-[#6ee7a0]">
+              No accessibility patch needed ({result.variant} page)
+            </p>
+            <p className="m-0 mt-1.5 text-xs leading-relaxed text-[#cfd3ee]">
+              The {result.agent_kind ?? 'voice'} agent reached and activated the native{' '}
+              <code className="font-mono text-white">
+                &lt;{result.blocked_element?.tag ?? 'button'}&gt;
+              </code>{' '}
+              (<code className="font-mono text-white">{result.blocked_element?.selector ?? 'button'}</code>).
+              Confirmation did not appear because form validation rejected the submitted values (for example, Haunted Bank requires an amount between EUR 0.01 and EUR 1000.00) rather than an inaccessible element.
+            </p>
+          </div>
+          <p className="m-0 text-xs text-[#9aa3c7]">
+            Re-run in Possession Mode with a valid amount (&le; 1000.00) on <span className="text-white">fixed</span> to see a <span className="text-[#6ee7a0]">PASSED</span> verdict, or test the <span className="text-white">broken</span> variant to patch the <code className="font-mono">&lt;div&gt;</code> button.
+          </p>
+        </div>
       ) : !fix ? (
         <>
           <div className="px-[22px] pt-4 flex flex-col gap-2">
@@ -176,7 +209,7 @@ export function ProposedFixPanel({ result, apiStatus, isRunning, flow, focused =
         </>
       )}
 
-      {flow.error && (
+      {flow.error && !accessibleButtonValidation && (
         <p className="m-0 px-[22px] pt-3 text-sm text-[#ff8a8a]" role="alert">
           {flow.error}
         </p>

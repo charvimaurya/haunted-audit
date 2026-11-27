@@ -46,10 +46,10 @@ export function PossessionJourney({ pageId = 'possession' }: { pageId?: 'possess
   const paramScenario = params.get('scenario');
 
   useEffect(() => {
-    if (isScenarioId(paramScenario) && paramScenario !== scenario) {
+    if (isScenarioId(paramScenario)) {
       setScenario(paramScenario);
     }
-  }, [paramScenario, scenario, setScenario]);
+  }, [paramScenario, setScenario]);
 
   const activeScenario = getScenarioDef(scenario);
   const voiceLead = `A voice-command run of one user journey (${activeScenario.submitLabel}) on ${activeScenario.name}. A ghost is an accessibility barrier.`;
@@ -93,6 +93,8 @@ export function PossessionJourney({ pageId = 'possession' }: { pageId?: 'possess
 
   function handleScenarioChange(nextId: ScenarioId) {
     setScenario(nextId);
+    setEditedText(null);
+    setEmptyNotice(null);
     const nextParams = new URLSearchParams(params);
     nextParams.set('scenario', nextId);
     setParams(nextParams, { replace: true });

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: haunted-audit-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /ping
+    envVars:
+      - key: HAUNTED_AUDIT_DB
+        value: /tmp/runs.db
+      - key: LLM_ENABLED
+        value: "false"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: RATE_PER_MINUTE
+        value: "5"
+      - key: RATE_PER_HOUR
+        value: "30"
+      - key: MAX_CONCURRENT_RUNS
+        value: "2"

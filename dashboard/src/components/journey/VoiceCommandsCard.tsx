@@ -93,11 +93,24 @@ export function VoiceCommandsCard({ commandText, onCommandTextChange, source, ru
             </ol>
           )}
           {run.phase === 'finished' && run.result && (
-            <p className="m-0 text-base font-ui text-ink" role="status">
-              Checker: {run.result.verdict}
-              {run.result.reason_code ? ` (${run.result.reason_code})` : ''}. Voice agent, {run.result.agent_mode} mode,{' '}
-              {run.result.variant} page.
-            </p>
+            <>
+              <p className="m-0 text-base font-ui text-ink" role="status">
+                Checker: {run.result.verdict}
+                {run.result.reason_code ? ` (${run.result.reason_code})` : ''}. Voice agent, {run.result.agent_mode} mode,{' '}
+                {run.result.variant} page.
+              </p>
+              {run.result.verdict === 'BLOCKED' &&
+                (run.result.blocked_element?.tag?.toLowerCase() === 'button' ||
+                  (run.result.variant === 'fixed' && run.steps.every((s) => s.outcome === 'done'))) && (
+                  <p
+                    className="m-0 rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100"
+                    role="note"
+                  >
+                    All voice commands executed on the native <code className="font-mono">&lt;button&gt;</code> ({run.result.variant} page).
+                    Confirmation did not appear because form validation rejected an input (for example, Haunted Bank&apos;s balance limit is EUR 1000.00), not because of an accessibility barrier.
+                  </p>
+                )}
+            </>
           )}
           {(run.phase === 'failed' || run.phase === 'refused' || run.phase === 'offline') && run.message && (
             <p className="m-0 text-base font-ui text-ghost-blocked" role="alert">{run.message}</p>

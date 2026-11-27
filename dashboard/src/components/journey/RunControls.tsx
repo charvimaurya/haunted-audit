@@ -9,7 +9,7 @@
  * - Status is icon plus text, in a live region that is always rendered.
  * - Focus uses the global 3px outline from index.css; targets are at least 44px tall.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Loader2, Play, XCircle } from 'lucide-react';
 import type { AgentMode, RunStatus, TestDetails, Variant } from '../../types/index';
 import { AgentToggle, type AgentKind } from './AgentToggle';
@@ -75,6 +75,12 @@ export function RunControls({
     amount: useRef<HTMLInputElement>(null),
     reference: useRef<HTMLInputElement>(null),
   };
+
+  useEffect(() => {
+    if (details && !details.recipient && !details.amount && !details.reference) {
+      setErrors({});
+    }
+  }, [details]);
   return (
     <div
       className="flex flex-wrap items-end gap-3 rounded-xl border border-base-line bg-base-surface/60 px-4 py-3 sm:px-5"
