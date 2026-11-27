@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ChartColumn,
   Ghost,
+  LayoutGrid,
   ScanSearch,
   Send,
   Settings,

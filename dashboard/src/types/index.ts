@@ -2,6 +2,7 @@
 
 export type Verdict    = 'PASSED' | 'BLOCKED';
 export type ReasonCode = 'TARGET_NOT_FOCUSABLE' | 'FOCUS_TRAP' | 'NO_ACTIVATION' | 'STEP_LIMIT' | 'TIMEOUT';
+export type AgentKind  = 'keyboard' | 'voice';
 export type AgentMode  = 'llm' | 'scripted';
 export type Variant    = 'broken' | 'fixed';
 export type RunStatus  = 'running' | 'complete' | 'error';

@@ -50,9 +50,9 @@ export default function Reports() {
   const metricCards = [
     {
       label: 'Planted barriers detected',
-      value: latestBlocked !== null ? `${latestBlocked} / ${totalPlanted}` : '--',
+      value: latestBlocked !== null ? `${latestBlocked} / ${totalPlanted ?? '--'}` : '--',
       sub: latestBlocked !== null ? `${agentMode} · measured` : 'not yet measured',
-      pctFill: latestBlocked !== null ? Math.round((latestBlocked / totalPlanted) * 100) : 0,
+      pctFill: latestBlocked !== null && totalPlanted ? Math.round((latestBlocked / totalPlanted) * 100) : 0,
       barColor: 'bg-ghost-blocked',
       icon: Target,
       tone: 'text-ghost-blocked',

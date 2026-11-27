@@ -19,6 +19,7 @@ import { ResultState } from '../../components/results/ResultState';
 import { useFix } from '../../fixes/fixContext';
 import { FIX_STEPS, FIX_STEP_LABEL, to, type FixStep } from '../../routes';
 import { scenarioDisplayName } from '../../runs/possessionHistory';
+import type { JourneyResult } from '../../types';
 import { useRun } from '../../runs/runContext';
 
 const REGRESSION_STEP_INDEX = FIX_STEPS.indexOf('regression');
@@ -35,9 +36,9 @@ export default function FixDetail() {
   }, [runId, selectRun]);
 
   const savedEntry = history.find((item) => item.run_id === runId) ?? null;
-  const activeResult =
-    flow?.selectedResult?.run_id === runId
-      ? flow.selectedResult
+  const activeResult: JourneyResult | null =
+    flow && flow.selectedResult?.run_id === runId
+      ? (flow.selectedResult ?? null)
       : result?.run_id === runId
         ? result
         : null;

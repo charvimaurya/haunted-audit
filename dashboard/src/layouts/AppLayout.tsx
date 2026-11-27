@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Button,
-  Chip,
   Drawer,
   DrawerBody,
   DrawerContent,
@@ -20,9 +19,6 @@ import {
   ScanSearch,
   Send,
   Settings,
-  Shield,
-  ShieldCheck,
-  TriangleAlert,
   Users,
   Wrench,
   type LucideIcon,
